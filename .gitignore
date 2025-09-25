@@ -15,6 +15,9 @@ node_modules
 # Testing
 coverage
 
+CLAUDE.md
+.claude
+
 # Turbo
 .turbo
 
@@ -27,6 +30,10 @@ out/
 build
 dist
 
+# Package build outputs
+packages/*/dist/
+packages/*/.turbo/
+
 
 # Debug
 npm-debug.log*
@@ -36,3 +43,8 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
+.npmrc
+
+.vscode/
+.idea/
+spec/

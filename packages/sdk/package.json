@@ -1,0 +1,49 @@
+{
+  "name": "callpad-sdk",
+  "version": "0.1.0",
+  "description": "Headless SDK for Gopaddi audio/video",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "check-types": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "author": "Voyatek Group",
+  "license": "MIT",
+  "repository": {
+    "type": "git"
+  },
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0"
+  },
+  "dependencies": {
+    "livekit-client": "^2.8.0",
+    "socket.io-client": "^4.7.0",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.2.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
