@@ -22,6 +22,8 @@ export interface TrackState {
   kind: "audio" | "video" | "screen";
 }
 
+export type PermissionStatus = "granted" | "denied" | "prompt" | "unknown";
+
 export interface DeviceState {
   mics: MediaDeviceInfo[];
   cams: MediaDeviceInfo[];
@@ -31,6 +33,11 @@ export interface DeviceState {
     camId?: string;
     speakerId?: string;
   };
+  permissions: {
+    camera: PermissionStatus;
+    microphone: PermissionStatus;
+  };
+  isLoading: boolean;
 }
 
 export interface IncomingCallInfo {
@@ -91,6 +98,16 @@ export const defaultState: RtcState = {
   local: { audioEnabled: false, videoEnabled: false, screenEnabled: false },
   participants: {},
   tracks: {},
-  devices: { mics: [], cams: [], speakers: [], selected: {} },
+  devices: {
+    mics: [],
+    cams: [],
+    speakers: [],
+    selected: {},
+    permissions: {
+      camera: "unknown",
+      microphone: "unknown",
+    },
+    isLoading: false,
+  },
   errors: [],
 };

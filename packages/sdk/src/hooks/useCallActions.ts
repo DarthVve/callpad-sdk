@@ -1,5 +1,5 @@
 import { useSdk } from "../provider/RtcProvider";
-import type { CallActions } from "../services/call-actions";
+import type { CallActions } from "../services";
 
 export function useCallActions(): CallActions {
   const sdk = useSdk();

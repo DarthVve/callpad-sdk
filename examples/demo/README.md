@@ -1,73 +1,72 @@
-# React + TypeScript + Vite
+# CallPad SDK Demo
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A simple React demo application showcasing the CallPad SDK features.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+This demo includes placeholder components for:
 
-## React Compiler
+- **Video Call Interface**: Main video container for call display
+- **Participant Management**: List of call participants with status indicators
+- **Call Controls**: Mute, camera, screen share, and leave call buttons
+- **Connection Status**: Real-time connection quality monitoring
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Getting Started
 
-## Expanding the ESLint configuration
+### Prerequisites
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- Node.js 18+ (compatible with current Node.js 21.6.2)
+- pnpm
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Installation
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+pnpm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Development
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Start the development server:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+pnpm dev
+```
+
+The demo will be available at http://localhost:3000
+
+### Build
+
+Build the production version:
+
+```bash
+pnpm build
+```
+
+### Type Checking
+
+Run TypeScript type checking:
+
+```bash
+pnpm check-types
+```
+
+## Next Steps
+
+Once the CallPad SDK is ready, you can:
+
+1. Install the SDK: `pnpm add callpad-sdk`
+2. Replace placeholder components with actual SDK integration
+3. Connect to real video calls and test SDK functionality
+
+## Project Structure
+
+```
+src/
+├── components/
+│   ├── Header.tsx          # App header with branding
+│   ├── CallDemo.tsx        # Main video call interface
+│   ├── ParticipantsPanel.tsx  # Participant list and status
+│   └── ControlsPanel.tsx   # Call control buttons
+├── App.tsx                 # Main app component
+└── main.tsx               # App entry point
 ```

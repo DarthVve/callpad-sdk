@@ -2,16 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { SocketEvents } from "../core/socketio/types";
 import { useSdk } from "../provider/RtcProvider";
 
-/**
- * Hook to listen for network events from the socket connection.
- * Provides two usage patterns:
- * 1. Callback-based: useNetworkEvent('call.incoming', (data) => { ... })
- * 2. Return-based: const event = useNetworkEvent('call.incoming')
- *
- * @param event - The network event to listen for
- * @param handler - Optional callback handler for the event
- * @returns The latest event data (when no handler is provided)
- */
+
 export function useNetworkEvent<K extends keyof SocketEvents>(
   event: K,
   handler?: (data: SocketEvents[K]) => void
@@ -40,7 +31,7 @@ export function useNetworkEvent<K extends keyof SocketEvents>(
 
   useEffect(() => {
     setEventData(undefined);
-  }, [event]);
+  }, []);
 
   return eventData;
 }

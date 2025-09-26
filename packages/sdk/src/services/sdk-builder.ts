@@ -1,9 +1,10 @@
 import { AuthManager, SocketManager } from "../core";
 import { SignalClient } from "../core/signal";
+import type { SocketEvents } from "../core/socketio/types";
+import { LiveKitService } from "../livekit/livekit.service";
 import { rtcStore } from "../state/store";
 import { type CallActions, createCallActions } from "./call-actions";
 import { setupSocketEventBridge } from "./socket-event-bridge";
-import type { SocketEvents } from "../core/socketio/types";
 
 export interface SdkBuildOptions {
   appId: string;
@@ -23,9 +24,9 @@ export interface RtcSdk extends CallActions {
   auth: AuthManager;
   socket: SocketManager;
   signal: SignalClient;
-  // livekit: ReturnType<typeof createLiveKitService>; // Added in Chunk B
+  livekit: LiveKitService;
   cleanup: () => void;
-  
+
   // Convenience methods for event listening
   /**
    * Subscribe to a network event. Shortcut for sdk.socket.events.on()
@@ -37,7 +38,7 @@ export interface RtcSdk extends CallActions {
     event: K,
     handler: (data: SocketEvents[K]) => void
   ): () => void;
-  
+
   /**
    * Unsubscribe from a network event. Shortcut for sdk.socket.events.off()
    * @param event - The event name to unsubscribe from
@@ -64,17 +65,31 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
     socketManager: socket,
   });
 
-  // Set up socket event bridge and get cleanup function
-  const cleanupEventBridge = setupSocketEventBridge(socket, { log: opts.log });
-
   // Create call actions with state management
   const callActions = createCallActions(signal);
+
+  // Initialize LiveKit service
+  const livekit = new LiveKitService({
+    livekitUrl: opts.livekitUrl,
+    log: opts.log,
+  });
+
+  // Set up socket event bridge with LiveKit integration
+  const cleanupEventBridge = setupSocketEventBridge(
+    socket,
+    {
+      log: opts.log,
+      livekitUrl: opts.livekitUrl,
+    },
+    livekit
+  );
 
   // Cleanup function for SDK teardown
   const cleanup = () => {
     cleanupEventBridge();
     socket.destroy();
     signal.destroy();
+    livekit.destroy();
     rtcStore.getState().reset();
   };
 
@@ -83,9 +98,10 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
     auth,
     socket,
     signal,
+    livekit,
     ...callActions,
     cleanup,
-    
+
     // Convenience methods for event listening
     on<K extends keyof SocketEvents>(
       event: K,
@@ -93,7 +109,7 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
     ) {
       return socket.events.on(event, handler);
     },
-    
+
     off<K extends keyof SocketEvents>(
       event: K,
       handler: (data: SocketEvents[K]) => void

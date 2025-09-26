@@ -1,8 +1,10 @@
 import type { SocketManager } from "../core";
 import type { IncomingCallEvent } from "../core/signal";
+import type { LiveKitService } from "../livekit/livekit.service";
 import { rtcStore } from "../state/store";
 
 export interface SocketEventBridgeOptions {
+  livekitUrl?: string;
   log?: (
     lvl: "debug" | "info" | "warn" | "error",
     msg: string,
@@ -16,7 +18,8 @@ export interface SocketEventBridgeOptions {
  */
 export function setupSocketEventBridge(
   socket: SocketManager,
-  opts: SocketEventBridgeOptions = {}
+  opts: SocketEventBridgeOptions = {},
+  livekit?: LiveKitService
 ): () => void {
   const unsubscribers: Array<() => void> = [];
 
@@ -95,9 +98,10 @@ export function setupSocketEventBridge(
 
   // Handle join info (LiveKit credentials)
   unsubscribers.push(
-    socket.events.on("call.join-info", (data: any) => {
-      opts.log?.("info", "Received join info", data);
+    socket.events.on("call.join-info", async (data: any) => {
+      opts.log?.("info", "Received join info, connecting to LiveKit", data);
 
+      // Update state (existing behavior)
       rtcStore.getState().patch((state) => {
         if (state.session.id === data.callId) {
           state.session.status = "active";
@@ -108,6 +112,35 @@ export function setupSocketEventBridge(
           };
         }
       });
+
+      // NEW: Automatically join LiveKit room using recommended patterns
+      if (livekit) {
+        try {
+          const roomUrl = opts.livekitUrl || data.url;
+          if (!roomUrl) {
+            throw new Error("LiveKit URL not provided in options or join info");
+          }
+
+          opts.log?.("info", "Auto-joining LiveKit room", {
+            url: roomUrl,
+            callId: data.callId,
+          });
+          await livekit.joinRoom(data.token, roomUrl);
+          opts.log?.("info", "Successfully auto-joined LiveKit room");
+        } catch (error) {
+          opts.log?.("error", "Failed to auto-join LiveKit room", error);
+          const errorMessage =
+            error instanceof Error ? error.message : "Unknown error";
+          rtcStore.getState().addError({
+            code: "LIVEKIT_AUTO_JOIN_FAILED",
+            message: `Failed to automatically join LiveKit room: ${errorMessage}`,
+            timestamp: Date.now(),
+            context: error,
+          });
+        }
+      } else {
+        opts.log?.("warn", "LiveKit service not available for auto-join");
+      }
     })
   );
 
