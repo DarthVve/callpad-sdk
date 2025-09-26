@@ -18,13 +18,13 @@
     "CHANGELOG.md"
   ],
   "scripts": {
+    "generate:api": "openapi-ts",
     "build": "tsup",
     "dev": "tsup --watch",
     "check-types": "tsc --noEmit",
     "clean": "rm -rf dist"
   },
   "author": "Voyatek Group",
-  "license": "MIT",
   "repository": {
     "type": "git"
   },
@@ -35,9 +35,13 @@
   "dependencies": {
     "livekit-client": "^2.8.0",
     "socket.io-client": "^4.7.0",
-    "axios": "^1.6.0"
+    "axios": "^1.6.0",
+    "jwt-decode": "^4.0.0",
+    "zustand": "^4.5.0",
+    "immer": "^10.0.0"
   },
   "devDependencies": {
+    "@hey-api/openapi-ts": "^0.37.0",
     "tsup": "^8.0.0",
     "typescript": "^5.2.0",
     "@types/react": "^18.2.0",

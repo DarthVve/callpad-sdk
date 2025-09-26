@@ -1,0 +1,106 @@
+.controls-panel {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  flex: 1;
+}
+
+.panel-title {
+  background: #f8f9fa;
+  margin: 0;
+  padding: 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.controls-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+.control-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 0.5rem;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.875rem;
+}
+
+.control-btn:hover {
+  border-color: #667eea;
+  background: #f8f9ff;
+}
+
+.control-btn.active {
+  background: #fff2f2;
+  border-color: #dc3545;
+  color: #dc3545;
+}
+
+.control-btn.disconnect {
+  grid-column: 1 / -1;
+  background: #dc3545;
+  color: white;
+  border-color: #dc3545;
+}
+
+.control-btn.disconnect:hover {
+  background: #c82333;
+  border-color: #c82333;
+}
+
+.control-icon {
+  font-size: 1.5rem;
+}
+
+.control-label {
+  font-weight: 500;
+}
+
+.connection-info {
+  padding: 1rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.connection-info h4 {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.status-item:last-child {
+  margin-bottom: 0;
+}
+
+.status-label {
+  color: #666;
+}
+
+.status-value {
+  font-weight: 500;
+  color: #333;
+}
+
+.status-value.connected {
+  color: #28a745;
+}
