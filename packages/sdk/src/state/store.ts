@@ -33,5 +33,4 @@ export const useRtcStore = create<RtcState & Actions>()(
   }))
 );
 
-// Vanilla store for non-React contexts
 export const rtcStore = useRtcStore;
