@@ -1,7 +1,7 @@
 import { AuthManager, SocketManager } from "../core";
 import { SignalClient } from "../core/signal";
 import type { SocketEvents } from "../core/socketio/types";
-import { LiveKitService } from "../livekit/livekit.service";
+import { LiveKitService } from "../livekit";
 import { rtcStore } from "../state/store";
 import { type CallActions, createCallActions } from "./call-actions";
 import { setupSocketEventBridge } from "./socket-event-bridge";
@@ -27,33 +27,17 @@ export interface RtcSdk extends CallActions {
   livekit: LiveKitService;
   cleanup: () => void;
 
-  // Convenience methods for event listening
-  /**
-   * Subscribe to a network event. Shortcut for sdk.socket.events.on()
-   * @param event - The event name to listen for
-   * @param handler - The callback function to handle the event data
-   * @returns A function to unsubscribe from the event
-   */
   on<K extends keyof SocketEvents>(
     event: K,
     handler: (data: SocketEvents[K]) => void
   ): () => void;
 
-  /**
-   * Unsubscribe from a network event. Shortcut for sdk.socket.events.off()
-   * @param event - The event name to unsubscribe from
-   * @param handler - The callback function to remove
-   */
   off<K extends keyof SocketEvents>(
     event: K,
     handler: (data: SocketEvents[K]) => void
   ): void;
 }
 
-/**
- * Builds the complete SDK with all services wired together
- * Central factory for creating SDK instances
- */
 export function buildSdk(opts: SdkBuildOptions): RtcSdk {
   // Initialize core managers
   const auth = new AuthManager(opts.authProvider);
@@ -65,16 +49,13 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
     socketManager: socket,
   });
 
-  // Create call actions with state management
   const callActions = createCallActions(signal);
 
-  // Initialize LiveKit service
   const livekit = new LiveKitService({
     livekitUrl: opts.livekitUrl,
     log: opts.log,
   });
 
-  // Set up socket event bridge with LiveKit integration
   const cleanupEventBridge = setupSocketEventBridge(
     socket,
     {
@@ -84,7 +65,6 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
     livekit
   );
 
-  // Cleanup function for SDK teardown
   const cleanup = () => {
     cleanupEventBridge();
     socket.destroy();

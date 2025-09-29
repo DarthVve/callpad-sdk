@@ -1,6 +1,6 @@
 import type { SocketManager } from "../core";
 import type { IncomingCallEvent } from "../core/signal";
-import type { LiveKitService } from "../livekit/livekit.service";
+import type { LiveKitService } from "../livekit";
 import { rtcStore } from "../state/store";
 
 export interface SocketEventBridgeOptions {
@@ -12,10 +12,6 @@ export interface SocketEventBridgeOptions {
   ) => void;
 }
 
-/**
- * Sets up event bridge between socket events and state store
- * Handles all real-time socket events and updates application state accordingly
- */
 export function setupSocketEventBridge(
   socket: SocketManager,
   opts: SocketEventBridgeOptions = {},
@@ -48,7 +44,6 @@ export function setupSocketEventBridge(
     })
   );
 
-  // Handle call accepted (by another device/user)
   unsubscribers.push(
     socket.events.on("call.accepted", (data: any) => {
       opts.log?.("info", "Call accepted", data);
@@ -113,7 +108,7 @@ export function setupSocketEventBridge(
         }
       });
 
-      // NEW: Automatically join LiveKit room using recommended patterns
+      // NEW: Automatically join the LiveKit room using recommended patterns
       if (livekit) {
         try {
           const roomUrl = opts.livekitUrl || data.url;
