@@ -26,5 +26,5 @@ steps:
   - script: pnpm run build
     displayName: 'Build package'
 
-  - script: pnpm publish --no-git-checks
+  - script: pnpm publish-packages
     displayName: 'Publish package'

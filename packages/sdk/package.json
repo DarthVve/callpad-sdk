@@ -17,6 +17,9 @@
     "README.md",
     "CHANGELOG.md"
   ],
+  "publishConfig": {
+    "registry": "https://pkgs.dev.azure.com/VoyatekGroup/b4112907-f359-45e4-b4da-36d1ef143922/_packaging/callpad-sdk/npm/registry/"
+  },
   "scripts": {
     "generate:api": "openapi-ts",
     "build": "tsup",
