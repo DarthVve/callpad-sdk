@@ -17,11 +17,11 @@ steps:
       workingFile: .npmrc
     displayName: 'Authenticate to Azure Artifacts'
 
-  - script: npm install
-    displayName: 'Install dependencies'
-
   - script: cd packages/sdk
     displayName: 'Change directory to sdk'
+
+  - script: npm install
+    displayName: 'Install dependencies'
 
   - script: npm run build
     displayName: 'Build package'
