@@ -9,7 +9,7 @@
     "lint:fix": "biome check --apply .",
     "check": "biome check --fix --unsafe",
     "check-types": "turbo run check-types",
-    "publish-packages": "turbo run build lint && changeset version && changeset publish"
+    "publish-packages": "turbo run build lint && npx @changesets/cli version && npx @changesets/cli publish"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.8.0",
