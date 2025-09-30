@@ -1,6 +1,6 @@
 {
-  "name": "web-sdk",
-  "private": true,
+  "name": "@callpad-sdk/core",
+  "version": "1.0.0",
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
