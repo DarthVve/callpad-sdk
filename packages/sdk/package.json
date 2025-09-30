@@ -1,5 +1,5 @@
 {
-  "name": "callpad-sdk",
+  "name": "@callpad-sdk/core",
   "version": "0.1.0",
   "description": "Headless SDK for Gopaddi audio/video",
   "main": "./dist/index.js",
@@ -19,7 +19,7 @@
   ],
   "scripts": {
     "generate:api": "openapi-ts",
-    "build": "tsup",
+    "build": "tsup src/index.ts --format cjs,esm --dts",
     "dev": "tsup --watch",
     "check-types": "tsc --noEmit",
     "clean": "rm -rf dist"
