@@ -53,6 +53,8 @@ export class SocketManager {
         timeout: config.timeout ?? 10000,
         forceNew: true,
         path: "/signal/socket.io",
+        transports: ["websocket"],
+        withCredentials: false,
       });
 
       this.setupConnectionHandlers(authManager);

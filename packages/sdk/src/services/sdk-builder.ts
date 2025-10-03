@@ -9,7 +9,6 @@ import { setupSocketEventBridge } from "./socket-event-bridge";
 export interface SdkBuildOptions {
   appId: string;
   signalHost: string;
-  livekitUrl?: string;
   authProvider: () => string | null;
   log?: (
     lvl: "debug" | "info" | "warn" | "error",
@@ -52,7 +51,6 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
   const callActions = createCallActions(signal);
 
   const livekit = new LiveKitService({
-    livekitUrl: opts.livekitUrl,
     log: opts.log,
   });
 
@@ -60,7 +58,6 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
     socket,
     {
       log: opts.log,
-      livekitUrl: opts.livekitUrl,
     },
     livekit
   );

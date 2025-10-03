@@ -16,7 +16,6 @@ import {
 import { rtcStore } from "../state/store";
 
 export interface SocketEventBridgeOptions {
-  livekitUrl: string | undefined;
   log:
     | ((
         lvl: "debug" | "info" | "warn" | "error",
@@ -29,7 +28,6 @@ export interface SocketEventBridgeOptions {
 export function setupSocketEventBridge(
   socket: SocketManager,
   opts: SocketEventBridgeOptions = {
-    livekitUrl: undefined,
     log: undefined,
   },
   livekit?: LiveKitService
@@ -340,17 +338,16 @@ export function setupSocketEventBridge(
       // Attempt LiveKit connection
       if (livekit) {
         try {
-          const roomUrl = opts.livekitUrl || data.url;
-          if (!roomUrl) {
-            throw new Error("LiveKit URL not provided in options or join info");
+          if (!data.url) {
+            throw new Error("LiveKit URL not provided in join info");
           }
 
           opts.log?.("info", "Auto-joining LiveKit room", {
-            url: roomUrl,
+            url: data.url,
             callId: data.callId,
           });
 
-          await livekit.joinRoom(data.token, roomUrl);
+          await livekit.joinRoom(data.token, data.url);
           opts.log?.("info", "Successfully auto-joined LiveKit room");
 
           // Update state on successful connection
