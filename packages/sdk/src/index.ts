@@ -43,15 +43,13 @@ export type {
   CallActionResponse,
 } from "./core/signal/types";
 
-// Socket event types for event handling (using zod schema types)
-export type { SocketEvents } from "./core/socketio/events";
 export type {
   CallIncomingEvent,
   CallAcceptedEvent,
   CallJoinInfoEvent,
   CallEndedEvent,
   ParticipantLeftEvent,
-} from "./core/socketio/schema";
+} from "./core/socketio/handlers/schema";
 
 // Error management
 export * from "./state/errors";

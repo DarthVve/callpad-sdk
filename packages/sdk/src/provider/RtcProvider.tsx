@@ -38,12 +38,17 @@ export function RtcProvider({
       });
     }
 
-    // Initialize socket connection
+    // Initialize socket connection with livekit service
     sdk.socket
-      .initialize(options.signalHost, sdk.auth, {
-        reconnectAttempts: 5,
-        reconnectDelay: 1000,
-      })
+      .initialize(
+        options.signalHost,
+        sdk.auth,
+        {
+          reconnectAttempts: 5,
+          reconnectDelay: 1000,
+        },
+        sdk.livekit
+      )
       .catch((error) => {
         options.log?.("error", "Failed to initialize socket connection", error);
 

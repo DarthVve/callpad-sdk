@@ -1,20 +1,16 @@
 import { type Socket, io } from "socket.io-client";
 import type { AuthManager } from "../auth.manager";
 import type { Nullable } from "../types";
-import type {
-  ConnectionConfig,
-  ConnectionEvents,
-  ConnectionState,
-} from "./connection.types";
-import { EventBus } from "./event.bus";
-import type { SocketEvents } from "./events";
+import { SocketHandlerRegistry } from "./handlers";
+import type { ConnectionConfig, ConnectionState } from "./types";
 
 export class SocketManager {
   private static instance: Nullable<SocketManager> = null;
 
   private socket: Nullable<Socket> = null;
   private connectionState: ConnectionState = "DISCONNECTED";
-  readonly events = new EventBus<SocketEvents & ConnectionEvents>();
+  private livekit: any = null;
+  private handlerRegistry: Nullable<SocketHandlerRegistry> = null;
 
   private constructor() {}
 
@@ -28,8 +24,10 @@ export class SocketManager {
   async initialize(
     baseUrl: string,
     authManager: AuthManager,
-    config: ConnectionConfig = {}
+    config: ConnectionConfig = {},
+    livekit?: any
   ): Promise<void> {
+    this.livekit = livekit;
     if (this.socket?.connected) {
       return;
     }
@@ -37,9 +35,7 @@ export class SocketManager {
     this.updateConnectionState("CONNECTING");
     const token = authManager.getCurrentToken();
     if (!token) {
-      const error = new Error("No authentication token available");
-      this.events.emit("connection.error", error);
-      throw error;
+      throw new Error("No authentication token available");
     }
 
     try {
@@ -58,11 +54,10 @@ export class SocketManager {
       });
 
       this.setupConnectionHandlers(authManager);
-      this.setupSocketEventBridging();
+      this.setupEventHandlers();
       this.socket.connect();
     } catch (error) {
       this.updateConnectionState("ERROR");
-      this.events.emit("connection.error", error as Error);
       throw error;
     }
   }
@@ -83,7 +78,6 @@ export class SocketManager {
     this.socket.on("connect_error", (error: Error) => {
       this.updateConnectionState("ERROR");
       console.error("SocketManager: Connection error:", error.message);
-      this.events.emit("connection.error", error);
     });
 
     this.socket.io.on("reconnect_attempt", () => {
@@ -112,23 +106,21 @@ export class SocketManager {
     });
   }
 
-  private setupSocketEventBridging(): void {
-    if (!this.socket) return;
-
-    // Bridge call-related events to our event bus
-    const callEvents = [
-      "call.incoming",
-      "call.accepted",
-      "call.declined",
-      "call.ended",
-      "call.join-info",
-    ];
-
-    for (const eventName of callEvents) {
-      this.socket.on(eventName, (data: any) => {
-        this.events.emit(eventName as keyof SocketEvents, data);
-      });
+  private setupEventHandlers(): void {
+    if (!this.socket) {
+      return;
     }
+
+    console.log("🔗 SocketManager: Setting up event handlers via registry");
+
+    this.handlerRegistry = new SocketHandlerRegistry({
+      log: (level, message, extra) => {
+        console.log(`[${level.toUpperCase()}] ${message}`, extra);
+      },
+      livekit: this.livekit,
+    });
+
+    this.handlerRegistry.registerEventListeners(this.socket);
   }
 
   private isAuthError(error: Error): boolean {
@@ -147,51 +139,22 @@ export class SocketManager {
 
   private updateConnectionState(newState: ConnectionState): void {
     if (this.connectionState !== newState) {
-      const previousState = this.connectionState;
       this.connectionState = newState;
-      this.events.emit("connection.state", {
-        state: newState,
-        previousState,
-      });
+      console.log(`SocketManager: Connection state changed to ${newState}`);
     }
-  }
-
-  emit<K extends keyof SocketEvents & string>(
-    event: K,
-    data: SocketEvents[K]
-  ): void {
-    if (this.socket?.connected) {
-      this.socket.emit(event, data);
-    } else {
-      console.warn(`SocketManager: Cannot emit ${event} - not connected`);
-    }
-  }
-
-  // Connection state methods
-  getConnectionState(): ConnectionState {
-    return this.connectionState;
-  }
-
-  isConnected(): boolean {
-    return (
-      this.connectionState === "CONNECTED" && this.socket?.connected === true
-    );
-  }
-
-  disconnect(): void {
-    if (this.socket) {
-      this.socket.disconnect();
-    }
-    this.updateConnectionState("DISCONNECTED");
   }
 
   destroy(): void {
     if (this.socket) {
+      if (this.handlerRegistry) {
+        this.handlerRegistry.removeEventListeners(this.socket);
+        this.handlerRegistry.destroy();
+        this.handlerRegistry = null;
+      }
       this.socket.removeAllListeners();
       this.socket.disconnect();
       this.socket = null;
     }
-    this.events.destroy();
     this.connectionState = "DISCONNECTED";
     SocketManager.instance = null;
     console.log("SocketManager: Destroyed and cleaned up");

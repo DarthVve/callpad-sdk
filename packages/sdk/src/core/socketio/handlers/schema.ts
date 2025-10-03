@@ -1,18 +1,12 @@
 import { z } from "zod";
 
-// Common participant profile schema for socket events
-export const participantProfileSchema = z.object({
-  id: z.string(),
-  firstName: z.string().nullable().optional(),
-  lastName: z.string().nullable().optional(),
-  username: z.string().nullable().optional(),
-  profilePhoto: z.string().nullable().optional(),
-});
-
-// Participant with role for socket events
+// Participant with a role for socket events
 export const socketParticipantSchema = z.object({
   id: z.string(),
-  profile: participantProfileSchema.optional(),
+  firstName: z.string().nullable(),
+  lastName: z.string().nullable(),
+  username: z.string().nullable(),
+  profilePhoto: z.string().nullable(),
   role: z.enum(["CALLER", "CALLEE", "HOST", "MEMBER"]).optional(),
 });
 
@@ -80,3 +74,5 @@ export type CallJoinInfoEvent = z.infer<typeof callJoinInfoSchema>;
 export type CallEndedEvent = z.infer<typeof callEndedSchema>;
 export type ParticipantLeftEvent = z.infer<typeof participantLeftSchema>;
 export type ParticipantJoinedEvent = z.infer<typeof participantJoinedSchema>;
+
+

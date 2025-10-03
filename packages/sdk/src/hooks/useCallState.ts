@@ -1,5 +1,5 @@
 import { useRtcStore } from "../state/store";
-import type { SessionStatus, IncomingCallInfo } from "../state/types";
+import type { IncomingCallInfo, SessionStatus } from "../state/types";
 
 export interface CallState {
   id: string | undefined;

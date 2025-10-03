@@ -1,10 +1,8 @@
 import { AuthManager, SocketManager } from "../core";
 import { type ApiConfig, SignalClient, apiConfig } from "../core/signal";
-import type { SocketEvents } from "../core/socketio/events";
 import { LiveKitService } from "../livekit";
 import { rtcStore } from "../state/store";
 import { type CallActions, createCallActions } from "./call-actions";
-import { setupSocketEventBridge } from "./socket-event-bridge";
 
 export interface SdkBuildOptions {
   appId: string;
@@ -26,16 +24,6 @@ export interface RtcSdk extends CallActions {
   cleanup: () => void;
 
   configureApi: (config: ApiConfig) => void;
-
-  on<K extends keyof SocketEvents>(
-    event: K,
-    handler: (data: SocketEvents[K]) => void
-  ): () => void;
-
-  off<K extends keyof SocketEvents>(
-    event: K,
-    handler: (data: SocketEvents[K]) => void
-  ): void;
 }
 
 export function buildSdk(opts: SdkBuildOptions): RtcSdk {
@@ -54,16 +42,9 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
     log: opts.log,
   });
 
-  const cleanupEventBridge = setupSocketEventBridge(
-    socket,
-    {
-      log: opts.log,
-    },
-    livekit
-  );
+  // Socket now handles events directly - no event bridge needed
 
   const cleanup = () => {
-    cleanupEventBridge();
     socket.destroy();
     livekit.destroy();
     rtcStore.getState().reset();
@@ -81,21 +62,6 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
     // API configuration
     configureApi: (config: ApiConfig) => {
       apiConfig.configure(config);
-    },
-
-    // Convenience methods for event listening
-    on<K extends keyof SocketEvents>(
-      event: K,
-      handler: (data: SocketEvents[K]) => void
-    ) {
-      return socket.events.on(event, handler);
-    },
-
-    off<K extends keyof SocketEvents>(
-      event: K,
-      handler: (data: SocketEvents[K]) => void
-    ) {
-      socket.events.off(event, handler);
     },
   };
 }

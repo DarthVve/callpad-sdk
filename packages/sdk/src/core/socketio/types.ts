@@ -5,14 +5,6 @@ export interface ConnectionConfig {
   timeout?: number;
 }
 
-export interface ConnectionEvents {
-  "connection.state": {
-    state: ConnectionState;
-    previousState: ConnectionState;
-  };
-  "connection.error": Error;
-}
-
 export type ConnectionState =
   | "DISCONNECTED"
   | "CONNECTING"
@@ -20,6 +12,3 @@ export type ConnectionState =
   | "RECONNECTING"
   | "ERROR"
   | "FAILED";
-
-export type EventCallback<T = any> = (data: T) => void;
-export type UnsubscribeFn = () => void;

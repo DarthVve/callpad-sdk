@@ -71,17 +71,34 @@ export function createCallActions(signal: SignalClient): CallActions {
     callId: string,
     reason?: string
   ): Promise<CallActionResponse> {
-    const response = await signal.decline(callId);
+    console.log('🔄 SDK: Starting decline action for callId:', callId);
+    
+    try {
+      const response = await signal.decline(callId);
+      console.log('✅ SDK: Decline API success, response:', response);
 
-    rtcStore.getState().patch((state) => {
-      if (state.session.id === callId) {
-        state.session.status = response.state as SessionStatus;
-      }
-      // Clear incoming call
-      state.incomingCall = undefined;
-    });
+      rtcStore.getState().patch((state) => {
+        if (state.session.id === callId) {
+          state.session.status = response.state as SessionStatus;
+        }
+        // Clear incoming call
+        state.incomingCall = undefined;
+        console.log('✅ SDK: Cleared incomingCall state');
+      });
 
-    return response;
+      return response;
+    } catch (error) {
+      console.error('❌ SDK: Decline API failed:', error);
+      
+      // Even if API fails, clear the incoming call to prevent stuck modal
+      rtcStore.getState().patch((state) => {
+        state.incomingCall = undefined;
+        state.session.status = 'IDLE';
+        console.log('🛡️ SDK: Force-cleared state due to API failure');
+      });
+      
+      throw error;
+    }
   }
 
   async function leave(callId: string): Promise<CallActionResponse> {

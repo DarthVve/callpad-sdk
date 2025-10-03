@@ -1,24 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { SocketEvents } from "../core/socketio/events";
-import { useSdk } from "../provider/RtcProvider";
+import { useRtcStore } from "../state/store";
 
-export interface CallEventOptions<K extends keyof SocketEvents> {
-  onEvent?: (data: SocketEvents[K]) => void;
+export interface CallEventOptions<T = any> {
+  onEvent?: (data: T) => void;
   persistent?: boolean;
   autoReset?: boolean;
 }
 
-export function useCallEvent<K extends keyof SocketEvents>(
-  event: K,
-  optionsOrCallback?: CallEventOptions<K> | ((data: SocketEvents[K]) => void)
+export function useCallEvent<T = any>(
+  event: string,
+  optionsOrCallback?: CallEventOptions<T> | ((data: T) => void)
 ): {
-  data: SocketEvents[K] | undefined;
+  data: T | undefined;
   clear: () => void;
 } {
-  const sdk = useSdk();
-  const [eventData, setEventData] = useState<SocketEvents[K] | undefined>(
-    undefined
-  );
+  const [eventData, setEventData] = useState<T | undefined>(undefined);
+  const [previousStatus, setPreviousStatus] = useState<string | null>(null);
 
   // Handle both callback function and options object
   const options =
@@ -35,8 +32,49 @@ export function useCallEvent<K extends keyof SocketEvents>(
     setEventData(undefined);
   }, []);
 
+  // Watch store changes for specific events
+  const incomingCall = useRtcStore((state) => state.incomingCall);
+  const sessionStatus = useRtcStore((state) => state.session.status);
+  const sessionId = useRtcStore((state) => state.session.id);
+
   useEffect(() => {
-    const eventHandler = (data: SocketEvents[K]) => {
+    let data: T | undefined = undefined;
+
+    // Track status changes for proper event detection
+    if (previousStatus !== sessionStatus) {
+      setPreviousStatus(sessionStatus);
+    }
+
+    // Map events to store values with proper transition logic
+    switch (event) {
+      case "call.incoming":
+        if (incomingCall) {
+          data = incomingCall as T;
+        }
+        break;
+      case "call.accepted":
+        // Only trigger when transitioning to ACCEPTED status
+        if (sessionStatus === "ACCEPTED" && previousStatus !== "ACCEPTED" && sessionId) {
+          data = { status: sessionStatus } as T;
+        }
+        break;
+      case "call.declined":
+        // Note: call.declined events are handled by socket events only
+        // Don't generate fake events from status transitions
+        break;
+      case "call.ended":
+        // Only trigger when transitioning to ENDED status
+        if (sessionStatus === "ENDED" && previousStatus !== "ENDED" && sessionId) {
+          data = { status: sessionStatus } as T;
+        }
+        break;
+      default:
+        // For other events, we can't easily map to store state
+        break;
+    }
+
+    if (data && JSON.stringify(data) !== JSON.stringify(eventData)) {
+      console.log(`🎯 useCallEvent: '${event}' detected`, data);
       setEventData(data);
 
       if (onEventRef.current) {
@@ -51,16 +89,10 @@ export function useCallEvent<K extends keyof SocketEvents>(
 
         return () => clearTimeout(timer);
       }
+    }
 
-      return undefined;
-    };
-
-    const unsubscribe = sdk.socket.events.on(event, eventHandler);
-
-    return () => {
-      unsubscribe();
-    };
-  }, [sdk, event, persistent, autoReset]);
+    return undefined;
+  }, [event, incomingCall, sessionStatus, sessionId, eventData, persistent, autoReset, previousStatus]);
 
   // Clear on mount
   useEffect(() => {
