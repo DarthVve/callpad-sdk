@@ -1,3 +1,4 @@
+import { Room } from "livekit-client";
 import { useCallback, useEffect, useState } from "react";
 import { useSdk } from "../provider/RtcProvider";
 import { useRtcStore } from "../state/store";
@@ -7,7 +8,9 @@ export interface DeviceActions {
   switchCamera: (deviceId: string) => Promise<void>;
   switchMicrophone: (deviceId: string) => Promise<void>;
   switchSpeaker: (deviceId: string) => Promise<void>;
+  listDevices: () => Promise<void>;
   refreshDevices: () => Promise<void>;
+  requestPermissions: (kind: "microphone" | "camera" | "both") => Promise<void>;
   checkPermissions: () => Promise<void>;
 }
 
@@ -82,24 +85,91 @@ export function useDevices(): DevicesHook {
     "switch speaker"
   );
 
-  const refreshDevices = useCallback(async (): Promise<void> => {
-    if (!deviceManager) {
-      const errorMsg = !isConnected
-        ? "Cannot refresh devices - not connected to LiveKit room"
-        : "Device manager not available - LiveKit service not initialized";
-      throw new Error(errorMsg);
-    }
-
+  // Pre-connection device listing using LiveKit static method
+  const listDevices = useCallback(async (): Promise<void> => {
     setLocalLoading(true);
     try {
-      await deviceManager.enumerateDevices();
+      const [mics, cams, speakers] = await Promise.all([
+        Room.getLocalDevices("audioinput", false), // Don't request permissions
+        Room.getLocalDevices("videoinput", false),
+        Room.getLocalDevices("audiooutput", false),
+      ]);
+
+      useRtcStore.getState().patch((state) => {
+        state.devices.mics = mics;
+        state.devices.cams = cams;
+        state.devices.speakers = speakers;
+        state.devices.isEnumerating = false;
+        state.devices.lastEnumeratedAt = Date.now();
+      });
     } catch (error) {
-      console.error("Failed to refresh devices:", error);
+      console.error("Failed to list devices:", error);
       throw error;
     } finally {
       setLocalLoading(false);
     }
-  }, [deviceManager, isConnected]);
+  }, []);
+
+  // Request permissions and refresh device labels
+  const requestPermissions = useCallback(
+    async (kind: "microphone" | "camera" | "both"): Promise<void> => {
+      setLocalLoading(true);
+      try {
+        // Use LiveKit's permission-requesting device enumeration
+        if (kind === "microphone" || kind === "both") {
+          await Room.getLocalDevices("audioinput", true); // Request permissions
+          useRtcStore.getState().patch((state) => {
+            state.devices.permissions.microphone = "granted";
+          });
+        }
+
+        if (kind === "camera" || kind === "both") {
+          await Room.getLocalDevices("videoinput", true); // Request permissions
+          useRtcStore.getState().patch((state) => {
+            state.devices.permissions.camera = "granted";
+          });
+        }
+
+        // Refresh all devices to get updated labels
+        await listDevices();
+      } catch (error) {
+        console.error("Failed to request permissions:", error);
+
+        // Update permission state based on error type
+        useRtcStore.getState().patch((state) => {
+          if (kind === "microphone" || kind === "both") {
+            state.devices.permissions.microphone = "denied";
+          }
+          if (kind === "camera" || kind === "both") {
+            state.devices.permissions.camera = "denied";
+          }
+        });
+
+        throw error;
+      } finally {
+        setLocalLoading(false);
+      }
+    },
+    [listDevices]
+  );
+
+  const refreshDevices = useCallback(async (): Promise<void> => {
+    if (deviceManager && isConnected) {
+      // Use connected device manager when available
+      setLocalLoading(true);
+      try {
+        await deviceManager.enumerateDevices();
+      } catch (error) {
+        console.error("Failed to refresh devices:", error);
+        throw error;
+      } finally {
+        setLocalLoading(false);
+      }
+    } else {
+      // Fall back to pre-connection listing
+      await listDevices();
+    }
+  }, [deviceManager, isConnected, listDevices]);
 
   const checkPermissions = useCallback(async (): Promise<void> => {
     if (!navigator.permissions) {
@@ -142,16 +212,24 @@ export function useDevices(): DevicesHook {
   }, []);
 
   useEffect(() => {
+    // Auto-list devices on mount (works pre-connection)
+    listDevices().catch((error) => {
+      console.warn("Failed to auto-list devices:", error);
+    });
+
+    checkPermissions().catch((error) => {
+      console.warn("Failed to check permissions:", error);
+    });
+  }, [listDevices, checkPermissions]);
+
+  useEffect(() => {
+    // Re-enumerate when connected to get more accurate device info
     if (isConnected && deviceManager) {
       refreshDevices().catch((error) => {
-        console.warn("Failed to auto-refresh devices:", error);
-      });
-
-      checkPermissions().catch((error) => {
-        console.warn("Failed to check permissions:", error);
+        console.warn("Failed to refresh devices after connection:", error);
       });
     }
-  }, [isConnected, deviceManager, refreshDevices, checkPermissions]);
+  }, [isConnected, deviceManager, refreshDevices]);
 
   const unavailableAction = async (): Promise<void> => {
     const errorMsg = !isConnected
@@ -160,7 +238,7 @@ export function useDevices(): DevicesHook {
     throw new Error(errorMsg);
   };
 
-  const isLoading = devices.isLoading || localLoading;
+  const isEnumerating = devices.isEnumerating || localLoading;
 
   return {
     mics: devices.mics,
@@ -168,7 +246,8 @@ export function useDevices(): DevicesHook {
     speakers: devices.speakers,
     selected: devices.selected,
     permissions: devices.permissions,
-    isLoading,
+    isEnumerating,
+    lastEnumeratedAt: devices.lastEnumeratedAt,
 
     isConnected,
     errors,
@@ -176,7 +255,9 @@ export function useDevices(): DevicesHook {
     switchCamera: deviceManager ? switchCamera : unavailableAction,
     switchMicrophone: deviceManager ? switchMicrophone : unavailableAction,
     switchSpeaker: deviceManager ? switchSpeaker : unavailableAction,
-    refreshDevices: deviceManager ? refreshDevices : unavailableAction,
+    listDevices, // Always available (works pre-connection)
+    refreshDevices, // Now works both pre and post connection
+    requestPermissions, // Always available (works pre-connection)
     checkPermissions,
   };
 }

@@ -1,6 +1,6 @@
 import { AuthManager, SocketManager } from "../core";
-import { SignalClient } from "../core/signal";
-import type { SocketEvents } from "../core/socketio/types";
+import { type ApiConfig, SignalClient, apiConfig } from "../core/signal";
+import type { SocketEvents } from "../core/socketio/events";
 import { LiveKitService } from "../livekit";
 import { rtcStore } from "../state/store";
 import { type CallActions, createCallActions } from "./call-actions";
@@ -8,8 +8,7 @@ import { setupSocketEventBridge } from "./socket-event-bridge";
 
 export interface SdkBuildOptions {
   appId: string;
-  restBaseUrl: string;
-  socketUrl: string;
+  signalHost: string;
   livekitUrl?: string;
   authProvider: () => string | null;
   log?: (
@@ -27,6 +26,8 @@ export interface RtcSdk extends CallActions {
   livekit: LiveKitService;
   cleanup: () => void;
 
+  configureApi: (config: ApiConfig) => void;
+
   on<K extends keyof SocketEvents>(
     event: K,
     handler: (data: SocketEvents[K]) => void
@@ -43,10 +44,9 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
   const auth = new AuthManager(opts.authProvider);
   const socket = SocketManager.getInstance();
   const signal = new SignalClient({
-    baseUrl: opts.restBaseUrl,
+    baseUrl: opts.signalHost,
     appId: opts.appId,
     authManager: auth,
-    socketManager: socket,
   });
 
   const callActions = createCallActions(signal);
@@ -68,7 +68,6 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
   const cleanup = () => {
     cleanupEventBridge();
     socket.destroy();
-    signal.destroy();
     livekit.destroy();
     rtcStore.getState().reset();
   };
@@ -81,6 +80,11 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
     livekit,
     ...callActions,
     cleanup,
+
+    // API configuration
+    configureApi: (config: ApiConfig) => {
+      apiConfig.configure(config);
+    },
 
     // Convenience methods for event listening
     on<K extends keyof SocketEvents>(

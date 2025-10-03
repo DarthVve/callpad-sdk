@@ -8,7 +8,7 @@ export function useCallActions(): CallActions {
     initiate: sdk.initiate,
     accept: sdk.accept,
     decline: sdk.decline,
-    end: sdk.end,
+    leave: sdk.leave,
   };
 }
 

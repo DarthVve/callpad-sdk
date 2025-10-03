@@ -1,12 +1,12 @@
 import { useRtcStore } from "../state/store";
-import type { IncomingCallInfo, SessionStatus } from "../state/types";
+import type { SessionStatus, IncomingCallInfo } from "../state/types";
 
 export interface CallState {
-  id?: string;
+  id: string | undefined;
   status: SessionStatus;
-  mode?: "audio" | "video";
-  roomName?: string;
-  incomingCall?: IncomingCallInfo;
+  mode: "AUDIO" | "VIDEO" | undefined;
+  roomName: string | undefined;
+  incomingCall: IncomingCallInfo | undefined;
 }
 
 export function useCallState(): CallState {

@@ -1,56 +1,37 @@
 import { CallsService } from "../../generated/api";
-import { OpenAPI } from "../../generated/api";
-import type { AuthManager } from "../auth.manager";
-import type { SocketManager } from "../socketio";
-import { EventBus } from "../socketio";
+import type { CallsData } from "../../generated/api/models";
 import type {
-  CallInfo,
+  CallActionResponse,
   CallResponse,
   InitiateCallParams,
   SignalClientConfig,
-  SignalEvents,
 } from "./types";
-import { SignalError } from "./types";
 
 export class SignalClient {
-  private socketManager: SocketManager;
-  private authManager: AuthManager;
   private config: SignalClientConfig;
-  private eventBus = new EventBus<SignalEvents>();
 
   constructor(config: SignalClientConfig) {
     this.config = config;
-    this.socketManager = config.socketManager;
-    this.authManager = config.authManager;
-
-    OpenAPI.BASE = config.baseUrl;
-    OpenAPI.TOKEN = async () => {
-      const token = this.authManager.getCurrentToken();
-      return token || "";
-    };
   }
 
   async initiate(params: InitiateCallParams): Promise<CallResponse> {
     try {
-      const response = await CallsService.postSignalCalls({
+      return await CallsService.postSignalCalls({
         appId: this.config.appId,
         requestBody: {
           mode: params.mode || "AUDIO",
           participants: params.invitees.map((userId) => ({ userId })),
         },
       });
-
-      this.eventBus.emit("call.initiated", response as CallInfo);
-      return response as CallResponse;
     } catch (error) {
       this.handleApiError("initiate", error);
       throw error;
     }
   }
 
-  async accept(callId: string): Promise<void> {
+  async accept(callId: string): Promise<CallActionResponse> {
     try {
-      await CallsService.postSignalCallsByCallIdAccept({
+      return CallsService.postSignalCallsByCallIdAccept({
         callId,
         appId: this.config.appId,
       });
@@ -60,30 +41,26 @@ export class SignalClient {
     }
   }
 
-  async decline(callId: string, reason?: string): Promise<void> {
+  async decline(callId: string): Promise<CallActionResponse> {
     try {
-      await CallsService.postSignalCallsByCallIdDecline({
+      return CallsService.postSignalCallsByCallIdDecline({
         callId,
         appId: this.config.appId,
       });
-
-      this.eventBus.emit("call.declined", { callId, reason });
     } catch (error) {
       this.handleApiError("decline", error);
       throw error;
     }
   }
 
-  async end(callId: string): Promise<void> {
+  async leave(callId: string): Promise<CallActionResponse> {
     try {
-      await CallsService.postSignalCallsByCallIdEnd({
+      return CallsService.postSignalCallsByCallIdLeave({
         callId,
         appId: this.config.appId,
       });
-
-      this.eventBus.emit("call.ended", { callId, reason: "ended" });
     } catch (error) {
-      this.handleApiError("end", error);
+      this.handleApiError("leave", error);
       throw error;
     }
   }
@@ -93,24 +70,11 @@ export class SignalClient {
       error?.body?.message || error?.message || "Unknown error";
     const errorCode = error?.status || error?.code || "UNKNOWN";
 
-    this.eventBus.emit(
-      "error",
-      new SignalError(
-        `Signal API error during ${operation}: ${errorMessage}`,
-        `SIGNAL_${operation.toUpperCase()}_ERROR`,
-        errorCode
-      )
-    );
-  }
-
-  on<K extends keyof SignalEvents>(
-    event: K,
-    handler: (data: SignalEvents[K]) => void
-  ): () => void {
-    return this.eventBus.on(event, handler);
-  }
-
-  destroy(): void {
-    this.eventBus.destroy();
+    // Log error for debugging - real-time error handling happens via Socket.IO
+    console.error(`Signal API error during ${operation}: ${errorMessage}`, {
+      operation,
+      errorCode,
+      error,
+    });
   }
 }

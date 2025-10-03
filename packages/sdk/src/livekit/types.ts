@@ -66,13 +66,71 @@ export interface MediaActions {
   disableMicrophone: () => Promise<void>;
   toggleCamera: () => Promise<void>;
   toggleMicrophone: () => Promise<void>;
+  enableScreenShare: () => Promise<void>;
+  disableScreenShare: () => Promise<void>;
+  toggleScreenShare: () => Promise<void>;
 }
 
 export interface LiveKitServiceOptions {
-  livekitUrl?: string;
-  log?: (
-    lvl: "debug" | "info" | "warn" | "error",
-    msg: string,
-    extra?: any
-  ) => void;
+  livekitUrl: string | undefined;
+  log:
+    | ((
+        lvl: "debug" | "info" | "warn" | "error",
+        msg: string,
+        extra?: any
+      ) => void)
+    | undefined;
+}
+
+/**
+ * RPC (Remote Procedure Call) related types and interfaces
+ */
+export interface RpcMethodHandler<TReq = any, TRes = any> {
+  method: string;
+  handler: (data: TReq, caller: Participant) => Promise<TRes> | TRes;
+}
+
+export interface RpcCallOptions {
+  /**
+   * Timeout for the RPC call in milliseconds
+   */
+  timeout?: number;
+  /**
+   * Whether to wait for a response
+   */
+  waitForResponse?: boolean;
+}
+
+export interface RpcManager {
+  /**
+   * Register an RPC method handler
+   */
+  registerMethod<TReq = any, TRes = any>(
+    method: string,
+    handler: (data: TReq, caller: Participant) => Promise<TRes> | TRes
+  ): void;
+
+  /**
+   * Unregister an RPC method handler
+   */
+  unregisterMethod(method: string): void;
+
+  /**
+   * Call an RPC method on a remote participant
+   */
+  callMethod<TReq = any, TRes = any>(
+    destinationIdentity: string,
+    method: string,
+    data: TReq,
+    options?: RpcCallOptions
+  ): Promise<TRes>;
+
+  /**
+   * Call an RPC method on all participants
+   */
+  broadcastMethod<TReq = any>(
+    method: string,
+    data: TReq,
+    options?: Omit<RpcCallOptions, "waitForResponse">
+  ): Promise<void>;
 }

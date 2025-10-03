@@ -1,19 +1,4 @@
-// Core managers (for advanced usage)
-export * from "./core";
-export { SignalClient } from "./core/signal/signal.client";
-export type { InitiateCallParams, CallResponse } from "./core/signal/types";
-
-// Socket event types for external listeners
-export type { SocketEvents } from "./core/socketio/types";
-
-// State management
-export * from "./state/types";
-export { useRtcStore, rtcStore } from "./state/store";
-
-// Services (for advanced usage)
-export * from "./services";
-
-// Provider & Context
+// React integration - main SDK entry points
 export {
   RtcProvider,
   useSdk,
@@ -21,5 +6,55 @@ export {
   type RtcSdk,
 } from "./provider/RtcProvider";
 
-// Hooks
+// React hooks for call management
 export * from "./hooks";
+
+// State selectors for advanced usage
+export {
+  selectParticipantView,
+  selectParticipantsForRinging,
+  selectParticipantsInCall,
+  selectSpeakingParticipants,
+  selectSelf,
+  useParticipantView,
+  useParticipantsForRinging,
+  useParticipantsInCall,
+} from "./state/selectors";
+
+// Essential types consumers need
+export type {
+  SessionStatus,
+  Profile,
+  Presence,
+  MediaSummary,
+  ParticipantView,
+  PermissionStatus,
+  DeviceState,
+  IncomingCallInfo,
+  LiveKitJoinInfo,
+  RtcError,
+  RtcState,
+} from "./state/types";
+
+// Signal client types for call initiation
+export type {
+  InitiateCallParams,
+  CallResponse,
+  CallActionResponse,
+} from "./core/signal/types";
+
+// Socket event types for event handling (using zod schema types)
+export type { SocketEvents } from "./core/socketio/events";
+export type {
+  CallIncomingEvent,
+  CallAcceptedEvent,
+  CallJoinInfoEvent,
+  CallEndedEvent,
+  ParticipantLeftEvent,
+} from "./core/socketio/schema";
+
+// Error management
+export * from "./state/errors";
+
+// API configuration
+export { apiConfig, type ApiConfig } from "./core/signal/api.config";
