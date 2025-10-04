@@ -1,6 +1,6 @@
 {
   "name": "vg-callpad-x07df",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Production-ready headless SDK for CallPad audio/video calls",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -36,10 +36,6 @@
     "typecheck": "tsc --noEmit",
     "lint": "echo \"Lint not configured - add ESLint setup\"",
     "clean": "rimraf dist",
-    "changeset": "cd ../.. && changeset",
-    "version": "cd ../.. && changeset version",
-    "release": "pnpm build && pnpm typecheck && cd ../.. && changeset publish",
-    "release:dry": "pnpm build && pnpm typecheck && cd ../.. && changeset publish --dry-run",
     "prepublishOnly": "npm run clean && npm run build && npm run typecheck"
   },
   "author": "Voyatek Group",

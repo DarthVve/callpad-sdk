@@ -1,5 +1,15 @@
 # vg-callpad-x07df
 
+## 1.0.1
+
+### Patch Changes
+
+- Add comprehensive README and LICENSE files
+
+  - Added detailed README.md with installation, usage examples, and API reference
+  - Added MIT LICENSE file
+  - Fixed missing documentation on npm package page
+
 ## 1.0.0
 
 ### Major Changes
