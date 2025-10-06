@@ -1,7 +1,7 @@
 {
-  "name": "vg-callpad-x07df",
+  "name": "vg-x07df",
   "version": "1.0.2",
-  "description": "Production-ready headless SDK for CallPad audio/video calls",
+  "description": "Headless SDK for dubadav audio/video",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
