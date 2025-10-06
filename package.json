@@ -11,7 +11,7 @@
     "check-types": "turbo run check-types",
     "changeset": "changeset",
     "version": "changeset version",
-    "publish": "turbo run build check-types --filter=vg-x07df && dotenv -- changeset publish",
+    "publish:dev": "turbo run build check-types --filter=vg-x07df && dotenv -- changeset publish",
     "publish:dry": "turbo run build check-types --filter=vg-x07df && dotenv -- changeset publish --dry-run"
   },
   "devDependencies": {
