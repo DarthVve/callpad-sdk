@@ -9,21 +9,25 @@ Auto-join automatically connects users to LiveKit media sessions based on config
 ## Features
 
 ### ✅ **Smart Triggers**
+
 - **Caller**: Auto-join when first participant accepts
 - **Callee**: Auto-join immediately after accepting call
 - **Manual**: Complete user control for all scenarios
 
 ### ✅ **Robust Error Handling** 
+
 - **Exponential backoff retry**: 1s → 2s → 4s delays
 - **Graceful fallback**: Failed auto-join → manual join button
 - **Error categorization**: Network vs authentication failures
 
 ### ✅ **Real-time State Tracking**
+
 - Live auto-join status: `idle`, `pending`, `retrying`, `succeeded`, `failed`
 - Progress visibility: Current attempt count and error messages
 - Performance metrics: Start/completion timestamps
 
 ### ✅ **Developer Experience**
+
 - **Type-safe configuration**: Full TypeScript support
 - **React hooks**: `useAutoJoin()`, `useAutoJoinForCurrentUser()`
 - **Rich logging**: Detailed debug information
@@ -61,6 +65,7 @@ const sdk = buildSdk({
 ### Configuration Options
 
 #### Caller Settings
+
 ```typescript
 caller: {
   enabled: boolean           // Enable/disable auto-join for callers
@@ -70,6 +75,7 @@ caller: {
 ```
 
 #### Callee Settings  
+
 ```typescript
 callee: {
   enabled: boolean           // Enable/disable auto-join for callees
@@ -79,6 +85,7 @@ callee: {
 ```
 
 #### Fallback Behavior
+
 ```typescript
 fallback: {
   onFailure: 'retry'         // Retry with exponential backoff
@@ -90,6 +97,7 @@ fallback: {
 ## Usage in Components
 
 ### Access Configuration
+
 ```typescript
 import { useAutoJoin, useAutoJoinForCurrentUser } from '@voyatek/callpad-sdk'
 
@@ -108,6 +116,7 @@ function CallSettings() {
 ```
 
 ### Monitor Auto-Join Status
+
 ```typescript
 import { useSdk } from '@voyatek/callpad-sdk'
 
@@ -136,6 +145,7 @@ function AutoJoinStatus() {
 ```
 
 ### Manual Join Fallback
+
 ```typescript
 function CallInterface() {
   const { status } = useCallState()
@@ -177,6 +187,7 @@ The SDK introduces new session states to handle the auto-join flow:
 ## Industry Patterns
 
 ### Zoom/Teams Pattern (Default)
+
 ```typescript
 autoJoin: {
   caller: { enabled: true, trigger: 'first-accept' },
@@ -186,6 +197,7 @@ autoJoin: {
 ```
 
 ### Conservative Pattern
+
 ```typescript
 autoJoin: {
   caller: { enabled: false, trigger: 'manual' },
@@ -195,6 +207,7 @@ autoJoin: {
 ```
 
 ### Aggressive Retry Pattern
+
 ```typescript
 autoJoin: {
   caller: { enabled: true, trigger: 'first-accept' },
