@@ -1,5 +1,5 @@
 {
-  "name": "@callpad-sdk/core",
+  "name": "callpad-sdk",
   "version": "0.1.0",
   "scripts": {
     "build": "turbo run build",
