@@ -88,7 +88,6 @@ export class CallJoinInfoHandler extends BaseSocketHandler<CallJoinInfoEvent> {
                 
                 state.room.participants[currentUserId] = {
                   id: currentUserId,
-                  firstName: `User ${currentUserId}`,
                   role: state.session.myRole || "MEMBER",
                   callState: "INVITED",
                   invitedAt: Date.now(),

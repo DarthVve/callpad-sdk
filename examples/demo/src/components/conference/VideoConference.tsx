@@ -43,7 +43,7 @@ export function VideoConference({ onLeaveCall, onMinimize }: VideoConferenceProp
       />
       
       <div className="conference-content">
-        {status === 'RINGING' || status === 'ACCEPTED' || status === 'AWAITING_JOIN_INFO' || status === 'READY_TO_JOIN' || status === 'CONNECTING' ? (
+        {status === 'CALLING' || status === 'RINGING' || status === 'ACCEPTED' || status === 'AWAITING_JOIN_INFO' || status === 'READY_TO_JOIN' || status === 'CONNECTING' ? (
           <div className="call-connecting">
             <div className="connecting-content">
               <div className="connecting-icon">
@@ -54,6 +54,7 @@ export function VideoConference({ onLeaveCall, onMinimize }: VideoConferenceProp
               </div>
               <h2>Connecting to call...</h2>
               <p>
+                {status === 'CALLING' && 'Calling participants...'}
                 {status === 'RINGING' && 'Ringing participants...'}
                 {status === 'ACCEPTED' && 'Call accepted, joining room...'}
                 {status === 'AWAITING_JOIN_INFO' && 'Getting room information...'}

@@ -13,6 +13,17 @@ export class CallParticipantJoinedHandler extends BaseSocketHandler<CallParticip
         participant.callState = "JOINED";
         participant.joinedAt = data.timestamp || Date.now();
         
+        // Update profile data from socket event
+        if (data.participant.firstName) {
+          participant.firstName = data.participant.firstName;
+        }
+        if (data.participant.lastName) {
+          participant.lastName = data.participant.lastName;
+        }
+        if (data.participant.profilePhoto) {
+          participant.avatarUrl = data.participant.profilePhoto;
+        }
+        
         this.logger.debug("Participant state updated via socket event", {
           participantId: data.participant.id,
           callState: "JOINED",

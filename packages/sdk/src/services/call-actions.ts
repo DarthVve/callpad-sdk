@@ -38,16 +38,22 @@ export function createCallActions(signal: SignalClient, auth: AuthManager, livek
       for (const participant of response.participants) {
         const isCaller = participant.userId === response.callerId;
         // Use userId as the key since that's what auth.getCurrentUserId() returns
-        state.room.participants[participant.userId] = {
+        const participantData: any = {
           id: participant.userId, // Store the user ID as the participant ID
-          firstName: `User ${participant.userId}`,
           role: isCaller ? "CALLER" : "MEMBER",
-          callState: "INVITED",
+          callState: isCaller ? "JOINED" : "INVITED", // Caller is already in the call
           invitedAt: Date.now(),
           audioEnabled: true,
           videoEnabled: true,
           isSpeaking: false,
         };
+        
+        // Set joinedAt only for caller
+        if (isCaller) {
+          participantData.joinedAt = Date.now();
+        }
+        
+        state.room.participants[participant.userId] = participantData;
         
         logger.debug("Created participant during call initiation", {
           participantId: participant.userId,

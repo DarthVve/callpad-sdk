@@ -2,16 +2,15 @@ import { pushStaleEventError, pushLiveKitConnectError } from "../../../state/err
 import { rtcStore } from "../../../state/store";
 import { SdkEventType, eventBus } from "../../events";
 import { BaseSocketHandler } from "./base.handler";
-import { callAcceptedSchema } from "./schema";
-import type { CallAcceptedEvent } from "./schema";
+import { callParticipantAcceptedSchema } from "./schema";
+import type { CallParticipantAcceptedEvent } from "./schema";
 
-export class CallParticipantAcceptedHandler extends BaseSocketHandler<CallAcceptedEvent> {
+export class CallParticipantAcceptedHandler extends BaseSocketHandler<CallParticipantAcceptedEvent> {
   protected readonly eventName = "call.participant-accepted";
-  protected readonly schema = callAcceptedSchema;
+  protected readonly schema = callParticipantAcceptedSchema;
 
-  protected async handle(data: CallAcceptedEvent): Promise<void> {
+  protected async handle(data: CallParticipantAcceptedEvent): Promise<void> {
     const currentState = rtcStore.getState();
-    // Get current user ID from auth instead of localParticipantId
     const currentUserId = this.authManager?.getCurrentUserId();
     
     if (currentState.session.id !== data.callId) {
@@ -23,16 +22,13 @@ export class CallParticipantAcceptedHandler extends BaseSocketHandler<CallAccept
     }
 
     this.updateStore((state) => {
-      // Simply set to ACCEPTED - let join-info handler manage the rest
       state.session.status = "ACCEPTED";
       
-      const participant = state.room.participants[data.by.id];
+      const participant = state.room.participants[data.participantId];
       if (participant) {
-        participant.callState = "RINGING"; // Accepted but not yet joined
-        participant.joinedAt = data.by.acceptedAt || Date.now();
+        participant.callState = "RINGING";
+        participant.joinedAt = data.acceptedAt ? new Date(data.acceptedAt).getTime() : Date.now();
       }
     });
-
-    // Join-info handler will handle auto-join when backend sends join-info
   }
 }
