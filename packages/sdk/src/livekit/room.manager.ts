@@ -4,11 +4,13 @@ import {
   RoomEvent,
   type RoomOptions,
 } from "livekit-client";
+import { createLogger } from "../utils/logger";
 import { DEFAULT_ROOM_OPTIONS, type LiveKitConnectionConfig } from "./";
 
 export class RoomManager {
   private readonly _room: Room;
   private _preparingConnection: Promise<void> | null = null;
+  private logger = createLogger("livekit:room");
 
   constructor(options?: Partial<RoomOptions>) {
     this._room = new Room({
@@ -50,9 +52,9 @@ export class RoomManager {
       await this._room.startAudio();
     } catch (error) {
       // Non-critical error - user might need to interact first
-      console.debug(
-        "Audio start failed - user interaction may be required:",
-        error
+      this.logger.debug(
+        "Audio start failed - user interaction may be required",
+        { error }
       );
     }
   }

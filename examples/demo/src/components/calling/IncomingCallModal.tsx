@@ -1,4 +1,4 @@
-import { useCallState, useCallActions } from '@voyatek/callpad-sdk';
+import { useCallState, useCallActions } from 'vg-callpad-x07df';
 import './IncomingCallModal.css';
 
 export function IncomingCallModal() {
@@ -19,7 +19,7 @@ export function IncomingCallModal() {
     if (!incomingCall) return;
     
     try {
-      await decline(incomingCall.callId, 'User declined');
+      await decline(incomingCall.callId);
     } catch (error) {
       console.error('Failed to decline call:', error);
     }

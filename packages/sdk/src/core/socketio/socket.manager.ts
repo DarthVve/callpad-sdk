@@ -1,16 +1,21 @@
 import { type Socket, io } from "socket.io-client";
+import { createLogger } from "../../utils/logger";
 import type { AuthManager } from "../auth.manager";
-import type { Nullable } from "../types";
+import type { AutoJoinConfig, Nullable } from "../types";
 import { SocketHandlerRegistry } from "./handlers";
+import type { SocketHandlerOptions } from "./handlers/base.handler";
 import type { ConnectionConfig, ConnectionState } from "./types";
 
 export class SocketManager {
   private static instance: Nullable<SocketManager> = null;
+  private logger = createLogger("socket");
 
   private socket: Nullable<Socket> = null;
   private connectionState: ConnectionState = "DISCONNECTED";
   private livekit: any = null;
+  private autoJoinConfig: Nullable<AutoJoinConfig> = null;
   private handlerRegistry: Nullable<SocketHandlerRegistry> = null;
+  private authManager: Nullable<AuthManager> = null;
 
   private constructor() {}
 
@@ -25,9 +30,12 @@ export class SocketManager {
     baseUrl: string,
     authManager: AuthManager,
     config: ConnectionConfig = {},
-    livekit?: any
+    livekit?: any,
+    autoJoinConfig?: AutoJoinConfig
   ): Promise<void> {
     this.livekit = livekit;
+    this.autoJoinConfig = autoJoinConfig || null;
+    this.authManager = authManager;
     if (this.socket?.connected) {
       return;
     }
@@ -67,34 +75,34 @@ export class SocketManager {
 
     this.socket.on("connect", () => {
       this.updateConnectionState("CONNECTED");
-      console.log("SocketManager: Connected to server");
+      this.logger.info("Connected to server");
     });
 
     this.socket.on("disconnect", (reason: string) => {
       this.updateConnectionState("DISCONNECTED");
-      console.log("SocketManager: Disconnected:", reason);
+      this.logger.info("Disconnected", { reason });
     });
 
     this.socket.on("connect_error", (error: Error) => {
       this.updateConnectionState("ERROR");
-      console.error("SocketManager: Connection error:", error.message);
+      this.logger.error("Connection error", { error: error.message });
     });
 
     this.socket.io.on("reconnect_attempt", () => {
       this.updateConnectionState("RECONNECTING");
       const freshToken = authManager.getCurrentToken();
       if (freshToken && this.socket) {
-        console.log("SocketManager: Refreshing auth token for reconnection");
+        this.logger.debug("Refreshing auth token for reconnection");
         this.socket.auth = { token: freshToken };
       }
     });
 
     this.socket.io.on("reconnect", (attemptNumber: number) => {
-      console.log(`SocketManager: Reconnected after ${attemptNumber} attempts`);
+      this.logger.info("Reconnected successfully", { attemptNumber });
     });
 
     this.socket.io.on("reconnect_error", (error: Error) => {
-      console.error("SocketManager: Reconnection error:", error.message);
+      this.logger.error("Reconnection error", { error: error.message });
       if (this.isAuthError(error)) {
         this.updateConnectionState("FAILED");
       }
@@ -102,7 +110,7 @@ export class SocketManager {
 
     this.socket.io.on("reconnect_failed", () => {
       this.updateConnectionState("FAILED");
-      console.error("SocketManager: All reconnection attempts failed");
+      this.logger.error("All reconnection attempts failed");
     });
   }
 
@@ -111,16 +119,33 @@ export class SocketManager {
       return;
     }
 
-    console.log("🔗 SocketManager: Setting up event handlers via registry");
+    this.logger.debug("Setting up event handlers via registry");
 
-    this.handlerRegistry = new SocketHandlerRegistry({
-      log: (level, message, extra) => {
-        console.log(`[${level.toUpperCase()}] ${message}`, extra);
-      },
-      livekit: this.livekit,
+    console.log("[SOCKET_MANAGER] Setting up event handlers", {
+      socketId: this.socket.id,
+      connected: this.socket.connected,
     });
 
+    // Clean up existing handlers to prevent duplicate registrations
+    if (this.handlerRegistry) {
+      this.handlerRegistry.removeEventListeners(this.socket);
+      this.handlerRegistry.destroy();
+    }
+
+    const options: SocketHandlerOptions = {
+      livekit: this.livekit,
+      autoJoinConfig: this.autoJoinConfig,
+    };
+    
+    if (this.authManager) {
+      options.authManager = this.authManager;
+    }
+
+    this.handlerRegistry = new SocketHandlerRegistry(options);
+
     this.handlerRegistry.registerEventListeners(this.socket);
+    
+    console.log("[SOCKET_MANAGER] Event handlers registered successfully");
   }
 
   private isAuthError(error: Error): boolean {
@@ -140,7 +165,7 @@ export class SocketManager {
   private updateConnectionState(newState: ConnectionState): void {
     if (this.connectionState !== newState) {
       this.connectionState = newState;
-      console.log(`SocketManager: Connection state changed to ${newState}`);
+      this.logger.debug("Connection state changed", { newState });
     }
   }
 
@@ -157,6 +182,6 @@ export class SocketManager {
     }
     this.connectionState = "DISCONNECTED";
     SocketManager.instance = null;
-    console.log("SocketManager: Destroyed and cleaned up");
+    this.logger.debug("Destroyed and cleaned up");
   }
 }

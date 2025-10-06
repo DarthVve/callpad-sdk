@@ -13,7 +13,7 @@ export class CallIncomingHandler extends BaseSocketHandler<CallIncomingEvent> {
     );
 
     if (!caller) {
-      this.log("error", "No caller found in participants", data);
+      this.logger.error("No caller found in participants", data);
       return;
     }
 
@@ -22,9 +22,10 @@ export class CallIncomingHandler extends BaseSocketHandler<CallIncomingEvent> {
         callId: data.callId,
         caller: {
           id: caller.id,
-          name: [caller.firstName, caller.lastName].filter(Boolean).join(' ') || 
-                caller.username || 
-                `Guest ${caller.id}`,
+          name:
+            [caller.firstName, caller.lastName].filter(Boolean).join(" ") ||
+            caller.username ||
+            `Guest ${caller.id}`,
           avatarUrl: caller.profilePhoto,
         },
         type: data.type,
@@ -35,26 +36,36 @@ export class CallIncomingHandler extends BaseSocketHandler<CallIncomingEvent> {
         id: data.callId,
         status: "RINGING",
         mode: data.type,
+        // Identity context: incoming call, I haven't accepted yet
+        initiatedByMe: false,
       };
 
-      // Hydrate profiles from participants array
+      // Create unified participants from participants array
       for (const participant of data.participants) {
-        state.profiles[participant.id] = {
+        const callState = participant.role === "CALLER" || participant.role === "HOST" ? "JOINED" : "INVITED";
+        
+        state.room.participants[participant.id] = {
           id: participant.id,
           firstName: participant.firstName || undefined,
           lastName: participant.lastName || undefined,
           avatarUrl: participant.profilePhoto || undefined,
-        };
-
-        state.presence[participant.id] = {
           role: participant.role || "MEMBER",
-          invite:
+          callState,
+          audioEnabled: false,
+          videoEnabled: false,
+          isSpeaking: false,
+          joinedAt:
             participant.role === "CALLER" || participant.role === "HOST"
-              ? "ACCEPTED"
-              : "INVITED",
-          join: "NOT_JOINED",
-          invitedAt: data.timestamp,
+              ? data.timestamp
+              : undefined,
         };
+        
+        this.logger.debug("Created participant during incoming call", {
+          participantId: participant.id,
+          role: participant.role || "MEMBER",
+          callState,
+          callId: data.callId,
+        });
       }
     });
   }

@@ -17,7 +17,7 @@ export function useCallState(): CallState {
     id: session.id,
     status: session.status,
     mode: session.mode,
-    roomName: session.roomName,
+    roomName: session.livekitInfo?.roomName,
     incomingCall,
   };
 }

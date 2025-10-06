@@ -7,6 +7,7 @@ import {
   Track,
   type TrackPublication,
 } from "livekit-client";
+import { SdkEventType, eventBus } from "../../core/events";
 import { rtcStore } from "../../state/store";
 import { trackRegistry } from "./trackRegistry";
 
@@ -97,38 +98,26 @@ export class LiveKitEventBridge {
     this.opts.log?.("info", "Participant connected", { pid });
 
     rtcStore.getState().patch((state) => {
-      // Create a placeholder profile if missing
-      if (!state.profiles[pid]) {
-        state.profiles[pid] = {
+      // Create or update participant in unified state
+      if (!state.room.participants[pid]) {
+        state.room.participants[pid] = {
           id: pid,
           firstName: participant.name || "Unknown",
-          lastName: undefined,
-          avatarUrl: undefined,
-        };
-        this.opts.log?.("debug", "Created placeholder profile", { pid });
-      }
-
-      // Update presence to joined
-      if (!state.presence[pid]) {
-        state.presence[pid] = {
           role: "MEMBER",
-          invite: "ACCEPTED",
-          join: "JOINED",
+          callState: "JOINED",
           joinedAt: Date.now(),
-        };
-      } else if (state.presence[pid].join !== "JOINED") {
-        state.presence[pid].join = "JOINED";
-        state.presence[pid].joinedAt = Date.now();
-      }
-
-      // Initialize media state if missing
-      if (!state.media[pid]) {
-        state.media[pid] = {
+          audioEnabled: true,
+          videoEnabled: true,
           isSpeaking: false,
         };
+        this.opts.log?.("debug", "Created participant", { pid });
+      } else {
+        // Update existing participant
+        state.room.participants[pid].callState = "JOINED";
+        if (!state.room.participants[pid].joinedAt) {
+          state.room.participants[pid].joinedAt = Date.now();
+        }
       }
-
-      // Media state will be updated by track events and speaking detection
     });
   };
 
@@ -260,12 +249,12 @@ export class LiveKitEventBridge {
     });
 
     rtcStore.getState().patch((state) => {
-      // Update media state for all known participants
-      for (const [pid, mediaState] of Object.entries(state.media)) {
-        mediaState.isSpeaking = speakerIds.has(pid);
+      // Update speaking state for all participants
+      for (const [pid, participant] of Object.entries(
+        state.room.participants
+      )) {
+        participant.isSpeaking = speakerIds.has(pid);
       }
-
-      // Speaking state updated in media above
     });
   };
 
@@ -282,9 +271,9 @@ export class LiveKitEventBridge {
     });
 
     rtcStore.getState().patch((state) => {
-      // Update media state
-      if (state.media[pid]) {
-        state.media[pid].connectionQuality = qualityLabel;
+      // Update participant connection quality in unified state
+      if (state.room.participants[pid]) {
+        state.room.participants[pid].connectionQuality = qualityLabel;
       }
 
       // Update local connection quality if it's the local participant
@@ -292,6 +281,17 @@ export class LiveKitEventBridge {
         state.connection.quality = qualityLabel;
       }
     });
+
+    // Emit SDK event for connection quality change
+    eventBus.emit(
+      SdkEventType.CONNECTION_QUALITY_CHANGED,
+      {
+        participantId: pid,
+        quality: qualityLabel,
+        timestamp: Date.now(),
+      },
+      "livekit"
+    );
   };
 
   private syncAllParticipants(): void {

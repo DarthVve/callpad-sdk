@@ -1,5 +1,6 @@
 import { CallsService } from "../../generated/api";
 import type { CallsData } from "../../generated/api/models";
+import { createLogger } from "../../utils/logger";
 import type {
   CallActionResponse,
   CallResponse,
@@ -9,6 +10,7 @@ import type {
 
 export class SignalClient {
   private config: SignalClientConfig;
+  private logger = createLogger("signal");
 
   constructor(config: SignalClientConfig) {
     this.config = config;
@@ -31,10 +33,16 @@ export class SignalClient {
 
   async accept(callId: string): Promise<CallActionResponse> {
     try {
-      return CallsService.postSignalCallsByCallIdAccept({
+      const response = await CallsService.postSignalCallsByCallIdAccept({
         callId,
         appId: this.config.appId,
       });
+      return {
+        ...response,
+        callId,
+        state: "ACTIVE" as const,
+        message: "Call accepted",
+      };
     } catch (error) {
       this.handleApiError("accept", error);
       throw error;
@@ -43,10 +51,16 @@ export class SignalClient {
 
   async decline(callId: string): Promise<CallActionResponse> {
     try {
-      return CallsService.postSignalCallsByCallIdDecline({
+      const response = await CallsService.postSignalCallsByCallIdDecline({
         callId,
         appId: this.config.appId,
       });
+      return {
+        ...response,
+        callId,
+        state: "ENDED" as const,
+        message: "Call declined",
+      };
     } catch (error) {
       this.handleApiError("decline", error);
       throw error;
@@ -55,10 +69,16 @@ export class SignalClient {
 
   async leave(callId: string): Promise<CallActionResponse> {
     try {
-      return CallsService.postSignalCallsByCallIdLeave({
+      const response = await CallsService.postSignalCallsByCallIdLeave({
         callId,
         appId: this.config.appId,
       });
+      return {
+        ...response,
+        callId,
+        state: "ENDED" as const,
+        message: "Left call",
+      };
     } catch (error) {
       this.handleApiError("leave", error);
       throw error;
@@ -71,9 +91,10 @@ export class SignalClient {
     const errorCode = error?.status || error?.code || "UNKNOWN";
 
     // Log error for debugging - real-time error handling happens via Socket.IO
-    console.error(`Signal API error during ${operation}: ${errorMessage}`, {
+    this.logger.error(`Signal API error during ${operation}`, {
       operation,
       errorCode,
+      errorMessage,
       error,
     });
   }

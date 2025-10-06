@@ -20,10 +20,10 @@ export class CallEndedHandler extends BaseSocketHandler<CallEndedEvent> {
       state.session.status = "ENDED";
       state.incomingCall = undefined;
 
-      for (const id of Object.keys(state.presence)) {
-        const participant = state.presence[id];
+      for (const id of Object.keys(state.room.participants)) {
+        const participant = state.room.participants[id];
         if (participant) {
-          participant.join = "LEFT";
+          participant.callState = "LEFT";
           if (!participant.leftAt) {
             participant.leftAt = Date.now();
           }
@@ -33,7 +33,7 @@ export class CallEndedHandler extends BaseSocketHandler<CallEndedEvent> {
 
     if (this.livekit) {
       this.livekit.disconnect().catch((error: any) => {
-        console.error("Error disconnecting from LiveKit", error);
+        this.logger.error("Error disconnecting from LiveKit", { error });
       });
     }
   }

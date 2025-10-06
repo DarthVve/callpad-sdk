@@ -1,30 +1,29 @@
-import { z } from "zod";
+import { SdkEventType, eventBus } from "../../events";
 import { BaseSocketHandler } from "./base.handler";
+import { callParticipantDeclinedSchema } from "./schema";
+import type { CallParticipantDeclinedEvent } from "./schema";
 
-const callDeclinedSchema = z.object({
-  callId: z.string(),
-  by: z.object({
-    id: z.string(),
-    firstName: z.string().nullable(),
-    lastName: z.string().nullable(),
-    username: z.string().nullable(),
-    profilePhoto: z.string().nullable(),
-  }),
-  reason: z.string().optional(),
-});
+export class CallParticipantDeclinedHandler extends BaseSocketHandler<CallParticipantDeclinedEvent> {
+  protected readonly eventName = "call.participant-declined";
+  protected readonly schema = callParticipantDeclinedSchema;
 
-type CallDeclinedEvent = z.infer<typeof callDeclinedSchema>;
-
-export class CallDeclinedHandler extends BaseSocketHandler<CallDeclinedEvent> {
-  protected readonly eventName = "call.declined";
-  protected readonly schema = callDeclinedSchema;
-
-  protected handle(data: CallDeclinedEvent): void {
+  protected handle(data: CallParticipantDeclinedEvent): void {
     this.updateStore((state) => {
       if (state.session.id === data.callId) {
         state.session.status = "IDLE";
         state.incomingCall = undefined;
       }
     });
+
+    eventBus.emit(
+      SdkEventType.CALL_DECLINED,
+      {
+        callId: data.callId,
+        participantId: data.participantId,
+        reason: "declined",
+        timestamp: Date.now(),
+      },
+      "socket"
+    );
   }
 }

@@ -17,9 +17,9 @@ export class ParticipantLeftHandler extends BaseSocketHandler<ParticipantLeftEve
         return;
       }
 
-      const participant = state.presence[data.participant.id];
+      const participant = state.room.participants[data.participant.id];
       if (participant) {
-        participant.join = "LEFT";
+        participant.callState = "LEFT";
         participant.leftAt = data.timestamp || Date.now();
       }
     });
@@ -28,10 +28,9 @@ export class ParticipantLeftHandler extends BaseSocketHandler<ParticipantLeftEve
       this.livekit?.room.localParticipant?.identity === data.participant.id;
     if (isLocalParticipant && this.livekit) {
       this.livekit.disconnect().catch((error: any) => {
-        console.error(
-          "Error disconnecting from LiveKit after self-leave",
-          error
-        );
+        this.logger.error("Error disconnecting from LiveKit after self-leave", {
+          error,
+        });
       });
     }
   }

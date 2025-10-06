@@ -112,7 +112,7 @@ export class CancelablePromise<T> implements Promise<T> {
 					cancelHandler();
 				}
 			} catch (error) {
-				console.warn('Cancellation threw an error', error);
+				// Silently ignore cancellation errors
 				return;
 			}
 		}

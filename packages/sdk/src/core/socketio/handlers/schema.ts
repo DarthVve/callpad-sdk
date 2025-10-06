@@ -30,9 +30,6 @@ export const callAcceptedSchema = z.object({
 // call.join-info event schema
 export const callJoinInfoSchema = z.object({
   callId: z.string(),
-  for: z.object({
-    id: z.string(),
-  }),
   token: z.string(),
   url: z.string().optional(),
   roomName: z.string(),
@@ -45,7 +42,8 @@ export const callEndedSchema = z.object({
   reason: z.enum(["ENDED", "TIMEOUT", "CANCELLED", "ERROR"]).optional(),
   timestamp: z.number().optional(),
   endedBy: z.string().optional(),
-});
+})
+
 
 // call.participant-left event schema
 export const participantLeftSchema = z.object({
@@ -55,6 +53,45 @@ export const participantLeftSchema = z.object({
     name: z.string().optional(),
   }),
   timestamp: z.number().optional(),
+});
+
+// call.participant-joining event schema
+export const callParticipantJoiningSchema = z.object({
+  callId: z.string(),
+  participantId: z.string(),
+  participant: socketParticipantSchema,
+  timestamp: z.number().optional(),
+});
+
+// call.participant-joined event schema
+export const callParticipantJoinedSchema = z.object({
+  callId: z.string(),
+  participantId: z.string(),
+  participant: socketParticipantSchema,
+  timestamp: z.number().optional(),
+});
+
+// call.timeout event schema
+export const callTimeoutSchema = z.object({
+  callId: z.string(),
+  reason: z.string().optional(),
+  timestamp: z.number().optional(),
+});
+
+// call.participant-declined event schema
+export const callParticipantDeclinedSchema = z.object({
+  callId: z.string(),
+  participantId: z.string(),
+  participant: socketParticipantSchema,
+  declinedAt: z.string().optional(),
+});
+
+// call.canceled event schema
+export const callCanceledSchema = z.object({
+  callId: z.string(),
+  reason: z.string().optional(),
+  timestamp: z.number().optional(),
+  by: socketParticipantSchema.optional(),
 });
 
 // Optional participant.joined event schema (for future use)
@@ -74,5 +111,12 @@ export type CallJoinInfoEvent = z.infer<typeof callJoinInfoSchema>;
 export type CallEndedEvent = z.infer<typeof callEndedSchema>;
 export type ParticipantLeftEvent = z.infer<typeof participantLeftSchema>;
 export type ParticipantJoinedEvent = z.infer<typeof participantJoinedSchema>;
-
-
+export type CallParticipantJoiningEvent = z.infer<
+  typeof callParticipantJoiningSchema
+>;
+export type CallParticipantJoinedEvent = z.infer<
+  typeof callParticipantJoinedSchema
+>;
+export type CallTimeoutEvent = z.infer<typeof callTimeoutSchema>;
+export type CallParticipantDeclinedEvent = z.infer<typeof callParticipantDeclinedSchema>;
+export type CallCanceledEvent = z.infer<typeof callCanceledSchema>;

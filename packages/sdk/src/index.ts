@@ -11,23 +11,16 @@ export * from "./hooks";
 
 // State selectors for advanced usage
 export {
-  selectParticipantView,
-  selectParticipantsForRinging,
-  selectParticipantsInCall,
-  selectSpeakingParticipants,
-  selectSelf,
-  useParticipantView,
-  useParticipantsForRinging,
-  useParticipantsInCall,
+  useParticipant,
+  useRingingParticipants,
+  useLocalParticipant,
+  useSpeakingParticipants,
 } from "./state/selectors";
 
 // Essential types consumers need
 export type {
   SessionStatus,
-  Profile,
-  Presence,
-  MediaSummary,
-  ParticipantView,
+  Participant,
   PermissionStatus,
   DeviceState,
   IncomingCallInfo,
@@ -43,16 +36,31 @@ export type {
   CallActionResponse,
 } from "./core/signal/types";
 
-export type {
-  CallIncomingEvent,
-  CallAcceptedEvent,
-  CallJoinInfoEvent,
-  CallEndedEvent,
-  ParticipantLeftEvent,
-} from "./core/socketio/handlers/schema";
+export type { CallJoinInfoEvent } from "./core/socketio/handlers/schema";
 
 // Error management
 export * from "./state/errors";
 
 // API configuration
 export { apiConfig, type ApiConfig } from "./core/signal/api.config";
+
+// Event system for advanced usage
+export { eventBus } from "./core/events";
+export type {
+  SdkEvent,
+  SdkEventType,
+  EventHandler,
+  EventSubscription,
+  EventFilter,
+  CallInitiatedEvent,
+  CallIncomingEvent,
+  CallAcceptedEvent,
+  CallDeclinedEvent,
+  CallEndedEvent,
+  ParticipantJoinedEvent,
+  ParticipantLeftEvent,
+  MediaEnabledEvent,
+  MediaDisabledEvent,
+  ConnectionQualityChangedEvent,
+  ErrorOccurredEvent,
+} from "./core/events/types";

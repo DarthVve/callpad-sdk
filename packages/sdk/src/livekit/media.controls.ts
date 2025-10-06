@@ -4,6 +4,7 @@ import type {
   Room,
 } from "livekit-client";
 import { ConnectionState, Track } from "livekit-client";
+import { SdkEventType, eventBus } from "../core/events";
 import { rtcStore } from "../state/store";
 import { SCREEN_SHARE_CONFIG } from "./constants";
 import { classifyMediaError } from "./error-classifier";
@@ -52,6 +53,17 @@ export class MediaControls implements MediaActions {
       () => this.localParticipant.lastCameraError,
       true
     );
+
+    // Emit media enabled event
+    eventBus.emit(
+      SdkEventType.MEDIA_ENABLED,
+      {
+        participantId: this.localParticipant.identity,
+        mediaType: "video" as const,
+        timestamp: Date.now(),
+      },
+      "livekit"
+    );
   }
 
   async disableCamera(): Promise<void> {
@@ -68,6 +80,17 @@ export class MediaControls implements MediaActions {
       "camera",
       () => this.localParticipant.lastCameraError,
       false
+    );
+
+    // Emit media disabled event
+    eventBus.emit(
+      SdkEventType.MEDIA_DISABLED,
+      {
+        participantId: this.localParticipant.identity,
+        mediaType: "video" as const,
+        timestamp: Date.now(),
+      },
+      "livekit"
     );
   }
 
@@ -86,6 +109,17 @@ export class MediaControls implements MediaActions {
       () => this.localParticipant.lastMicrophoneError,
       true
     );
+
+    // Emit media enabled event
+    eventBus.emit(
+      SdkEventType.MEDIA_ENABLED,
+      {
+        participantId: this.localParticipant.identity,
+        mediaType: "audio" as const,
+        timestamp: Date.now(),
+      },
+      "livekit"
+    );
   }
 
   async disableMicrophone(): Promise<void> {
@@ -102,6 +136,17 @@ export class MediaControls implements MediaActions {
       "microphone",
       () => this.localParticipant.lastMicrophoneError,
       false
+    );
+
+    // Emit media disabled event
+    eventBus.emit(
+      SdkEventType.MEDIA_DISABLED,
+      {
+        participantId: this.localParticipant.identity,
+        mediaType: "audio" as const,
+        timestamp: Date.now(),
+      },
+      "livekit"
     );
   }
 
