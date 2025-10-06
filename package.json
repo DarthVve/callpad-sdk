@@ -11,8 +11,8 @@
     "check-types": "turbo run check-types",
     "changeset": "changeset",
     "version": "changeset version",
-    "publish": "turbo run build check-types --filter=vg-callpad-x07df && dotenv -- changeset publish",
-    "publish:dry": "turbo run build check-types --filter=vg-callpad-x07df && dotenv -- changeset publish --dry-run"
+    "publish": "turbo run build check-types --filter=vg-x07df && dotenv -- changeset publish",
+    "publish:dry": "turbo run build check-types --filter=vg-x07df && dotenv -- changeset publish --dry-run"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.8.0",
