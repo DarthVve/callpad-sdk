@@ -1,6 +1,6 @@
 {
-  "name": "dubadav",
-  "version": "0.1.0",
+  "name": "vg-callpad-x07df",
+  "version": "1.0.2",
   "description": "Production-ready headless SDK for CallPad audio/video calls",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -26,6 +26,7 @@
     "CHANGELOG.md"
   ],
   "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
     "access": "public"
   },
   "scripts": {
@@ -39,7 +40,9 @@
   },
   "author": "Voyatek Group",
   "repository": {
-    "type": "git"
+    "type": "git",
+    "url": "https://github.com/VoyatekGroup/go-callpad.git",
+    "directory": "web-sdk/packages/sdk"
   },
   "peerDependencies": {
     "react": ">=18",
@@ -48,10 +51,18 @@
     "socket.io-client": "^4.7.0"
   },
   "peerDependenciesMeta": {
-    "react": { "optional": false },
-    "react-dom": { "optional": false },
-    "livekit-client": { "optional": false },
-    "socket.io-client": { "optional": false }
+    "react": {
+      "optional": false
+    },
+    "react-dom": {
+      "optional": false
+    },
+    "livekit-client": {
+      "optional": false
+    },
+    "socket.io-client": {
+      "optional": false
+    }
   },
   "dependencies": {
     "axios": "^1.6.0",

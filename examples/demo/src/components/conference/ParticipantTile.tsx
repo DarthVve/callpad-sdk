@@ -1,9 +1,9 @@
 import { useRef, useEffect } from 'react';
-import type { ParticipantView } from '@voyatek/callpad-sdk';
+import type { Participant } from 'vg-callpad-x07df';
 import './ParticipantTile.css';
 
 interface ParticipantTileProps {
-  participant: ParticipantView;
+  participant: Participant;
   isLocal?: boolean;
   videoTrack?: MediaStreamTrack | null;
   isMuted?: boolean;

@@ -12,24 +12,21 @@ export class LiveKitService {
   private deviceManager: DeviceManager | undefined;
   private options: LiveKitServiceOptions;
 
-  constructor(
-    options: LiveKitServiceOptions = { livekitUrl: undefined, log: undefined }
-  ) {
+  constructor(options: LiveKitServiceOptions = { log: undefined }) {
     this.options = options;
     this.roomManager = new RoomManager();
   }
 
-  async joinRoom(token: string, url?: string): Promise<void> {
-    const roomUrl = url || this.options.livekitUrl;
-    if (!roomUrl) {
-      const error = new Error("LiveKit URL not configured");
+  async joinRoom(token: string, url: string): Promise<void> {
+    if (!url) {
+      const error = new Error("LiveKit URL is required");
       this.options.log?.("error", "LiveKit URL missing", { token, url });
       throw error;
     }
 
     try {
-      this.options.log?.("info", "Joining LiveKit room", { url: roomUrl });
-      await this.roomManager.connect({ url: roomUrl, token });
+      this.options.log?.("info", "Joining LiveKit room", { url });
+      await this.roomManager.connect({ url, token });
 
       // Initialize managers after a successful connection
       const eventBridgeOptions: {

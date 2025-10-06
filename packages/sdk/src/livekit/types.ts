@@ -72,7 +72,6 @@ export interface MediaActions {
 }
 
 export interface LiveKitServiceOptions {
-  livekitUrl: string | undefined;
   log:
     | ((
         lvl: "debug" | "info" | "warn" | "error",

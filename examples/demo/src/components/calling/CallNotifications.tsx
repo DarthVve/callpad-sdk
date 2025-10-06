@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useCallEvent } from '@voyatek/callpad-sdk';
+import { useEvent } from 'vg-callpad-x07df';
 import './CallNotifications.css';
 
 interface Notification {
@@ -12,11 +12,11 @@ interface Notification {
 export function CallNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
-  // Listen for call declined events
-  useCallEvent('call.declined', (data) => {
+  // Listen for call-declined events
+  useEvent('call:declined', (event) => {
     const notification: Notification = {
       id: `declined-${Date.now()}`,
-      message: `Call declined${data.reason ? `: ${data.reason}` : ''}`,
+      message: `Call declined${event.payload.reason ? `: ${event.payload.reason}` : ''}`,
       type: 'warning',
       timestamp: Date.now(),
     };
@@ -25,10 +25,10 @@ export function CallNotifications() {
   });
 
   // Listen for call ended events
-  useCallEvent('call.ended', (data) => {
+  useEvent('call:ended', (event) => {
     const notification: Notification = {
       id: `ended-${Date.now()}`,
-      message: `Call ended${data.reason ? `: ${data.reason}` : ''}`,
+      message: `Call ended${event.payload.reason ? `: ${event.payload.reason}` : ''}`,
       type: 'info',
       timestamp: Date.now(),
     };
@@ -37,10 +37,10 @@ export function CallNotifications() {
   });
 
   // Listen for participant left events
-  useCallEvent('call.participant-left', (data) => {
+  useEvent('call:participant-left', (event) => {
     const notification: Notification = {
       id: `left-${Date.now()}`,
-      message: `${data.participant.id} left the call`,
+      message: `${event.payload.participant.id} left the call`,
       type: 'info',
       timestamp: Date.now(),
     };
@@ -49,10 +49,10 @@ export function CallNotifications() {
   });
 
   // Listen for call accepted events
-  useCallEvent('call.accepted', (data) => {
+  useEvent('call:accepted', (event) => {
     const notification: Notification = {
       id: `accepted-${Date.now()}`,
-      message: `${data.by.id} joined the call`,
+      message: `Participant ${event.payload.participantId} joined the call`,
       type: 'success',
       timestamp: Date.now(),
     };

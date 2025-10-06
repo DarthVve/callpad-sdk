@@ -1,4 +1,4 @@
-import type { Logger } from "../utils/logger";
+import type { LogLevel } from "../utils/logger";
 import { rtcStore } from "./store";
 import type { RtcError } from "./types";
 
@@ -6,25 +6,21 @@ import type { RtcError } from "./types";
 export type { RtcError } from "./types";
 
 export type ErrorCode =
-  | "NETWORK" // connectivity, timeouts, CORS
-  | "SOCKET_PAYLOAD" // invalid socket data / schema mismatch
-  | "JOIN_FLOW" // join-info guard failures (wrong recipient/call)
-  | "LIVEKIT_CONNECT" // LK connect/identity mismatch
-  | "LIVEKIT_MEDIA" // mic/cam/screen publish/mute errors
-  | "MEDIA_PERMISSION" // browser device permissions
-  | "DEVICE_SWITCH" // setInput/setOutput failures
-  | "API_ERROR" // REST/OpenAPI request/response failures
-  | "UNEXPECTED" // anything else
-  // Legacy codes (kept for backward compatibility)
-  | "IDENTITY_GUARD" // @deprecated - use JOIN_FLOW
-  | "VALIDATION_ERROR" // @deprecated - use SOCKET_PAYLOAD
-  | "STALE_EVENT"; // @deprecated - use JOIN_FLOW
+  | "NETWORK"
+  | "SOCKET_PAYLOAD"
+  | "JOIN_FLOW"
+  | "LIVEKIT_CONNECT"
+  | "LIVEKIT_MEDIA"
+  | "MEDIA_PERMISSION"
+  | "DEVICE_SWITCH"
+  | "API_ERROR"
+  | "UNEXPECTED";
 
 export function pushError(
   code: ErrorCode,
   message: string,
   context?: any,
-  logger?: Logger
+  logger?: (level: LogLevel, message: string, meta?: any) => void
 ): void {
   const error: RtcError = {
     code,
@@ -59,7 +55,7 @@ export function pushSocketValidationError(
   eventType: string,
   issues: any,
   payload?: any,
-  logger?: Logger
+  logger?: (level: LogLevel, message: string, meta?: any) => void
 ): void {
   pushError(
     "SOCKET_PAYLOAD",
@@ -73,7 +69,7 @@ export function pushIdentityGuardError(
   reason: string,
   expected?: string,
   received?: string,
-  logger?: Logger
+  logger?: (level: LogLevel, message: string, meta?: any) => void
 ): void {
   pushError(
     "JOIN_FLOW", // Use new error code
@@ -86,7 +82,7 @@ export function pushIdentityGuardError(
 export function pushLiveKitConnectError(
   message: string,
   error: unknown,
-  logger?: Logger
+  logger?: (level: LogLevel, message: string, meta?: any) => void
 ): void {
   pushError(
     "LIVEKIT_CONNECT",
@@ -100,7 +96,7 @@ export function pushStaleEventError(
   eventType: string,
   reason: string,
   context?: any,
-  logger?: Logger
+  logger?: (level: LogLevel, message: string, meta?: any) => void
 ): void {
   pushError(
     "JOIN_FLOW", // Use new error code
@@ -113,7 +109,7 @@ export function pushStaleEventError(
 export function pushApiError(
   operation: string,
   error: unknown,
-  logger?: Logger
+  logger?: (level: LogLevel, message: string, meta?: any) => void
 ): void {
   const errorMessage = error instanceof Error ? error.message : String(error);
   pushError(
@@ -127,7 +123,7 @@ export function pushApiError(
 export function pushNetworkError(
   operation: string,
   error: unknown,
-  logger?: Logger
+  logger?: (level: LogLevel, message: string, meta?: any) => void
 ): void {
   const errorMessage = error instanceof Error ? error.message : String(error);
   pushError(
@@ -141,7 +137,7 @@ export function pushNetworkError(
 export function pushMediaPermissionError(
   device: string,
   error?: unknown,
-  logger?: Logger
+  logger?: (level: LogLevel, message: string, meta?: any) => void
 ): void {
   pushError(
     "MEDIA_PERMISSION",
@@ -155,7 +151,7 @@ export function pushDeviceError(
   operation: string,
   device: string,
   error: unknown,
-  logger?: Logger
+  logger?: (level: LogLevel, message: string, meta?: any) => void
 ): void {
   const errorMessage = error instanceof Error ? error.message : String(error);
   pushError(

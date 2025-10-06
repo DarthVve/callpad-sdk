@@ -3,6 +3,10 @@ import type { MediaActions } from "../livekit";
 import { useSdk } from "../provider/RtcProvider";
 import { useRtcStore } from "../state/store";
 import type { RtcError } from "../state/types";
+import { createLogger } from "../utils/logger";
+import { useDevices } from "./useDevices";
+
+const logger = createLogger("hooks:media-controls");
 
 export interface MediaControlsState {
   isVideoEnabled: boolean;
@@ -21,13 +25,25 @@ export interface EnhancedMediaActions {
   disableMicrophone: () => Promise<void>;
   toggleCamera: () => Promise<void>;
   toggleMicrophone: () => Promise<void>;
+  // Device switching
+  switchCamera: (deviceId: string) => Promise<void>;
+  switchMicrophone: (deviceId: string) => Promise<void>;
+  // Simple aliases
+  toggleAudio: () => Promise<void>;
+  toggleVideo: () => Promise<void>;
 }
 
 export interface MediaControlsHook
   extends MediaControlsState,
     EnhancedMediaActions {}
 
-export function useMediaControls(): MediaControlsHook {
+export function useMediaControls(): MediaControlsHook & {
+  devices: {
+    cameras: any[];
+    microphones: any[];
+    speakers: any[];
+  };
+} {
   const sdk = useSdk();
   const local = useRtcStore((state) => state.local);
   const connection = useRtcStore((state) => state.connection);
@@ -39,6 +55,7 @@ export function useMediaControls(): MediaControlsHook {
         e.code.startsWith("LIVEKIT_")
     )
   );
+  const devices = useDevices();
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -73,7 +90,7 @@ export function useMediaControls(): MediaControlsHook {
         await action();
       } catch (error) {
         // Enhanced error handling with context
-        console.error(`Failed to ${actionName}:`, error);
+        logger.error(`Failed to ${actionName}`, { actionName, error });
         throw error;
       } finally {
         setIsLoading(false);
@@ -87,6 +104,29 @@ export function useMediaControls(): MediaControlsHook {
       ? "Cannot control media - not connected to LiveKit room"
       : "Media controls not available - LiveKit service not initialized";
     throw new Error(errorMsg);
+  };
+
+  // Simple device switching functions without complex error handling
+  const switchCamera = async (deviceId: string): Promise<void> => {
+    try {
+      if (sdk.livekit?.devices) {
+        await sdk.livekit.devices.switchCamera(deviceId);
+      }
+    } catch (error) {
+      logger.error("Failed to switch camera", { error, deviceId });
+      throw error;
+    }
+  };
+
+  const switchMicrophone = async (deviceId: string): Promise<void> => {
+    try {
+      if (sdk.livekit?.devices) {
+        await sdk.livekit.devices.switchMicrophone(deviceId);
+      }
+    } catch (error) {
+      logger.error("Failed to switch microphone", { error, deviceId });
+      throw error;
+    }
   };
 
   const actions: EnhancedMediaActions = mediaControls
@@ -115,6 +155,18 @@ export function useMediaControls(): MediaControlsHook {
           () => mediaControls?.toggleMicrophone(),
           "toggle microphone"
         ),
+        // Device switching
+        switchCamera,
+        switchMicrophone,
+        // Simple aliases
+        toggleAudio: createEnhancedAction(
+          () => mediaControls?.toggleMicrophone(),
+          "toggle audio"
+        ),
+        toggleVideo: createEnhancedAction(
+          () => mediaControls?.toggleCamera(),
+          "toggle video"
+        ),
       }
     : {
         enableCamera: unavailableAction,
@@ -123,6 +175,10 @@ export function useMediaControls(): MediaControlsHook {
         disableMicrophone: unavailableAction,
         toggleCamera: unavailableAction,
         toggleMicrophone: unavailableAction,
+        switchCamera: unavailableAction,
+        switchMicrophone: unavailableAction,
+        toggleAudio: unavailableAction,
+        toggleVideo: unavailableAction,
       };
 
   return {
@@ -135,6 +191,13 @@ export function useMediaControls(): MediaControlsHook {
     isLoading,
     errors,
 
+    // Device access
+    devices: {
+      cameras: devices.cams,
+      microphones: devices.mics,
+      speakers: devices.speakers,
+    },
+
     // Enhanced Actions
     enableCamera: actions.enableCamera,
     disableCamera: actions.disableCamera,
@@ -142,5 +205,11 @@ export function useMediaControls(): MediaControlsHook {
     disableMicrophone: actions.disableMicrophone,
     toggleCamera: actions.toggleCamera,
     toggleMicrophone: actions.toggleMicrophone,
+    // Device switching
+    switchCamera: actions.switchCamera,
+    switchMicrophone: actions.switchMicrophone,
+    // Simple aliases
+    toggleAudio: actions.toggleAudio,
+    toggleVideo: actions.toggleVideo,
   };
 }

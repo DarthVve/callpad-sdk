@@ -9,10 +9,15 @@
     "lint:fix": "biome check --apply .",
     "check": "biome check --fix --unsafe",
     "check-types": "turbo run check-types",
-    "publish-packages": "turbo run build lint && npx @changesets/cli version && npx @changesets/cli publish"
+    "changeset": "changeset",
+    "version": "changeset version",
+    "publish": "turbo run build check-types --filter=vg-callpad-x07df && dotenv -- changeset publish",
+    "publish:dry": "turbo run build check-types --filter=vg-callpad-x07df && dotenv -- changeset publish --dry-run"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.8.0",
+    "@changesets/cli": "^2.29.7",
+    "dotenv-cli": "^10.0.0",
     "turbo": "^2.5.8",
     "typescript": "5.9.2"
   },

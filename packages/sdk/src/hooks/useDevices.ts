@@ -3,6 +3,9 @@ import { useCallback, useEffect, useState } from "react";
 import { useSdk } from "../provider/RtcProvider";
 import { useRtcStore } from "../state/store";
 import type { DeviceState, PermissionStatus, RtcError } from "../state/types";
+import { createLogger } from "../utils/logger";
+
+const logger = createLogger("hooks:devices");
 
 export interface DeviceActions {
   switchCamera: (deviceId: string) => Promise<void>;
@@ -60,7 +63,7 @@ export function useDevices(): DevicesHook {
             await result;
           }
         } catch (error) {
-          console.error(`Failed to ${actionName}:`, error);
+          logger.error(`Failed to ${actionName}`, { actionName, error });
           throw error;
         } finally {
           setLocalLoading(false);
@@ -103,7 +106,7 @@ export function useDevices(): DevicesHook {
         state.devices.lastEnumeratedAt = Date.now();
       });
     } catch (error) {
-      console.error("Failed to list devices:", error);
+      logger.error("Failed to list devices", { error });
       throw error;
     } finally {
       setLocalLoading(false);
@@ -133,7 +136,7 @@ export function useDevices(): DevicesHook {
         // Refresh all devices to get updated labels
         await listDevices();
       } catch (error) {
-        console.error("Failed to request permissions:", error);
+        logger.error("Failed to request permissions", { kind, error });
 
         // Update permission state based on error type
         useRtcStore.getState().patch((state) => {
@@ -160,7 +163,7 @@ export function useDevices(): DevicesHook {
       try {
         await deviceManager.enumerateDevices();
       } catch (error) {
-        console.error("Failed to refresh devices:", error);
+        logger.error("Failed to refresh devices", { error });
         throw error;
       } finally {
         setLocalLoading(false);
@@ -203,7 +206,7 @@ export function useDevices(): DevicesHook {
         });
       };
     } catch (error) {
-      console.warn("Failed to check device permissions:", error);
+      logger.warn("Failed to check device permissions", { error });
       useRtcStore.getState().patch((state) => {
         state.devices.permissions.camera = "unknown";
         state.devices.permissions.microphone = "unknown";
@@ -214,11 +217,11 @@ export function useDevices(): DevicesHook {
   useEffect(() => {
     // Auto-list devices on mount (works pre-connection)
     listDevices().catch((error) => {
-      console.warn("Failed to auto-list devices:", error);
+      logger.warn("Failed to auto-list devices", { error });
     });
 
     checkPermissions().catch((error) => {
-      console.warn("Failed to check permissions:", error);
+      logger.warn("Failed to check permissions", { error });
     });
   }, [listDevices, checkPermissions]);
 
@@ -226,7 +229,7 @@ export function useDevices(): DevicesHook {
     // Re-enumerate when connected to get more accurate device info
     if (isConnected && deviceManager) {
       refreshDevices().catch((error) => {
-        console.warn("Failed to refresh devices after connection:", error);
+        logger.warn("Failed to refresh devices after connection", { error });
       });
     }
   }, [isConnected, deviceManager, refreshDevices]);

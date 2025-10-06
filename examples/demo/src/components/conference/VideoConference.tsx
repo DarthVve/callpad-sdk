@@ -1,4 +1,4 @@
-import { useCallState } from '@voyatek/callpad-sdk';
+import { useCallState, useAutoJoinForCurrentUser, useSdk } from '@voyatek/callpad-sdk';
 import { ConferenceHeader } from './ConferenceHeader';
 import { ParticipantGrid } from './ParticipantGrid';
 import { EnhancedControlBar } from './EnhancedControlBar';
@@ -11,6 +11,9 @@ interface VideoConferenceProps {
 
 export function VideoConference({ onLeaveCall, onMinimize }: VideoConferenceProps) {
   const { status } = useCallState();
+  const sdk = useSdk();
+  const autoJoinState = sdk.store((state) => state.autoJoin);
+  const userAutoJoin = useAutoJoinForCurrentUser();
 
   const handleMinimize = () => {
     onMinimize?.();
@@ -40,7 +43,7 @@ export function VideoConference({ onLeaveCall, onMinimize }: VideoConferenceProp
       />
       
       <div className="conference-content">
-        {status === 'RINGING' || status === 'ACCEPTED' || status === 'AWAITING_JOIN_INFO' ? (
+        {status === 'CALLING' || status === 'RINGING' || status === 'ACCEPTED' || status === 'AWAITING_JOIN_INFO' || status === 'READY_TO_JOIN' || status === 'CONNECTING' ? (
           <div className="call-connecting">
             <div className="connecting-content">
               <div className="connecting-icon">
@@ -51,10 +54,23 @@ export function VideoConference({ onLeaveCall, onMinimize }: VideoConferenceProp
               </div>
               <h2>Connecting to call...</h2>
               <p>
+                {status === 'CALLING' && 'Calling participants...'}
                 {status === 'RINGING' && 'Ringing participants...'}
                 {status === 'ACCEPTED' && 'Call accepted, joining room...'}
                 {status === 'AWAITING_JOIN_INFO' && 'Getting room information...'}
+                {status === 'READY_TO_JOIN' && 'Preparing to join...'}
+                {status === 'CONNECTING' && 'Joining media session...'}
               </p>
+              
+              {/* Show current auto-join status */}
+              {userAutoJoin.shouldAutoJoin && autoJoinState.status !== 'idle' && (
+                <div className="mt-4 text-sm opacity-75">
+                  {autoJoinState.status === 'pending' && '⏳ Auto-joining...'}
+                  {autoJoinState.status === 'retrying' && `🔄 Retrying... (${autoJoinState.attempt}/${autoJoinState.maxAttempts})`}
+                  {autoJoinState.status === 'failed' && '⚠️ Auto-join failed'}
+                </div>
+              )}
+              
               <div className="connecting-dots">
                 <span className="dot"></span>
                 <span className="dot"></span>

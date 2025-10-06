@@ -134,24 +134,63 @@ updatedAt: string
     }
                 ,PostSignalCallsByCallIdAccept: {
         callId: string
-state: 'RINGING' | 'ACTIVE' | 'ON_HOLD' | 'ENDED'
-message: string
+success: boolean
+action: 'accepted' | 'declined' | 'left' | 'initiated'
+participant?: {
+        inviteState: 'INVITED' | 'REMINDED' | 'ACCEPTED' | 'DECLINED' | 'MISSED' | 'TIMEOUT'
+joinState: 'NOT_JOINED' | 'JOINING' | 'JOINED' | 'LEFT' | 'KICKED'
+respondedAt?: string
+joinedAt?: string
+leftAt?: string
+    }
+call?: {
+        globalState: 'RINGING' | 'ACTIVE' | 'ON_HOLD' | 'ENDED'
+activeParticipants?: number
+pendingParticipants?: number
+    }
 token?: string
 roomName?: string
+message: string
     }
                 ,PostSignalCallsByCallIdDecline: {
         callId: string
-state: 'RINGING' | 'ACTIVE' | 'ON_HOLD' | 'ENDED'
-message: string
+success: boolean
+action: 'accepted' | 'declined' | 'left' | 'initiated'
+participant?: {
+        inviteState: 'INVITED' | 'REMINDED' | 'ACCEPTED' | 'DECLINED' | 'MISSED' | 'TIMEOUT'
+joinState: 'NOT_JOINED' | 'JOINING' | 'JOINED' | 'LEFT' | 'KICKED'
+respondedAt?: string
+joinedAt?: string
+leftAt?: string
+    }
+call?: {
+        globalState: 'RINGING' | 'ACTIVE' | 'ON_HOLD' | 'ENDED'
+activeParticipants?: number
+pendingParticipants?: number
+    }
 token?: string
 roomName?: string
+message: string
     }
                 ,PostSignalCallsByCallIdLeave: {
         callId: string
-state: 'RINGING' | 'ACTIVE' | 'ON_HOLD' | 'ENDED'
-message: string
+success: boolean
+action: 'accepted' | 'declined' | 'left' | 'initiated'
+participant?: {
+        inviteState: 'INVITED' | 'REMINDED' | 'ACCEPTED' | 'DECLINED' | 'MISSED' | 'TIMEOUT'
+joinState: 'NOT_JOINED' | 'JOINING' | 'JOINED' | 'LEFT' | 'KICKED'
+respondedAt?: string
+joinedAt?: string
+leftAt?: string
+    }
+call?: {
+        globalState: 'RINGING' | 'ACTIVE' | 'ON_HOLD' | 'ENDED'
+activeParticipants?: number
+pendingParticipants?: number
+    }
 token?: string
 roomName?: string
+message: string
     }
                 ,GetSignalCallsByCallId: {
         id: string

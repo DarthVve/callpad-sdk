@@ -1,7 +1,7 @@
 {
   "name": "callpad-demo",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.3",
   "type": "module",
   "description": "Demo application showcasing CallPad SDK features",
   "scripts": {
@@ -14,7 +14,7 @@
   "dependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "@voyatek/callpad-sdk": "workspace:*",
+    "vg-callpad-x07df": "workspace:*",
     "livekit-client": "^2.8.0",
     "socket.io-client": "^4.7.0"
   },

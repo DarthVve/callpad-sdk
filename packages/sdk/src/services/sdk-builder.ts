@@ -1,21 +1,25 @@
 import { AuthManager, SocketManager } from "../core";
 import { type ApiConfig, SignalClient, apiConfig } from "../core/signal";
-import type { SocketEvents } from "../core/socketio/events";
+import { type AutoJoinConfig } from "../core/types";
 import { LiveKitService } from "../livekit";
 import { rtcStore } from "../state/store";
+import { type LogLevel, setGlobalLoggerOptions } from "../utils/logger";
 import { type CallActions, createCallActions } from "./call-actions";
-import { setupSocketEventBridge } from "./socket-event-bridge";
 
 export interface SdkBuildOptions {
   appId: string;
   signalHost: string;
-  livekitUrl?: string;
   authProvider: () => string | null;
-  log?: (
-    lvl: "debug" | "info" | "warn" | "error",
-    msg: string,
-    extra?: any
-  ) => void;
+
+  // Logging configuration
+  logLevel?: LogLevel;
+  enableDebug?: boolean;
+
+  // Custom log callback
+  log?: (level: LogLevel, message: string, meta?: any) => void;
+
+  // Auto-join configuration
+  autoJoin?: Partial<AutoJoinConfig>;
 }
 
 export interface RtcSdk extends CallActions {
@@ -24,22 +28,39 @@ export interface RtcSdk extends CallActions {
   socket: SocketManager;
   signal: SignalClient;
   livekit: LiveKitService;
+  autoJoinConfig: AutoJoinConfig;
   cleanup: () => void;
 
   configureApi: (config: ApiConfig) => void;
-
-  on<K extends keyof SocketEvents>(
-    event: K,
-    handler: (data: SocketEvents[K]) => void
-  ): () => void;
-
-  off<K extends keyof SocketEvents>(
-    event: K,
-    handler: (data: SocketEvents[K]) => void
-  ): void;
 }
 
+// Default auto-join configuration
+const DEFAULT_AUTO_JOIN_CONFIG: AutoJoinConfig = {
+  enabled: true, // Everyone auto-joins by default
+  retryOnFailure: true,
+  maxRetries: 2,
+};
+
 export function buildSdk(opts: SdkBuildOptions): RtcSdk {
+  // Configure global logging system
+  const loggerOptions: any = {};
+  if (opts.logLevel !== undefined) {
+    loggerOptions.level = opts.logLevel;
+  }
+  if (opts.enableDebug !== undefined) {
+    loggerOptions.enableDebug = opts.enableDebug;
+  }
+  if (opts.log !== undefined) {
+    loggerOptions.customLogger = opts.log;
+  }
+  setGlobalLoggerOptions(loggerOptions);
+
+  // Merge auto-join configuration with defaults
+  const autoJoinConfig: AutoJoinConfig = {
+    ...DEFAULT_AUTO_JOIN_CONFIG,
+    ...opts.autoJoin,
+  };
+
   // Initialize core managers
   const auth = new AuthManager(opts.authProvider);
   const socket = SocketManager.getInstance();
@@ -49,28 +70,20 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
     authManager: auth,
   });
 
-  const callActions = createCallActions(signal);
-
   const livekit = new LiveKitService({
-    livekitUrl: opts.livekitUrl,
     log: opts.log,
   });
 
-  const cleanupEventBridge = setupSocketEventBridge(
-    socket,
-    {
-      log: opts.log,
-      livekitUrl: opts.livekitUrl,
-    },
-    livekit
-  );
+  const callActions = createCallActions(signal, auth, livekit);
+
+  // Socket now handles events directly - no event bridge needed
 
   const cleanup = () => {
-    cleanupEventBridge();
     socket.destroy();
     livekit.destroy();
     rtcStore.getState().reset();
   };
+
 
   return {
     store: rtcStore,
@@ -78,6 +91,7 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
     socket,
     signal,
     livekit,
+    autoJoinConfig,
     ...callActions,
     cleanup,
 
@@ -86,19 +100,5 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
       apiConfig.configure(config);
     },
 
-    // Convenience methods for event listening
-    on<K extends keyof SocketEvents>(
-      event: K,
-      handler: (data: SocketEvents[K]) => void
-    ) {
-      return socket.events.on(event, handler);
-    },
-
-    off<K extends keyof SocketEvents>(
-      event: K,
-      handler: (data: SocketEvents[K]) => void
-    ) {
-      socket.events.off(event, handler);
-    },
   };
 }

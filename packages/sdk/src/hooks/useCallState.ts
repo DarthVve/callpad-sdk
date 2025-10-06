@@ -1,5 +1,5 @@
 import { useRtcStore } from "../state/store";
-import type { SessionStatus, IncomingCallInfo } from "../state/types";
+import type { IncomingCallInfo, SessionStatus } from "../state/types";
 
 export interface CallState {
   id: string | undefined;
@@ -17,7 +17,7 @@ export function useCallState(): CallState {
     id: session.id,
     status: session.status,
     mode: session.mode,
-    roomName: session.roomName,
+    roomName: session.livekitInfo?.roomName,
     incomingCall,
   };
 }

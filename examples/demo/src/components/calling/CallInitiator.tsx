@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useCallActions } from '@voyatek/callpad-sdk';
+import { useCallActions } from 'vg-callpad-x07df';
 import './CallInitiator.css';
 
 interface CallInitiatorProps {
@@ -33,14 +33,7 @@ export function CallInitiator({ onCallInitiated }: CallInitiatorProps) {
     setError(null);
 
     try {
-      await initiate({
-        invitees,
-        mode: callType,
-        metadata: {
-          initiatedBy: 'demo',
-          userIds: invitees,
-        }
-      });
+      await initiate(invitees, callType);
 
       onCallInitiated?.();
     } catch (err) {

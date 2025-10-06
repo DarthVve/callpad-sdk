@@ -4,11 +4,14 @@ import {
   Track,
   type TrackPublication,
 } from "livekit-client";
+import { createLogger } from "../utils/logger";
 import { TRACK_ATTACHMENT_CONFIG } from "./constants";
 
 /**
  * Utility functions for working with LiveKit tracks
  */
+
+const logger = createLogger("livekit:tracks");
 
 export interface TrackAttachmentOptions {
   /**
@@ -100,7 +103,7 @@ export function detachTrackFromElement(
       track.detach();
     }
   } catch (error) {
-    console.warn("Failed to detach track:", error);
+    logger.warn("Failed to detach track", { error });
   }
 }
 

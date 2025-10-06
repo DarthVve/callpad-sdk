@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { 
   useMediaControls, 
   useDevices, 
-  useParticipantsInCall, 
+  useParticipants, 
   useCallActions,
   useConnection,
   useCallState
-} from '@voyatek/callpad-sdk';
+} from 'vg-callpad-x07df';
 import { useCallTimer } from '../../hooks/useCallTimer';
 import './EnhancedControlBar.css';
 
@@ -35,8 +35,8 @@ export function EnhancedControlBar({ onLeaveCall }: EnhancedControlBarProps) {
     switchSpeaker 
   } = useDevices();
   
-  const participants = useParticipantsInCall();
-  const { leave } = useCallActions();
+  const { participants } = useParticipants();
+  const { end } = useCallActions();
   const { quality } = useConnection();
   const { formattedDuration } = useCallTimer();
 
@@ -50,7 +50,7 @@ export function EnhancedControlBar({ onLeaveCall }: EnhancedControlBarProps) {
     }
     
     try {
-      await leave(callId);
+      await end(callId);
       onLeaveCall?.();
     } catch (error) {
       console.error('Failed to leave call:', error);

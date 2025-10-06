@@ -1,50 +1,34 @@
 export type SessionStatus =
   | "IDLE"
-  | "RINGING"
-  | "ACCEPTED"
-  | "AWAITING_JOIN_INFO"
-  | "ACTIVE"
+  | "CALLING"        // Caller initiated, waiting for acceptance
+  | "RINGING"        // Incoming call (callee perspective)
+  | "ACCEPTED"       // Call accepted but not yet joined media
+  | "AWAITING_JOIN_INFO"  // Waiting for join credentials
+  | "READY_TO_JOIN"  // Has join-info but not connected to media
+  | "CONNECTING"     // Joining LiveKit room
+  | "ACTIVE"         // Successfully connected to media session
   | "ENDED";
 
-// Simple participant profile from API/Socket
-export interface Profile {
+// Unified Participant interface - combines all participant data
+export interface Participant {
   id: string;
-  firstName: string | undefined;
-  lastName: string | undefined;
-  avatarUrl: string | undefined;
-}
-
-// Participant presence/status information
-export interface Presence {
-  role?: "CALLER" | "CALLEE" | "HOST" | "MEMBER";
-  invite: "INVITED" | "ACCEPTED" | "DECLINED" | "MISSED";
-  join: "NOT_JOINED" | "JOINING" | "JOINED" | "LEFT";
+  // Profile data
+  firstName?: string;
+  lastName?: string;
+  avatarUrl?: string;
+  // Call state
+  role: "CALLER" | "CALLEE" | "HOST" | "MEMBER";
+  callState: "INVITED" | "RINGING" | "JOINED" | "LEFT";
+  // Media state
+  audioEnabled: boolean;
+  videoEnabled: boolean;
+  isSpeaking: boolean;
+  connectionQuality?: "excellent" | "good" | "poor" | "lost" | "unknown";
+  // Timestamps
   invitedAt?: number;
-  acceptedAt?: number;
   joinedAt?: number;
   leftAt?: number;
 }
-
-// Media state from LiveKit
-export interface MediaSummary {
-  isSpeaking: boolean;
-  connectionQuality?: "excellent" | "good" | "poor" | "lost";
-}
-
-// Merged view for UI consumption
-export interface ParticipantView {
-  id: string;
-  firstName: string | undefined;
-  lastName: string | undefined;
-  avatarUrl: string | undefined;
-  role: "CALLER" | "CALLEE" | "HOST" | "MEMBER" | undefined;
-  invite: "INVITED" | "ACCEPTED" | "DECLINED" | "MISSED";
-  join: "NOT_JOINED" | "JOINING" | "JOINED" | "LEFT";
-  isSpeaking: boolean;
-  connectionQuality: "excellent" | "good" | "poor" | "lost" | undefined;
-}
-
-// Removed - use ParticipantView with presence/profile/media instead
 
 export type PermissionStatus = "granted" | "denied" | "prompt" | "unknown";
 
@@ -80,6 +64,7 @@ export interface LiveKitJoinInfo {
   token: string;
   roomName: string;
   callId: string;
+  url?: string;
 }
 
 export interface RtcError {
@@ -89,19 +74,30 @@ export interface RtcError {
   context?: any;
 }
 
+export type AutoJoinStatus = "idle" | "pending" | "retrying" | "succeeded" | "failed";
+
+export interface AutoJoinState {
+  status: AutoJoinStatus;
+  attempt: number;
+  maxAttempts: number;
+  lastError?: string;
+  startedAt?: number;
+  completedAt?: number;
+}
+
 export interface RtcState {
   session: {
     id?: string;
     status: SessionStatus;
-    roomName?: string;
     mode?: "AUDIO" | "VIDEO";
     livekitInfo?: LiveKitJoinInfo;
+    // Identity context: how did I get into this call?
+    myRole?: "CALLER" | "CALLEE";
+    initiatedByMe: boolean;
   };
 
-  connection: {
-    connected: boolean;
-    reconnecting: boolean;
-    quality?: "excellent" | "good" | "poor" | "lost";
+  room: {
+    participants: Record<string, Participant>; // Single unified record
   };
 
   local: {
@@ -110,24 +106,30 @@ export interface RtcState {
     screenEnabled: boolean;
   };
 
-  // Participant management
-  profiles: Record<string, Profile>;
-  presence: Record<string, Presence>;
-  media: Record<string, MediaSummary>;
+  connection: {
+    connected: boolean;
+    reconnecting: boolean;
+    quality?: "excellent" | "good" | "poor" | "lost";
+  };
 
-  // Device management
+  autoJoin: AutoJoinState;
   devices: DeviceState;
   errors: RtcError[];
   incomingCall: IncomingCallInfo | undefined;
 }
 
 export const defaultState: RtcState = {
-  session: { status: "IDLE" },
-  connection: { connected: false, reconnecting: false },
+  session: { status: "IDLE", initiatedByMe: false },
+  room: {
+    participants: {},
+  },
   local: { audioEnabled: false, videoEnabled: false, screenEnabled: false },
-  profiles: {},
-  presence: {},
-  media: {},
+  connection: { connected: false, reconnecting: false },
+  autoJoin: {
+    status: "idle",
+    attempt: 0,
+    maxAttempts: 0,
+  },
   devices: {
     mics: [],
     cams: [],
