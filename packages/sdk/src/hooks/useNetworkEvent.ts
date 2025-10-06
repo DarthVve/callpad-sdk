@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import type { SocketEvents } from "../core/socketio/types";
+import type { SocketEvents } from "../core/socketio/events";
 import { useSdk } from "../provider/RtcProvider";
-
 
 export function useNetworkEvent<K extends keyof SocketEvents>(
   event: K,

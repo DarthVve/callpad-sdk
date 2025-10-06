@@ -3,11 +3,7 @@ export type AuthProvider = () => string | null;
 export interface TokenInfo {
   token: string;
   isExpired: boolean;
-  expiresAt?: number;
-}
-
-export interface AuthManagerConfig {
-  authProvider: AuthProvider;
+  expiresAt?: number | undefined;
 }
 
 export interface JWTPayload {

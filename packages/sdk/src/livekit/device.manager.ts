@@ -1,4 +1,4 @@
-import { Room, RoomEvent, Track } from "livekit-client";
+import { ConnectionState, Room, RoomEvent, Track } from "livekit-client";
 import { rtcStore } from "../state/store";
 import { classifyMediaError } from "./error-classifier";
 
@@ -29,6 +29,10 @@ export class DeviceManager {
   }
 
   async switchCamera(deviceId: string): Promise<void> {
+    if (this.room.state !== ConnectionState.Connected) {
+      throw new Error("Cannot switch camera - room not connected");
+    }
+
     try {
       await this.room.switchActiveDevice("videoinput", deviceId);
 
@@ -45,6 +49,10 @@ export class DeviceManager {
   }
 
   async switchMicrophone(deviceId: string): Promise<void> {
+    if (this.room.state !== ConnectionState.Connected) {
+      throw new Error("Cannot switch microphone - room not connected");
+    }
+
     try {
       await this.room.switchActiveDevice("audioinput", deviceId);
 
@@ -61,6 +69,10 @@ export class DeviceManager {
   }
 
   async switchSpeaker(deviceId: string): Promise<void> {
+    if (this.room.state !== ConnectionState.Connected) {
+      throw new Error("Cannot switch speaker - room not connected");
+    }
+
     try {
       await this.room.switchActiveDevice("audiooutput", deviceId);
 
@@ -75,11 +87,11 @@ export class DeviceManager {
     }
   }
 
-  getCurrentDeviceSelection(): {
-    camera?: string;
-    microphone?: string;
-    speaker?: string;
-  } {
+  async getCurrentDeviceSelection(): Promise<{
+    camera: string | undefined;
+    microphone: string | undefined;
+    speaker: string | undefined;
+  }> {
     const videoTrack = this.room.localParticipant.getTrackPublication(
       Track.Source.Camera
     )?.track;
@@ -87,11 +99,16 @@ export class DeviceManager {
       Track.Source.Microphone
     )?.track;
 
+    const [cameraDeviceId, microphoneDeviceId] = await Promise.all([
+      videoTrack ? videoTrack.getDeviceId() : Promise.resolve(undefined),
+      audioTrack ? audioTrack.getDeviceId() : Promise.resolve(undefined),
+    ]);
+
     return {
-      camera: videoTrack?.mediaStreamTrack?.getSettings()?.deviceId,
-      microphone: audioTrack?.mediaStreamTrack?.getSettings()?.deviceId,
+      camera: cameraDeviceId || undefined,
+      microphone: microphoneDeviceId || undefined,
       // Speaker device ID is not directly accessible from tracks
-      speaker: rtcStore.getState().devices.selected.speakerId,
+      speaker: rtcStore.getState().devices.selected.speakerId || undefined,
     };
   }
 
@@ -108,12 +125,20 @@ export class DeviceManager {
       this.handleDeviceError("device_event", error);
     };
 
-    this.room.on(RoomEvent.MediaDevicesChanged as any, handleDevicesChanged);
-    this.room.on(RoomEvent.MediaDevicesError as any, handleDeviceError);
+    if ("MediaDevicesChanged" in RoomEvent) {
+      this.room.on(RoomEvent.MediaDevicesChanged, handleDevicesChanged);
+    }
+    if ("MediaDevicesError" in RoomEvent) {
+      this.room.on(RoomEvent.MediaDevicesError, handleDeviceError);
+    }
 
     this.cleanupFunctions.push(() => {
-      this.room.off(RoomEvent.MediaDevicesChanged as any, handleDevicesChanged);
-      this.room.off(RoomEvent.MediaDevicesError as any, handleDeviceError);
+      if ("MediaDevicesChanged" in RoomEvent) {
+        this.room.off(RoomEvent.MediaDevicesChanged, handleDevicesChanged);
+      }
+      if ("MediaDevicesError" in RoomEvent) {
+        this.room.off(RoomEvent.MediaDevicesError, handleDeviceError);
+      }
     });
   }
 

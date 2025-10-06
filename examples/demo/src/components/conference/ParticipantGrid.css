@@ -1,0 +1,141 @@
+.participant-grid {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  padding: 16px;
+  background: #0f172a;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.participant-grid.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-state {
+  text-align: center;
+  color: #64748b;
+  padding: 40px 20px;
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.7;
+}
+
+.empty-state h3 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.overflow-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 8px;
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(8px);
+}
+
+.overflow-content {
+  text-align: center;
+  color: white;
+}
+
+.overflow-count {
+  display: block;
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.overflow-text {
+  font-size: 12px;
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Responsive grid adjustments */
+@media (max-width: 1024px) {
+  .participant-grid {
+    gap: 6px;
+    padding: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .participant-grid {
+    gap: 4px;
+    padding: 8px;
+  }
+  
+  /* Force smaller grids on mobile */
+  .participant-grid[style*="repeat(4"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-rows: repeat(2, 1fr) !important;
+  }
+  
+  .participant-grid[style*="repeat(3"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-rows: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .participant-grid {
+    gap: 2px;
+    padding: 4px;
+  }
+  
+  /* Single column on very small screens */
+  .participant-grid[style*="repeat("] {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: repeat(auto-fit, minmax(200px, 1fr)) !important;
+  }
+}
+
+/* Animation for grid changes */
+.participant-grid {
+  transition: grid-template-columns 0.3s ease, grid-template-rows 0.3s ease;
+}
+
+/* Special layout for exactly 2 participants */
+.participant-grid[style*="repeat(2, 1fr)"]:not([style*="rows"]) {
+  grid-template-rows: 1fr;
+}
+
+/* Special layout for exactly 3 participants */
+.participant-grid[style*="repeat(3, 1fr)"][style*="repeat(2, 1fr)"] .participant-tile:last-child {
+  grid-column: 2;
+}
+
+/* Ensure tiles maintain aspect ratio in different grid configurations */
+.participant-grid .participant-tile {
+  min-height: 120px;
+}
+
+@media (min-width: 1200px) {
+  .participant-grid .participant-tile {
+    min-height: 160px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .participant-grid .participant-tile {
+    min-height: 200px;
+  }
+}

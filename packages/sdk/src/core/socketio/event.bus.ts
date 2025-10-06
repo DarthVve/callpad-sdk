@@ -1,10 +1,13 @@
-import type { EventCallback, UnsubscribeFn } from "./types";
+import type { EventCallback, UnsubscribeFn } from "./connection.types";
 
 export class EventBus<
   TEvents extends Record<string, any> = Record<string, any>,
 > {
   private eventTarget = new EventTarget();
-  private handlerMap = new Map<EventCallback<any>, EventListener>();
+  private handlerMap = new Map<
+    EventCallback<any>,
+    { listener: EventListener; event: string }
+  >();
 
   /**
    * Subscribe to an event. Returns an unsubscribe function.
@@ -21,7 +24,7 @@ export class EventBus<
     }) as EventListener;
 
     this.eventTarget.addEventListener(event, wrappedHandler);
-    this.handlerMap.set(handler, wrappedHandler);
+    this.handlerMap.set(handler, { listener: wrappedHandler, event });
 
     return () => this.off(event, handler);
   }
@@ -42,7 +45,7 @@ export class EventBus<
     }) as EventListener;
 
     this.eventTarget.addEventListener(event, wrappedHandler);
-    this.handlerMap.set(handler, wrappedHandler);
+    this.handlerMap.set(handler, { listener: wrappedHandler, event });
 
     return () => this.off(event, handler);
   }
@@ -56,9 +59,9 @@ export class EventBus<
     event: K & string,
     handler: EventCallback<TEvents[K]>
   ): void {
-    const wrappedHandler = this.handlerMap.get(handler);
-    if (wrappedHandler) {
-      this.eventTarget.removeEventListener(event, wrappedHandler);
+    const handlerInfo = this.handlerMap.get(handler);
+    if (handlerInfo) {
+      this.eventTarget.removeEventListener(event, handlerInfo.listener);
       this.handlerMap.delete(handler);
     }
   }
@@ -74,16 +77,23 @@ export class EventBus<
 
   removeAllListeners(event?: keyof TEvents & string): void {
     if (event) {
+      // Remove listeners for specific event
       const handlersToRemove: EventCallback<any>[] = [];
-      for (const [handler] of this.handlerMap) {
-        handlersToRemove.push(handler);
+      for (const [handler, handlerInfo] of this.handlerMap) {
+        if (handlerInfo.event === event) {
+          handlersToRemove.push(handler);
+        }
       }
       for (const handler of handlersToRemove) {
         this.off(event, handler);
       }
     } else {
-      for (const [handler, wrappedHandler] of this.handlerMap) {
-        this.handlerMap.delete(handler);
+      // Remove all listeners for all events
+      for (const [handler, handlerInfo] of this.handlerMap) {
+        this.eventTarget.removeEventListener(
+          handlerInfo.event,
+          handlerInfo.listener
+        );
       }
       this.handlerMap.clear();
     }
@@ -91,8 +101,10 @@ export class EventBus<
 
   listenerCount(event: keyof TEvents & string): number {
     let count = 0;
-    for (const [, wrappedHandler] of this.handlerMap) {
-      count++;
+    for (const [, handlerInfo] of this.handlerMap) {
+      if (handlerInfo.event === event) {
+        count++;
+      }
     }
     return count;
   }

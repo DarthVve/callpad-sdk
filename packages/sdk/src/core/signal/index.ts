@@ -1,7 +1,7 @@
 export { SignalClient } from "./signal.client";
+export { apiConfig } from "./api.config";
 export type {
   SignalClientConfig,
-  SignalEvents,
   CallInfo,
   CallParticipant,
   LiveKitJoinInfo,
@@ -9,5 +9,8 @@ export type {
   CallState,
   CallMode,
   EndReason,
+  ApiConfig,
 } from "./types";
 export * from "./types";
+// Re-export the generated API response type for convenience
+export type { CallsData } from "../../generated/api/models";

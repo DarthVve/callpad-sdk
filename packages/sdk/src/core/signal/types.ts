@@ -1,11 +1,9 @@
 import type { AuthManager } from "../auth.manager";
-import type { SocketManager } from "../socketio";
 
 export interface SignalClientConfig {
   baseUrl: string;
   appId: string;
   authManager: AuthManager;
-  socketManager: SocketManager;
 }
 
 export interface CallInfo {
@@ -43,28 +41,14 @@ export interface IncomingCallEvent {
   fromUserId: string;
   fromUserName: string;
   fromUserAvatar?: string;
-  type: "video" | "audio";
+  type: "VIDEO" | "AUDIO";
   timestamp: number;
   participants?: string[];
 }
 
 export type CallState = "RINGING" | "ACTIVE" | "ON_HOLD" | "ENDED";
 export type CallMode = "AUDIO" | "VIDEO";
-export type EndReason = "ended" | "timeout" | "error" | "cancelled";
-
-export type SignalEvents = {
-  "call.initiated": CallInfo;
-  "call.incoming": IncomingCallEvent;
-  "call.accepted": { callId: string; livekitInfo: LiveKitJoinInfo };
-  "call.declined": { callId: string; reason?: string };
-  "call.ended": { callId: string; reason: EndReason };
-  "call.stateChanged": {
-    callId: string;
-    newState: CallState;
-    previousState: CallState;
-  };
-  error: SignalError;
-};
+export type EndReason = "ENDED" | "TIMEOUT" | "ERROR" | "CANCELLED";
 
 export class SignalError extends Error {
   constructor(
@@ -83,9 +67,44 @@ export interface InitiateCallParams {
   metadata?: any;
 }
 
+export interface ApiConfig {
+  baseUrl: string;
+  token?: string | (() => Promise<string> | string);
+  credentials?: "include" | "omit" | "same-origin";
+  withCredentials?: boolean;
+  headers?: Record<string, string>;
+}
+
+// Backend API Response Types
 export interface CallResponse {
   id: string;
-  mode?: string;
-  state?: string;
+  mode: "AUDIO" | "VIDEO";
+  state: "RINGING" | "ACTIVE" | "ON_HOLD" | "ENDED";
+  callerId: string;
+  roomName: string;
+  lkRoomSid?: string;
+  createdAt: string;
+  startedAt?: string;
+  endedAt?: string;
+  participants: Array<{
+    id: string;
+    userId: string;
+    joinedAt?: string;
+    leftAt?: string;
+    lkIdentity?: string;
+    lkParticipantSid?: string;
+    createdAt: string;
+    updatedAt: string;
+  }>;
+}
+
+export interface CallActionResponse {
+  callId: string;
+  state: "RINGING" | "ACTIVE" | "ON_HOLD" | "ENDED";
+  message: string;
+  token?: string;
   roomName?: string;
 }
+
+// Legacy alias for backward compatibility
+export type LeaveCallResponse = CallActionResponse;

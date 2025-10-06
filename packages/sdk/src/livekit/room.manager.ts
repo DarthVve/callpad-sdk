@@ -1,9 +1,14 @@
-import { Room, RoomEvent, type RoomOptions } from "livekit-client";
-import { rtcStore } from "../state/store";
+import {
+  ConnectionState,
+  Room,
+  RoomEvent,
+  type RoomOptions,
+} from "livekit-client";
 import { DEFAULT_ROOM_OPTIONS, type LiveKitConnectionConfig } from "./";
 
 export class RoomManager {
   private readonly _room: Room;
+  private _preparingConnection: Promise<void> | null = null;
 
   constructor(options?: Partial<RoomOptions>) {
     this._room = new Room({
@@ -12,69 +17,51 @@ export class RoomManager {
     });
   }
 
-  async connect(config: LiveKitConnectionConfig): Promise<void> {
-    await this._room.prepareConnection(config.url, config.token);
+  /**
+   * Prepares the room connection for faster subsequent connect()
+   * This is optional but recommended for better UX
+   */
+  async prepareConnection(url: string, token?: string): Promise<void> {
+    if (this._preparingConnection) {
+      return this._preparingConnection;
+    }
 
-    this.setupEventListeners();
+    this._preparingConnection = this._room.prepareConnection(url, token);
+    try {
+      await this._preparingConnection;
+    } finally {
+      this._preparingConnection = null;
+    }
+  }
+
+  async connect(config: LiveKitConnectionConfig): Promise<void> {
+    // If we haven't prepared the connection, prepare it now
+    if (
+      !this._preparingConnection &&
+      this._room.state === ConnectionState.Disconnected
+    ) {
+      await this.prepareConnection(config.url, config.token);
+    }
+
     await this._room.connect(config.url, config.token);
+
+    // Start audio playback for browser policy compliance
+    try {
+      await this._room.startAudio();
+    } catch (error) {
+      // Non-critical error - user might need to interact first
+      console.debug(
+        "Audio start failed - user interaction may be required:",
+        error
+      );
+    }
   }
 
   async disconnect(): Promise<void> {
+    // Cancel any pending preparation
+    this._preparingConnection = null;
+
     await this._room.disconnect();
-  }
-
-  private setupEventListeners(): void {
-    this._room
-      .on(RoomEvent.Connected, () => {
-        rtcStore.getState().patch((state) => {
-          state.connection.connected = true;
-          state.connection.reconnecting = false;
-        });
-      })
-      .on(RoomEvent.Disconnected, () => {
-        rtcStore.getState().patch((state) => {
-          state.connection.connected = false;
-          state.connection.reconnecting = false;
-        });
-      })
-      .on(RoomEvent.Reconnecting, () => {
-        rtcStore.getState().patch((state) => {
-          state.connection.reconnecting = true;
-        });
-      })
-      .on(RoomEvent.Reconnected, () => {
-        rtcStore.getState().patch((state) => {
-          state.connection.connected = true;
-          state.connection.reconnecting = false;
-        });
-      })
-      .on(RoomEvent.ConnectionQualityChanged, (quality, participant) => {
-        rtcStore.getState().patch((state) => {
-          if (participant?.identity) {
-            const participantState = state.participants[participant.identity];
-            if (participantState) {
-              participantState.metadata = {
-                ...participantState.metadata,
-                connectionQuality: quality,
-              };
-            }
-          }
-
-          if (participant?.isLocal) {
-            let qualityLabel: "excellent" | "good" | "poor" | "lost";
-            if (quality === "excellent") {
-              qualityLabel = "excellent";
-            } else if (quality === "good") {
-              qualityLabel = "good";
-            } else if (quality === "poor") {
-              qualityLabel = "poor";
-            } else {
-              qualityLabel = "lost";
-            }
-            state.connection.quality = qualityLabel;
-          }
-        });
-      });
   }
 
   get room(): Room {
@@ -82,6 +69,9 @@ export class RoomManager {
   }
 
   destroy(): void {
-    this._room.removeAllListeners();
+    // Cancel any pending preparation
+    this._preparingConnection = null;
+
+    // Room cleanup is handled by LiveKit's disconnect
   }
 }

@@ -13,7 +13,7 @@ export abstract class MediaDeviceError extends Error {
   abstract readonly category: "permission" | "device" | "unknown";
   readonly device: string;
   readonly deviceName: string;
-  readonly cause?: Error;
+  readonly cause: Error | undefined;
 
   protected constructor(message: string, device: string, cause?: Error) {
     super(message);

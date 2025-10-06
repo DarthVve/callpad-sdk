@@ -97,7 +97,7 @@ PostSignalCallsByCallIdDecline: {
 callId: string
                         
                     };
-PostSignalCallsByCallIdEnd: {
+PostSignalCallsByCallIdLeave: {
                         appId: string
 callId: string
                         
@@ -146,7 +146,7 @@ message: string
 token?: string
 roomName?: string
     }
-                ,PostSignalCallsByCallIdEnd: {
+                ,PostSignalCallsByCallIdLeave: {
         callId: string
 state: 'RINGING' | 'ACTIVE' | 'ON_HOLD' | 'ENDED'
 message: string

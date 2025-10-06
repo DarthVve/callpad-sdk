@@ -1,25 +1,26 @@
 import type { Room, RoomOptions } from "livekit-client";
 import { DeviceManager } from "./device.manager";
+import { LiveKitEventBridge } from "./events/eventBridge";
 import { MediaControls } from "./media.controls";
-import { ParticipantManager } from "./participant.manager";
 import { RoomManager } from "./room.manager";
 import type { LiveKitServiceOptions } from "./types";
 
 export class LiveKitService {
   private roomManager: RoomManager;
-  private participantManager?: ParticipantManager;
-  private mediaControls?: MediaControls;
-  private deviceManager?: DeviceManager;
+  private eventBridge: LiveKitEventBridge | undefined;
+  private mediaControls: MediaControls | undefined;
+  private deviceManager: DeviceManager | undefined;
   private options: LiveKitServiceOptions;
 
-  constructor(options: LiveKitServiceOptions = {}) {
+  constructor(
+    options: LiveKitServiceOptions = { livekitUrl: undefined, log: undefined }
+  ) {
     this.options = options;
     this.roomManager = new RoomManager();
   }
 
   async joinRoom(token: string, url?: string): Promise<void> {
     const roomUrl = url || this.options.livekitUrl;
-
     if (!roomUrl) {
       const error = new Error("LiveKit URL not configured");
       this.options.log?.("error", "LiveKit URL missing", { token, url });
@@ -31,8 +32,21 @@ export class LiveKitService {
       await this.roomManager.connect({ url: roomUrl, token });
 
       // Initialize managers after a successful connection
-      this.participantManager = new ParticipantManager(this.room);
-      this.mediaControls = new MediaControls(this.room.localParticipant);
+      const eventBridgeOptions: {
+        log?: (
+          lvl: "debug" | "info" | "warn" | "error",
+          msg: string,
+          extra?: any
+        ) => void;
+      } = {};
+      if (this.options.log) {
+        eventBridgeOptions.log = this.options.log;
+      }
+      this.eventBridge = new LiveKitEventBridge(this.room, eventBridgeOptions);
+      this.mediaControls = new MediaControls(
+        this.room.localParticipant,
+        this.room
+      );
       this.deviceManager = new DeviceManager(this.room);
 
       // Enumerate devices after connection
@@ -56,8 +70,8 @@ export class LiveKitService {
       this.options.log?.("info", "Disconnecting from LiveKit room");
 
       // Cleanup managers first
-      this.participantManager?.destroy();
-      this.participantManager = undefined;
+      this.eventBridge?.destroy();
+      this.eventBridge = undefined;
       this.deviceManager?.destroy();
       this.deviceManager = undefined;
       this.mediaControls = undefined;
@@ -89,8 +103,8 @@ export class LiveKitService {
   }
 
   destroy(): void {
-    this.participantManager?.destroy();
-    this.participantManager = undefined;
+    this.eventBridge?.destroy();
+    this.eventBridge = undefined;
     this.deviceManager?.destroy();
     this.deviceManager = undefined;
     this.mediaControls = undefined;

@@ -166,10 +166,10 @@ appId
 	}
 
 	/**
-	 * @returns any Call ended successfully
+	 * @returns any Left call successfully
 	 * @throws ApiError
 	 */
-	public static postSignalCallsByCallIdEnd(data: CallsData['payloads']['PostSignalCallsByCallIdEnd']): CancelablePromise<CallsData['responses']['PostSignalCallsByCallIdEnd']> {
+	public static postSignalCallsByCallIdLeave(data: CallsData['payloads']['PostSignalCallsByCallIdLeave']): CancelablePromise<CallsData['responses']['PostSignalCallsByCallIdLeave']> {
 		const {
                     
                     callId,
@@ -177,7 +177,7 @@ appId
                 } = data;
 		return __request(OpenAPI, {
 			method: 'POST',
-			url: '/signal/calls/{callId}/end',
+			url: '/signal/calls/{callId}/leave',
 			path: {
 				callId
 			},
@@ -187,9 +187,9 @@ appId
 			errors: {
 				400: `Invalid request`,
 				401: `Authentication required`,
-				403: `User does not have permission`,
+				403: `User is not a participant`,
 				404: `Call not found`,
-				409: `Call cannot be ended in current state`,
+				409: `Call cannot be left in current state`,
 			},
 		});
 	}
