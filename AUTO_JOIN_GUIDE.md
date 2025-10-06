@@ -37,7 +37,7 @@ Auto-join automatically connects users to LiveKit media sessions based on config
 ### Basic Setup
 
 ```typescript
-import { buildSdk } from '@voyatek/callpad-sdk'
+import { buildSdk } from 'vg-x07df'
 
 const sdk = buildSdk({
   appId: 'your-app',
@@ -99,7 +99,7 @@ fallback: {
 ### Access Configuration
 
 ```typescript
-import { useAutoJoin, useAutoJoinForCurrentUser } from '@voyatek/callpad-sdk'
+import { useAutoJoin, useAutoJoinForCurrentUser } from 'vg-x07df'
 
 function CallSettings() {
   const autoJoin = useAutoJoin()
@@ -118,7 +118,7 @@ function CallSettings() {
 ### Monitor Auto-Join Status
 
 ```typescript
-import { useSdk } from '@voyatek/callpad-sdk'
+import { useSdk } from 'vg-x07df'
 
 function AutoJoinStatus() {
   const sdk = useSdk()

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useEvent } from 'vg-callpad-x07df';
+import { useEvent } from 'vg-x07df';
 import './CallNotifications.css';
 
 interface Notification {

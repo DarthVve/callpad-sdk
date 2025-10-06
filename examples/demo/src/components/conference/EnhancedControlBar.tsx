@@ -6,7 +6,7 @@ import {
   useCallActions,
   useConnection,
   useCallState
-} from 'vg-callpad-x07df';
+} from 'vg-x07df';
 import { useCallTimer } from '../../hooks/useCallTimer';
 import './EnhancedControlBar.css';
 

@@ -1,4 +1,4 @@
-import { useCallState, useCallActions } from 'vg-callpad-x07df';
+import { useCallState, useCallActions } from 'vg-x07df';
 import './IncomingCallModal.css';
 
 export function IncomingCallModal() {

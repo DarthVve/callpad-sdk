@@ -38,7 +38,7 @@ importers:
       socket.io-client:
         specifier: ^4.7.0
         version: 4.8.1
-      vg-callpad-x07df:
+      vg-x07df:
         specifier: workspace:*
         version: link:../../packages/sdk
     devDependencies:

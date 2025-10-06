@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useCallState } from '@voyatek/callpad-sdk';
+import { useCallState } from 'vg-x07df';
 
 export function useCallTimer() {
   const [duration, setDuration] = useState(0);

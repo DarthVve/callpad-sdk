@@ -1,4 +1,4 @@
-import { useCallState, useAutoJoinForCurrentUser, useSdk } from '@voyatek/callpad-sdk';
+import { useCallState, useAutoJoinForCurrentUser, useSdk } from 'vg-x07df';
 import { ConferenceHeader } from './ConferenceHeader';
 import { ParticipantGrid } from './ParticipantGrid';
 import { EnhancedControlBar } from './EnhancedControlBar';

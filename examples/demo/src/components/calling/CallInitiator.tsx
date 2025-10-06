@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useCallActions } from 'vg-callpad-x07df';
+import { useCallActions } from 'vg-x07df';
 import './CallInitiator.css';
 
 interface CallInitiatorProps {

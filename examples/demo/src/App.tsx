@@ -1,6 +1,6 @@
 import './App.css'
 import React, { useState } from 'react'
-import { RtcProvider } from '@voyatek/callpad-sdk'
+import { RtcProvider } from 'vg-x07df'
 import { AuthProvider } from './contexts/AuthContext'
 import { useAuth } from './hooks/useAuth'
 import { AuthService } from './services/auth.service'
@@ -12,7 +12,7 @@ import { CallNotifications } from './components/calling/CallNotifications'
 import { MinimizedCall } from './components/calling/MinimizedCall'
 import { AutoJoinStatus } from './components/calling/AutoJoinStatus'
 import { AutoJoinSettings } from './components/calling/AutoJoinSettings'
-import { useCallState, useSdk } from '@voyatek/callpad-sdk'
+import { useCallState, useSdk } from 'vg-x07df'
 
 // Debug environment variables
 console.log('🔍 Environment Debug:');

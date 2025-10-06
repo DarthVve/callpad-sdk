@@ -5,17 +5,17 @@ Production-ready headless SDK for CallPad audio/video calls with React integrati
 ## Installation
 
 ```bash
-npm install vg-callpad-x07df
+npm install vg-x07df
 # or
-yarn add vg-callpad-x07df
+yarn add vg-x07df
 # or
-pnpm add vg-callpad-x07df
+pnpm add vg-x07df
 ```
 
 ## Quick Start
 
 ```tsx
-import { CallpadSdkProvider, useCallActions, useCallState } from 'vg-callpad-x07df';
+import { CallpadSdkProvider, useCallActions, useCallState } from 'vg-x07df';
 
 function App() {
   return (
@@ -75,7 +75,7 @@ function CallInterface() {
 ### LiveKit Integration
 
 ```tsx
-import { LiveKitProvider, useTrack } from 'vg-callpad-x07df/livekit';
+import { LiveKitProvider, useTrack } from 'vg-x07df/livekit';
 
 // Access LiveKit room and tracks directly
 const track = useTrack();
@@ -93,5 +93,5 @@ const track = useTrack();
 This package includes full TypeScript definitions. No additional @types packages needed.
 
 ```tsx
-import type { CallState, Participant, CallQuality } from 'vg-callpad-x07df';
+import type { CallState, Participant, CallQuality } from 'vg-x07df';
 ```

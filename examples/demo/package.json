@@ -14,7 +14,7 @@
   "dependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "vg-callpad-x07df": "workspace:*",
+    "vg-x07df": "workspace:*",
     "livekit-client": "^2.8.0",
     "socket.io-client": "^4.7.0"
   },

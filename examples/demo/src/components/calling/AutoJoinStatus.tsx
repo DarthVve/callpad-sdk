@@ -1,5 +1,5 @@
-import { useAutoJoin, useAutoJoinForCurrentUser } from '@voyatek/callpad-sdk'
-import { useSdk } from '@voyatek/callpad-sdk'
+import { useAutoJoin, useAutoJoinForCurrentUser } from 'vg-x07df'
+import { useSdk } from 'vg-x07df'
 
 export function AutoJoinStatus() {
   const sdk = useSdk()

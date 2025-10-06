@@ -28,13 +28,13 @@ A production-ready headless SDK for CallPad audio/video calls built on React, Li
 Install the SDK using pnpm (recommended):
 
 ```bash
-pnpm add vg-callpad-x07df
+pnpm add vg-x07df
 ```
 
 Or using npm:
 
 ```bash
-npm install vg-callpad-x07df
+npm install vg-x07df
 ```
 
 ### Peer Dependencies
@@ -53,7 +53,7 @@ Wrap your application with the `RtcProvider` to enable CallPad functionality:
 
 ```tsx
 import React from 'react';
-import { RtcProvider } from 'vg-callpad-x07df';
+import { RtcProvider } from 'vg-x07df';
 
 const rtcOptions = {
   appId: 'your-app-id',
@@ -78,7 +78,7 @@ function App() {
 ### 2. Use Basic Hooks
 
 ```tsx
-import { useCallState, useCallActions } from 'vg-callpad-x07df';
+import { useCallState, useCallActions } from 'vg-x07df';
 
 function CallComponent() {
   const callState = useCallState();
@@ -204,7 +204,7 @@ interface Participant {
 Use the `useCallState` hook to detect incoming calls:
 
 ```tsx
-import { useCallState, useCallActions } from 'vg-callpad-x07df';
+import { useCallState, useCallActions } from 'vg-x07df';
 
 function IncomingCallHandler() {
   const { incomingCall, status } = useCallState();
@@ -235,7 +235,7 @@ function IncomingCallHandler() {
 Use event hooks for more sophisticated incoming call management:
 
 ```tsx
-import { useEvent, SdkEventType } from 'vg-callpad-x07df';
+import { useEvent, SdkEventType } from 'vg-x07df';
 
 function AdvancedIncomingCallHandler() {
   useEvent(SdkEventType.CALL_INCOMING, (event) => {
@@ -908,14 +908,14 @@ import type {
   InitiateCallParams,
   CallResponse,
   CallActionResponse,
-} from 'vg-callpad-x07df';
+} from 'vg-x07df';
 ```
 
 ### Custom Hook Example
 
 ```tsx
-import { useCallState, useCallActions } from 'vg-callpad-x07df';
-import type { SessionStatus } from 'vg-callpad-x07df';
+import { useCallState, useCallActions } from 'vg-x07df';
+import type { SessionStatus } from 'vg-x07df';
 
 function useCallManager() {
   const callState = useCallState();
@@ -945,7 +945,7 @@ function useCallManager() {
 Access the SDK instance directly for advanced operations:
 
 ```tsx
-import { useSdk } from 'vg-callpad-x07df';
+import { useSdk } from 'vg-x07df';
 
 function AdvancedComponent() {
   const sdk = useSdk();
@@ -1011,7 +1011,7 @@ import {
   useParticipants,
   useEvent,
   SdkEventType
-} from 'vg-callpad-x07df';
+} from 'vg-x07df';
 
 // Main app with provider
 function App() {
