@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useAutoJoin } from '@voyatek/callpad-sdk'
+import { useAutoJoin } from 'vg-x07df'
 
 interface AutoJoinSettingsProps {
   isOpen: boolean

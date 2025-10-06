@@ -1,5 +1,5 @@
 import { useRef, useEffect } from 'react';
-import type { Participant } from 'vg-callpad-x07df';
+import type { Participant } from 'vg-x07df';
 import './ParticipantTile.css';
 
 interface ParticipantTileProps {

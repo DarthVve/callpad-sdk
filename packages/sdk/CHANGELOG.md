@@ -1,4 +1,4 @@
-# vg-callpad-x07df
+# vg-x07df
 
 ## 1.0.2
 

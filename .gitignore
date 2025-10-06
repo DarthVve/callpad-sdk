@@ -48,3 +48,6 @@ yarn-error.log*
 .vscode/
 .idea/
 spec/
+
+# Helps manage temp files and folders, not to be tracked by git
+.tmp

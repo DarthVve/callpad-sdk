@@ -1,4 +1,4 @@
-import { useCallState, useParticipants } from '@voyatek/callpad-sdk';
+import { useCallState, useParticipants } from 'vg-x07df';
 import { useCallTimer } from '../../hooks/useCallTimer';
 import './MinimizedCall.css';
 

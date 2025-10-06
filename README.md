@@ -8,7 +8,7 @@ This monorepo includes the following packages:
 
 ### Packages
 
-- `packages/sdk` - CallPad SDK (`vg-callpad-x07df`) - Production-ready headless SDK for CallPad audio/video calls
+- `packages/sdk` - CallPad SDK (`vg-x07df`) - Production-ready headless SDK for CallPad audio/video calls
 - `examples/demo` - Demo application showcasing CallPad SDK features
 
 ### Tools & Configuration
@@ -49,7 +49,7 @@ pnpm lint
 pnpm dev
 
 # Start development for SDK only
-pnpm dev --filter=vg-callpad-x07df
+pnpm dev --filter=vg-x07df
 
 # Start demo application
 pnpm dev --filter=callpad-demo
@@ -62,7 +62,7 @@ pnpm dev --filter=callpad-demo
 pnpm build
 
 # Build SDK only
-pnpm build --filter=vg-callpad-x07df
+pnpm build --filter=vg-x07df
 
 # Build with type checking
 pnpm build && pnpm check-types
@@ -70,7 +70,7 @@ pnpm build && pnpm check-types
 
 ## Publishing Packages
 
-This project uses [Changesets](https://github.com/changesets/changesets) for version management and publishing. The main publishable package is the CallPad SDK (`vg-callpad-x07df`).
+This project uses [Changesets](https://github.com/changesets/changesets) for version management and publishing. The main publishable package is the CallPad SDK (`vg-x07df`).
 
 ### Prerequisites for Publishing
 
@@ -128,7 +128,7 @@ pnpm publish:dry
 ```
 
 This command:
-- Builds only the SDK package (`--filter=vg-callpad-x07df`)
+- Builds only the SDK package (`--filter=vg-x07df`)
 - Runs type checking to ensure code quality
 - Publishes to npm registry with proper authentication
 
@@ -144,7 +144,7 @@ This command:
 # 1. Make your changes to the SDK
 # 2. Create a changeset
 pnpm changeset
-# Select packages: vg-callpad-x07df
+# Select packages: vg-x07df
 # Change type: patch/minor/major
 # Summary: "Add new useCallQuality hook"
 

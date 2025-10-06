@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useParticipants } from 'vg-callpad-x07df';
+import { useParticipants } from 'vg-x07df';
 import { ParticipantTile } from './ParticipantTile';
 import { PaginationControls } from './PaginationControls';
 import './ParticipantGrid.css';
