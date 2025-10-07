@@ -35,9 +35,7 @@ export default defineConfig({
   noExternal: [],
   // Library specific settings
   esbuildOptions(options) {
-    options.banner = {
-      js: '"use client";', // Next.js client component support
-    };
+    // Don't add "use client" as banner since individual files already have it
     options.jsx = "automatic";
     options.jsxImportSource = "react";
   },
