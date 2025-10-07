@@ -18,17 +18,9 @@ export class CallEndedHandler extends BaseSocketHandler<CallEndedEvent> {
       }
 
       state.session.status = "ENDED";
-      state.incomingCall = undefined;
-
-      for (const id of Object.keys(state.room.participants)) {
-        const participant = state.room.participants[id];
-        if (participant) {
-          participant.callState = "LEFT";
-          if (!participant.leftAt) {
-            participant.leftAt = Date.now();
-          }
-        }
-      }
+      
+      // Clear participants - LiveKit will handle disconnections
+      state.room.participants = {};
     });
 
     if (this.livekit) {

@@ -59,18 +59,8 @@ export function useMediaControls(): MediaControlsHook & {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  // Check if media controls are available and connected
-  const isConnected = connection.connected;
-  let mediaControls: MediaActions | null = null;
-
-  try {
-    if (sdk.livekit && isConnected) {
-      mediaControls = sdk.livekit.media;
-    }
-  } catch {
-    // Media controls not available - room not connected
-    mediaControls = null;
-  }
+  // Get media controls directly - UI should only be available when connected
+  const mediaControls = sdk.livekit?.media;
 
   // Enhanced wrapper functions with loading states and better error handling
   const createEnhancedAction = (
@@ -78,18 +68,10 @@ export function useMediaControls(): MediaControlsHook & {
     actionName: string
   ) => {
     return async (): Promise<void> => {
-      if (!mediaControls) {
-        const errorMsg = !isConnected
-          ? "Cannot control media - not connected to LiveKit room"
-          : "Media controls not available - LiveKit service not initialized";
-        throw new Error(errorMsg);
-      }
-
       setIsLoading(true);
       try {
         await action();
       } catch (error) {
-        // Enhanced error handling with context
         logger.error(`Failed to ${actionName}`, { actionName, error });
         throw error;
       } finally {
@@ -100,10 +82,7 @@ export function useMediaControls(): MediaControlsHook & {
 
   // Fallback functions for when media controls are not available
   const unavailableAction = async (): Promise<void> => {
-    const errorMsg = !isConnected
-      ? "Cannot control media - not connected to LiveKit room"
-      : "Media controls not available - LiveKit service not initialized";
-    throw new Error(errorMsg);
+    throw new Error("Media controls not available");
   };
 
   // Simple device switching functions without complex error handling
@@ -132,27 +111,27 @@ export function useMediaControls(): MediaControlsHook & {
   const actions: EnhancedMediaActions = mediaControls
     ? {
         enableCamera: createEnhancedAction(
-          () => mediaControls?.enableCamera(),
+          () => mediaControls!.enableCamera(),
           "enable camera"
         ),
         disableCamera: createEnhancedAction(
-          () => mediaControls?.disableCamera(),
+          () => mediaControls!.disableCamera(),
           "disable camera"
         ),
         enableMicrophone: createEnhancedAction(
-          () => mediaControls?.enableMicrophone(),
+          () => mediaControls!.enableMicrophone(),
           "enable microphone"
         ),
         disableMicrophone: createEnhancedAction(
-          () => mediaControls?.disableMicrophone(),
+          () => mediaControls!.disableMicrophone(),
           "disable microphone"
         ),
         toggleCamera: createEnhancedAction(
-          () => mediaControls?.toggleCamera(),
+          () => mediaControls!.toggleCamera(),
           "toggle camera"
         ),
         toggleMicrophone: createEnhancedAction(
-          () => mediaControls?.toggleMicrophone(),
+          () => mediaControls!.toggleMicrophone(),
           "toggle microphone"
         ),
         // Device switching
@@ -160,11 +139,11 @@ export function useMediaControls(): MediaControlsHook & {
         switchMicrophone,
         // Simple aliases
         toggleAudio: createEnhancedAction(
-          () => mediaControls?.toggleMicrophone(),
+          () => mediaControls!.toggleMicrophone(),
           "toggle audio"
         ),
         toggleVideo: createEnhancedAction(
-          () => mediaControls?.toggleCamera(),
+          () => mediaControls!.toggleCamera(),
           "toggle video"
         ),
       }
@@ -187,7 +166,7 @@ export function useMediaControls(): MediaControlsHook & {
     isAudioEnabled: local.audioEnabled,
     isCameraAvailable: !!mediaControls,
     isMicrophoneAvailable: !!mediaControls,
-    isConnected,
+    isConnected: connection.connected,
     isLoading,
     errors,
 

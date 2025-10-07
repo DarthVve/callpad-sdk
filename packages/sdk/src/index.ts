@@ -9,13 +9,9 @@ export {
 // React hooks for call management
 export * from "./hooks";
 
-// State selectors for advanced usage
-export {
-  useParticipant,
-  useRingingParticipants,
-  useLocalParticipant,
-  useSpeakingParticipants,
-} from "./state/selectors";
+// React components
+export * from "./components";
+
 
 // Essential types consumers need
 export type {
@@ -23,10 +19,10 @@ export type {
   Participant,
   PermissionStatus,
   DeviceState,
-  IncomingCallInfo,
   LiveKitJoinInfo,
   RtcError,
   RtcState,
+  TrackReference,
 } from "./state/types";
 
 // Signal client types for call initiation
@@ -46,21 +42,21 @@ export { apiConfig, type ApiConfig } from "./core/signal/api.config";
 
 // Event system for advanced usage
 export { eventBus } from "./core/events";
+export {
+  SdkEventType,
+} from "./core/events/types";
 export type {
   SdkEvent,
-  SdkEventType,
   EventHandler,
   EventSubscription,
   EventFilter,
   CallInitiatedEvent,
   CallIncomingEvent,
-  CallAcceptedEvent,
   CallDeclinedEvent,
   CallEndedEvent,
-  ParticipantJoinedEvent,
-  ParticipantLeftEvent,
   MediaEnabledEvent,
   MediaDisabledEvent,
   ConnectionQualityChangedEvent,
   ErrorOccurredEvent,
+  ParticipantInvitedEvent,
 } from "./core/events/types";

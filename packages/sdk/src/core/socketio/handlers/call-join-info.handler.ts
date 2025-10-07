@@ -14,16 +14,12 @@ export class CallJoinInfoHandler extends BaseSocketHandler<CallJoinInfoEvent> {
 
   protected async handle(data: CallJoinInfoEvent): Promise<void> {
     const currentState = rtcStore.getState();
-    // Get current user ID from auth instead of localParticipantId
-    const currentUserId = this.authManager?.getCurrentUserId();
-    
     const currentSessionId = this.getSessionId();
 
     if (currentSessionId !== data.callId) {
       this.logger.error("CallId mismatch in join-info event", {
         eventCallId: data.callId,
         sessionCallId: currentSessionId,
-        currentUserId,
       });
       pushStaleEventError("call.join-info", "callId mismatch", {
         eventCallId: data.callId,
@@ -35,7 +31,6 @@ export class CallJoinInfoHandler extends BaseSocketHandler<CallJoinInfoEvent> {
     if (this.livekit?.room.state === "connected") {
       this.logger.warn("Already connected to LiveKit, ignoring join-info", {
         callId: data.callId,
-        currentUserId,
         currentRoomState: this.livekit.room.state,
       });
       return;
@@ -55,14 +50,13 @@ export class CallJoinInfoHandler extends BaseSocketHandler<CallJoinInfoEvent> {
       state.session.status = "READY_TO_JOIN";
     });
 
-    // Simplified auto-join logic: auto-join if enabled and user exists
-    const shouldAutoJoin = this.autoJoinConfig?.enabled && currentUserId;
+    // Simplified auto-join logic: auto-join if enabled
+    const shouldAutoJoin = this.autoJoinConfig?.enabled;
 
     if (shouldAutoJoin && this.livekit && data.url) {
       try {
         this.logger.info("Auto-joining LiveKit room after receiving join-info", {
           callId: data.callId,
-          currentUserId,
         });
 
         // Update state to connecting before joining
@@ -78,53 +72,10 @@ export class CallJoinInfoHandler extends BaseSocketHandler<CallJoinInfoEvent> {
           // Update state after successful join
           this.updateStore((state) => {
             state.session.status = "ACTIVE";
-            if (currentUserId) {
-              // Defensive check: create participant if it doesn't exist
-              if (!state.room.participants[currentUserId]) {
-                this.logger.warn("Creating missing participant during auto-join", {
-                  currentUserId,
-                  callId: data.callId,
-                });
-                
-                state.room.participants[currentUserId] = {
-                  id: currentUserId,
-                  role: state.session.myRole || "MEMBER",
-                  callState: "INVITED",
-                  invitedAt: Date.now(),
-                  audioEnabled: true,
-                  videoEnabled: true,
-                  isSpeaking: false,
-                };
-              }
-              
-              state.room.participants[currentUserId].callState = "JOINED";
-              state.room.participants[currentUserId].joinedAt = Date.now();
-              
-              this.logger.debug("Participant joined during auto-join", {
-                participantId: currentUserId,
-                callState: "JOINED",
-                callId: data.callId,
-              });
-            }
           });
-
-          // Emit participant joined event
-          eventBus.emit(
-            SdkEventType.PARTICIPANT_JOINED,
-            {
-              callId: data.callId,
-              participant: {
-                id: currentUserId,
-                role: currentState.session.myRole || "MEMBER",
-              },
-              timestamp: Date.now(),
-            },
-            "socket"
-          );
 
           this.logger.info("Successfully auto-joined LiveKit room", {
             callId: data.callId,
-            currentUserId,
             retriesUsed: this.autoJoinConfig?.retryOnFailure,
           });
         } else {
@@ -140,12 +91,6 @@ export class CallJoinInfoHandler extends BaseSocketHandler<CallJoinInfoEvent> {
         // Reset state on failure
         this.updateStore((state) => {
           state.session.status = "READY_TO_JOIN"; // Ready for manual join
-          if (currentUserId) {
-            // Defensive check: only update if participant exists
-            if (state.room.participants[currentUserId]) {
-              state.room.participants[currentUserId].callState = "LEFT";
-            }
-          }
         });
 
         pushLiveKitConnectError(
@@ -165,7 +110,7 @@ export class CallJoinInfoHandler extends BaseSocketHandler<CallJoinInfoEvent> {
       SdkEventType.JOIN_INFO_RECEIVED,
       {
         callId: data.callId,
-        participantId: currentUserId || "unknown",
+        participantId: "pending",
         timestamp: Date.now(),
         hasUrl: !!data.url,
         hasToken: !!data.token,

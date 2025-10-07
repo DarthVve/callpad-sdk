@@ -11,12 +11,15 @@ export class RoomManager {
   private readonly _room: Room;
   private _preparingConnection: Promise<void> | null = null;
   private logger = createLogger("livekit:room");
+  private _audioPlaybackHandler: (() => void) | undefined;
 
   constructor(options?: Partial<RoomOptions>) {
     this._room = new Room({
       ...DEFAULT_ROOM_OPTIONS,
       ...options,
     });
+    
+    this.setupAudioPlaybackMonitoring();
   }
 
   /**
@@ -70,7 +73,56 @@ export class RoomManager {
     return this._room;
   }
 
+  /**
+   * Sets up audio playback status monitoring according to LiveKit best practices
+   */
+  private setupAudioPlaybackMonitoring(): void {
+    this._audioPlaybackHandler = () => {
+      const canPlayback = this._room.canPlaybackAudio;
+      this.logger.debug("Audio playback status changed", { canPlayback });
+      
+      if (!canPlayback) {
+        this.logger.info(
+          "Audio playback requires user interaction - audio will be silent until user interacts"
+        );
+        // Note: UI should provide a play button that calls this.startAudioWithUserInteraction()
+      } else {
+        this.logger.debug("Audio playback is now available");
+      }
+    };
+
+    this._room.on(RoomEvent.AudioPlaybackStatusChanged, this._audioPlaybackHandler);
+  }
+
+  /**
+   * Attempts to start audio playback (must be called from user interaction)
+   * Returns true if successful, false if user interaction is still required
+   */
+  async startAudioWithUserInteraction(): Promise<boolean> {
+    try {
+      await this._room.startAudio();
+      this.logger.info("Audio playback started successfully via user interaction");
+      return true;
+    } catch (error) {
+      this.logger.warn("Failed to start audio playback even with user interaction", { error });
+      return false;
+    }
+  }
+
+  /**
+   * Check if audio playback is currently allowed
+   */
+  get canPlaybackAudio(): boolean {
+    return this._room.canPlaybackAudio;
+  }
+
   destroy(): void {
+    // Clean up audio monitoring
+    if (this._audioPlaybackHandler) {
+      this._room.off(RoomEvent.AudioPlaybackStatusChanged, this._audioPlaybackHandler);
+      this._audioPlaybackHandler = undefined;
+    }
+
     // Cancel any pending preparation
     this._preparingConnection = null;
 

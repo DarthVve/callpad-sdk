@@ -8,10 +8,15 @@ export * from "./useAutoJoin";
 // Participant management hooks
 export * from "./useParticipants";
 export * from "./useParticipantStatus";
+export * from "./useParticipantTracks";
+export * from "./useParticipantMedia";
+export * from "./useCallTypeTracks";
 
 // Media control hooks
 export * from "./useMediaControls";
 export * from "./useDevices";
+export * from "./useAudioPlayback";
+export * from "./useLocalParticipantId";
 
 // Event system hooks
 export * from "./useEvent";

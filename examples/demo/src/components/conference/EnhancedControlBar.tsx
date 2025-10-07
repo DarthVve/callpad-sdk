@@ -238,16 +238,16 @@ export function EnhancedControlBar({ onLeaveCall }: EnhancedControlBarProps) {
             {participants.map((participant: any) => (
               <div key={participant.id} className="participant-item">
                 <div className="participant-avatar">
-                  {participant.avatarUrl ? (
-                    <img src={participant.avatarUrl} alt="" />
+                  {participant.info?.avatarUrl ? (
+                    <img src={participant.info.avatarUrl} alt="" />
                   ) : (
                     <span>
-                      {(participant.firstName || 'U').charAt(0).toUpperCase()}
+                      {(participant.info?.firstName || 'U').charAt(0).toUpperCase()}
                     </span>
                   )}
                 </div>
                 <span className="participant-name">
-                  {[participant.firstName, participant.lastName].filter(Boolean).join(' ') || `User ${participant.id}`}
+                  {[participant.info?.firstName, participant.info?.lastName].filter(Boolean).join(' ') || `User ${participant.id}`}
                 </span>
                 {participant.isSpeaking && (
                   <span className="speaking-indicator">🗣️</span>

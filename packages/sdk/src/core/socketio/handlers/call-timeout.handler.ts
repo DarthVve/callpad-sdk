@@ -14,17 +14,8 @@ export class CallTimeoutHandler extends BaseSocketHandler<CallTimeoutEvent> {
     this.updateStore((state) => {
       if (state.session.id === data.callId) {
         state.session.status = "ENDED";
-        state.incomingCall = undefined;
 
-        // Mark all participants as left
-        for (const participant of Object.values(
-          state.room.participants
-        ) as Participant[]) {
-          participant.callState = "LEFT";
-          if (!participant.leftAt) {
-            participant.leftAt = data.timestamp || Date.now();
-          }
-        }
+        state.room.participants = {};
       }
     });
   }

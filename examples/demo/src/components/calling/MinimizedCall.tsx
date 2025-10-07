@@ -9,13 +9,13 @@ interface MinimizedCallProps {
 
 export function MinimizedCall({ onRestore, onLeaveCall }: MinimizedCallProps) {
   const { status } = useCallState();
-  const participants = useParticipants();
+  const { participants } = useParticipants();
   const { formattedDuration, isActive } = useCallTimer();
 
   const participantCount = participants.length;
   const participantNames = participants
     .slice(0, 2)
-    .map(p => p.firstName || 'Unknown')
+    .map(p => p.info?.firstName || 'Unknown')
     .join(', ');
 
   const getStatusText = () => {

@@ -107,6 +107,11 @@ GetSignalCallsByCallId: {
 callId: string
                         
                     };
+GetSignalCallsParticipantsByIdentity: {
+                        appId: string
+identity: string
+                        
+                    };
         }
         
         
@@ -114,7 +119,7 @@ callId: string
             PostSignalCalls: {
         id: string
 mode: 'AUDIO' | 'VIDEO'
-state: 'RINGING' | 'ACTIVE' | 'ON_HOLD' | 'ENDED'
+state: 'ACTIVE' | 'ENDED'
 callerId: string
 roomName: string
 lkRoomSid?: string
@@ -124,8 +129,7 @@ endedAt?: string
 participants: Array<{
         id: string
 userId: string
-joinedAt?: string
-leftAt?: string
+joinedAt: string
 lkIdentity?: string
 lkParticipantSid?: string
 createdAt: string
@@ -137,16 +141,11 @@ updatedAt: string
 success: boolean
 action: 'accepted' | 'declined' | 'left' | 'initiated'
 participant?: {
-        inviteState: 'INVITED' | 'REMINDED' | 'ACCEPTED' | 'DECLINED' | 'MISSED' | 'TIMEOUT'
-joinState: 'NOT_JOINED' | 'JOINING' | 'JOINED' | 'LEFT' | 'KICKED'
-respondedAt?: string
-joinedAt?: string
-leftAt?: string
+        joinedAt: string
     }
 call?: {
-        globalState: 'RINGING' | 'ACTIVE' | 'ON_HOLD' | 'ENDED'
-activeParticipants?: number
-pendingParticipants?: number
+        globalState: 'ACTIVE' | 'ENDED'
+participantCount?: number
     }
 token?: string
 roomName?: string
@@ -157,16 +156,11 @@ message: string
 success: boolean
 action: 'accepted' | 'declined' | 'left' | 'initiated'
 participant?: {
-        inviteState: 'INVITED' | 'REMINDED' | 'ACCEPTED' | 'DECLINED' | 'MISSED' | 'TIMEOUT'
-joinState: 'NOT_JOINED' | 'JOINING' | 'JOINED' | 'LEFT' | 'KICKED'
-respondedAt?: string
-joinedAt?: string
-leftAt?: string
+        joinedAt: string
     }
 call?: {
-        globalState: 'RINGING' | 'ACTIVE' | 'ON_HOLD' | 'ENDED'
-activeParticipants?: number
-pendingParticipants?: number
+        globalState: 'ACTIVE' | 'ENDED'
+participantCount?: number
     }
 token?: string
 roomName?: string
@@ -177,16 +171,11 @@ message: string
 success: boolean
 action: 'accepted' | 'declined' | 'left' | 'initiated'
 participant?: {
-        inviteState: 'INVITED' | 'REMINDED' | 'ACCEPTED' | 'DECLINED' | 'MISSED' | 'TIMEOUT'
-joinState: 'NOT_JOINED' | 'JOINING' | 'JOINED' | 'LEFT' | 'KICKED'
-respondedAt?: string
-joinedAt?: string
-leftAt?: string
+        joinedAt: string
     }
 call?: {
-        globalState: 'RINGING' | 'ACTIVE' | 'ON_HOLD' | 'ENDED'
-activeParticipants?: number
-pendingParticipants?: number
+        globalState: 'ACTIVE' | 'ENDED'
+participantCount?: number
     }
 token?: string
 roomName?: string
@@ -195,7 +184,7 @@ message: string
                 ,GetSignalCallsByCallId: {
         id: string
 mode: 'AUDIO' | 'VIDEO'
-state: 'RINGING' | 'ACTIVE' | 'ON_HOLD' | 'ENDED'
+state: 'ACTIVE' | 'ENDED'
 callerId: string
 roomName: string
 lkRoomSid?: string
@@ -205,13 +194,19 @@ endedAt?: string
 participants: Array<{
         id: string
 userId: string
-joinedAt?: string
-leftAt?: string
+joinedAt: string
 lkIdentity?: string
 lkParticipantSid?: string
 createdAt: string
 updatedAt: string
     }>
+    }
+                ,GetSignalCallsParticipantsByIdentity: {
+        id: string
+firstName?: string
+lastName?: string
+avatarUrl?: string
+email?: string
     }
                 
         }

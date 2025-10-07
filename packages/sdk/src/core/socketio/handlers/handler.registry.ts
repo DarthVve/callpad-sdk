@@ -7,10 +7,7 @@ import { CallParticipantDeclinedHandler } from "./call-declined.handler";
 import { CallEndedHandler } from "./call-ended.handler";
 import { CallIncomingHandler } from "./call-incoming.handler";
 import { CallJoinInfoHandler } from "./call-join-info.handler";
-import { CallParticipantJoinedHandler } from "./call-participant-joined.handler";
-import { CallParticipantJoiningHandler } from "./call-participant-joining.handler";
 import { CallTimeoutHandler } from "./call-timeout.handler";
-import { ParticipantLeftHandler } from "./participant-left.handler";
 
 const logger = createLogger("socketio:registry");
 
@@ -28,9 +25,6 @@ export class SocketHandlerRegistry {
       new CallParticipantDeclinedHandler(this.options),
       new CallEndedHandler(this.options),
       new CallJoinInfoHandler(this.options),
-      new ParticipantLeftHandler(this.options),
-      new CallParticipantJoiningHandler(this.options),
-      new CallParticipantJoinedHandler(this.options),
       new CallTimeoutHandler(this.options),
       new CallCanceledHandler(this.options),
     ];

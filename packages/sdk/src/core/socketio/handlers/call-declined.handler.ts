@@ -11,7 +11,6 @@ export class CallParticipantDeclinedHandler extends BaseSocketHandler<CallPartic
     this.updateStore((state) => {
       if (state.session.id === data.callId) {
         state.session.status = "IDLE";
-        state.incomingCall = undefined;
       }
     });
 

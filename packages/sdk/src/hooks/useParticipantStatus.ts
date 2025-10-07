@@ -91,38 +91,11 @@ export function useParticipantStatus(participantId: string): ParticipantStatus {
       }
     );
 
-    const participantJoinedSub = eventBus.on(
-      SdkEventType.PARTICIPANT_JOINED,
-      (event) => {
-        if (event.payload.participant.id === participantId) {
-          setStatus((prevStatus) => ({
-            ...prevStatus,
-            connectionState: "connected",
-            lastSeen: event.timestamp,
-          }));
-        }
-      }
-    );
-
-    const participantLeftSub = eventBus.on(
-      SdkEventType.PARTICIPANT_LEFT,
-      (event) => {
-        if (event.payload.participantId === participantId) {
-          setStatus((prevStatus) => ({
-            ...prevStatus,
-            connectionState: "disconnected",
-            lastSeen: event.timestamp,
-          }));
-        }
-      }
-    );
 
     return () => {
       mediaEnabledSub.unsubscribe();
       mediaDisabledSub.unsubscribe();
       connectionQualitySub.unsubscribe();
-      participantJoinedSub.unsubscribe();
-      participantLeftSub.unsubscribe();
     };
   }, [participantId]);
 
@@ -249,17 +222,9 @@ function getConnectionState(
     return "disconnected";
   }
 
-  switch (participant.callState) {
-    case "JOINED":
-      return "connected";
-    case "RINGING":
-    case "INVITED":
-      return "connecting";
-    case "LEFT":
-      return "disconnected";
-    default:
-      return "disconnected";
-  }
+  // In the new architecture, if a participant exists in the store
+  // and we're globally connected, they are connected via LiveKit
+  return "connected";
 }
 
 function getAudioState(
@@ -303,14 +268,6 @@ function updateStatusFromEvent(
       break;
     case SdkEventType.CONNECTION_QUALITY_CHANGED:
       newStatus.networkQuality = event.payload.quality;
-      break;
-    case SdkEventType.PARTICIPANT_JOINED:
-      newStatus.connectionState = "connected";
-      newStatus.lastSeen = event.timestamp;
-      break;
-    case SdkEventType.PARTICIPANT_LEFT:
-      newStatus.connectionState = "disconnected";
-      newStatus.lastSeen = event.timestamp;
       break;
   }
 

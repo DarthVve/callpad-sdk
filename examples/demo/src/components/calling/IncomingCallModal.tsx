@@ -1,17 +1,45 @@
-import { useCallState, useCallActions } from 'vg-x07df';
+import { useState } from 'react';
+import { useEvent, useCallActions, useCallState, SdkEventType } from 'vg-x07df';
+import type { CallIncomingEvent } from 'vg-x07df';
 import './IncomingCallModal.css';
 
 export function IncomingCallModal() {
-  const { incomingCall } = useCallState();
+  const [incomingCall, setIncomingCall] = useState<CallIncomingEvent | null>(null);
   const { accept, decline } = useCallActions();
+  const { status } = useCallState();
+  
+  // Listen for incoming call events
+  useEvent(SdkEventType.CALL_INCOMING, (event) => {
+    setIncomingCall(event.payload);
+  });
+  
+  // Clear incoming call when call status changes away from ringing
+  
+  useEvent(SdkEventType.CALL_DECLINED, () => {
+    setIncomingCall(null);
+  });
+  
+  useEvent(SdkEventType.CALL_ENDED, () => {
+    setIncomingCall(null);
+  });
+  
+  useEvent(SdkEventType.CALL_TIMEOUT, () => {
+    setIncomingCall(null);
+  });
+  
+  useEvent(SdkEventType.CALL_CANCELED, () => {
+    setIncomingCall(null);
+  });
 
   const handleAccept = async () => {
     if (!incomingCall) return;
     
     try {
       await accept(incomingCall.callId);
+      // Modal will be hidden when call status changes from RINGING
     } catch (error) {
       console.error('Failed to accept call:', error);
+      // Could add toast notification here in a real app
     }
   };
 
@@ -20,12 +48,15 @@ export function IncomingCallModal() {
     
     try {
       await decline(incomingCall.callId);
+      // Modal will be hidden by the CALL_DECLINED event
     } catch (error) {
       console.error('Failed to decline call:', error);
+      // Could add toast notification here in a real app
     }
   };
 
-  if (!incomingCall) return null;
+  // Only show modal if we have an incoming call and we're in the right state
+  if (!incomingCall || status !== 'RINGING') return null;
 
   return (
     <div className="incoming-call-modal-overlay">

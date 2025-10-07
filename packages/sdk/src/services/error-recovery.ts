@@ -71,12 +71,8 @@ export class ErrorRecoveryService {
       }
     });
 
-    // Listen for participant left events (might indicate network issues)
-    eventBus.on(SdkEventType.PARTICIPANT_LEFT, (event) => {
-      if (event.payload.reason === "error") {
-        this.handleParticipantError(event.payload.participantId);
-      }
-    });
+    // Participant disconnections are now handled by LiveKit EventBridge
+    // No need to listen for socket-based participant left events
   }
 
   /**

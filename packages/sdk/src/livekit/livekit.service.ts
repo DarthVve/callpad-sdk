@@ -1,4 +1,5 @@
 import type { Room, RoomOptions } from "livekit-client";
+import { ParticipantInfoService } from "../services/participant-info.service";
 import { DeviceManager } from "./device.manager";
 import { LiveKitEventBridge } from "./events/eventBridge";
 import { MediaControls } from "./media.controls";
@@ -10,11 +11,13 @@ export class LiveKitService {
   private eventBridge: LiveKitEventBridge | undefined;
   private mediaControls: MediaControls | undefined;
   private deviceManager: DeviceManager | undefined;
+  private participantInfoService: ParticipantInfoService;
   private options: LiveKitServiceOptions;
 
   constructor(options: LiveKitServiceOptions = { log: undefined }) {
     this.options = options;
     this.roomManager = new RoomManager();
+    this.participantInfoService = new ParticipantInfoService();
   }
 
   async joinRoom(token: string, url: string): Promise<void> {
@@ -35,9 +38,15 @@ export class LiveKitService {
           msg: string,
           extra?: any
         ) => void;
+        participantInfoService?: ParticipantInfoService;
+        appId?: string;
       } = {};
       if (this.options.log) {
         eventBridgeOptions.log = this.options.log;
+      }
+      if (this.options.appId) {
+        eventBridgeOptions.appId = this.options.appId;
+        eventBridgeOptions.participantInfoService = this.participantInfoService;
       }
       this.eventBridge = new LiveKitEventBridge(this.room, eventBridgeOptions);
       this.mediaControls = new MediaControls(
@@ -85,11 +94,8 @@ export class LiveKitService {
     return this.roomManager.room;
   }
 
-  get media(): MediaControls {
-    if (!this.mediaControls) {
-      throw new Error("Media controls not available - room not connected");
-    }
-    return this.mediaControls;
+  get media(): MediaControls | null {
+    return this.mediaControls || null;
   }
 
   get devices(): DeviceManager {
@@ -97,6 +103,21 @@ export class LiveKitService {
       throw new Error("Device manager not available - room not connected");
     }
     return this.deviceManager;
+  }
+
+  /**
+   * Check if audio playback is currently allowed by the browser
+   */
+  get canPlaybackAudio(): boolean {
+    return this.roomManager.canPlaybackAudio;
+  }
+
+  /**
+   * Attempts to start audio playback (must be called from user interaction)
+   * Returns true if successful, false if user interaction is still required
+   */
+  async startAudioWithUserInteraction(): Promise<boolean> {
+    return this.roomManager.startAudioWithUserInteraction();
   }
 
   destroy(): void {

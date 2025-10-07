@@ -1,13 +1,13 @@
 import { useRef, useEffect } from 'react';
-import type { Participant } from 'vg-x07df';
+import { useParticipantStatus, AudioTrack, type Participant } from 'vg-x07df';
+import type { RemoteTrack, LocalTrack } from 'livekit-client';
 import './ParticipantTile.css';
 
 interface ParticipantTileProps {
   participant: Participant;
   isLocal?: boolean;
-  videoTrack?: MediaStreamTrack | null;
-  isMuted?: boolean;
-  isVideoEnabled?: boolean;
+  videoTrack?: RemoteTrack | LocalTrack | null;
+  audioTrack?: RemoteTrack | LocalTrack | null;
   className?: string;
 }
 
@@ -15,54 +15,106 @@ export function ParticipantTile({
   participant, 
   isLocal = false,
   videoTrack,
-  isMuted = false,
-  isVideoEnabled = true,
+  audioTrack,
   className = ''
 }: ParticipantTileProps) {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const videoContainerRef = useRef<HTMLDivElement>(null);
+  const participantStatus = useParticipantStatus(participant.id);
 
-  // Handle video track
+  // Handle video track using LiveKit's attach method
   useEffect(() => {
-    if (!videoRef.current || !videoTrack) return;
+    if (!videoContainerRef.current || !videoTrack) return;
 
-    const videoElement = videoRef.current;
-    const stream = new MediaStream([videoTrack]);
-    videoElement.srcObject = stream;
+    let videoElement: HTMLVideoElement | null = null;
 
-    return () => {
-      videoElement.srcObject = null;
-    };
-  }, [videoTrack]);
+    try {
+      const element = videoTrack.attach();
+      videoElement = element as HTMLVideoElement;
+      
+      // Configure video element for optimal browser compatibility
+      videoElement.className = 'participant-video';
+      videoElement.autoplay = true;
+      videoElement.playsInline = true; // Important for mobile browsers
+      videoElement.muted = isLocal; // Always mute local video to prevent feedback
+      videoElement.controls = false; // Hide controls since we manage playback
+      videoElement.disablePictureInPicture = true; // Disable PiP to prevent confusion
+      
+      // Add error handling for video playback issues
+      const handleVideoError = (event: Event) => {
+        console.warn('Video playback error for participant', participant.id, event);
+      };
+      
+      const handleVideoCanPlay = () => {
+        console.debug('Video ready for participant', participant.id);
+      };
 
-  const displayName = [participant.firstName, participant.lastName]
-    .filter(Boolean)
-    .join(' ') || `User ${participant.id}`;
+      const handleVideoLoadedMetadata = () => {
+        console.debug('Video metadata loaded for participant', participant.id);
+      };
+
+      videoElement.addEventListener('error', handleVideoError);
+      videoElement.addEventListener('canplay', handleVideoCanPlay);
+      videoElement.addEventListener('loadedmetadata', handleVideoLoadedMetadata);
+      
+      videoContainerRef.current.appendChild(videoElement);
+
+      return () => {
+        if (videoElement) {
+          videoElement.removeEventListener('error', handleVideoError);
+          videoElement.removeEventListener('canplay', handleVideoCanPlay);
+          videoElement.removeEventListener('loadedmetadata', handleVideoLoadedMetadata);
+          videoTrack.detach(videoElement);
+        }
+      };
+    } catch (error) {
+      console.error('Failed to attach video track for participant', participant.id, error);
+      
+      // Cleanup on error
+      if (videoElement) {
+        try {
+          videoTrack.detach(videoElement);
+        } catch (detachError) {
+          console.warn('Failed to detach video element after error', detachError);
+        }
+      }
+    }
+  }, [videoTrack, isLocal, participant.id]);
+
+
+  const displayName = participant.info?.firstName && participant.info?.lastName
+    ? `${participant.info.firstName} ${participant.info.lastName}`
+    : participant.info?.firstName || `User ${participant.id}`;
 
   const getAvatarFallback = () => {
-    if (participant.firstName && participant.lastName) {
-      return `${participant.firstName.charAt(0)}${participant.lastName.charAt(0)}`.toUpperCase();
+    if (participant.info?.firstName && participant.info?.lastName) {
+      return `${participant.info.firstName.charAt(0)}${participant.info.lastName.charAt(0)}`.toUpperCase();
     }
-    if (participant.firstName) {
-      return participant.firstName.charAt(0).toUpperCase();
+    if (participant.info?.firstName) {
+      return participant.info.firstName.charAt(0).toUpperCase();
     }
     return displayName.charAt(0).toUpperCase();
   };
 
   return (
     <div className={`participant-tile ${isLocal ? 'local' : ''} ${className}`}>
+      {/* Audio track rendering using AudioTrack component */}
+      <AudioTrack 
+        participantId={participant.id}
+        onSubscriptionStatusChanged={(subscribed) => {
+          console.debug('Audio subscription status changed', { 
+            participantId: participant.id, 
+            subscribed 
+          });
+        }}
+      />
+      
       <div className="video-container">
-        {isVideoEnabled && videoTrack ? (
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted={isLocal} // Always mute local video to prevent feedback
-            className="participant-video"
-          />
+        {participantStatus.mediaState.video === 'enabled' && videoTrack ? (
+          <div ref={videoContainerRef} className="video-track-container" />
         ) : (
           <div className="video-placeholder">
-            {participant.avatarUrl ? (
-              <img src={participant.avatarUrl} alt={displayName} className="participant-avatar" />
+            {participant.info?.avatarUrl ? (
+              <img src={participant.info.avatarUrl} alt={displayName} className="participant-avatar" />
             ) : (
               <div className="avatar-fallback">
                 {getAvatarFallback()}
@@ -79,26 +131,49 @@ export function ParticipantTile({
           </div>
           
           <div className="participant-indicators">
-            {isMuted && (
+            {/* Connection status indicator */}
+            <div className={`indicator connection-status ${participantStatus.connectionState}`}>
+              {participantStatus.connectionState === 'connecting' && '🔄'}
+              {participantStatus.connectionState === 'reconnecting' && '⚠️'}
+              {participantStatus.connectionState === 'disconnected' && '❌'}
+            </div>
+            
+            {/* Audio status */}
+            {participantStatus.mediaState.audio === 'disabled' && (
               <div className="indicator muted">
                 <span className="icon">🔇</span>
               </div>
             )}
             
-            {!isVideoEnabled && (
+            {participantStatus.mediaState.audio === 'muted' && (
+              <div className="indicator muted">
+                <span className="icon">🔕</span>
+              </div>
+            )}
+            
+            {/* Video status */}
+            {participantStatus.mediaState.video === 'camera_off' && (
               <div className="indicator video-off">
                 <span className="icon">📹</span>
               </div>
             )}
             
-            {participant.isSpeaking && (
+            {participantStatus.mediaState.video === 'disabled' && (
+              <div className="indicator video-disabled">
+                <span className="icon">🚫</span>
+              </div>
+            )}
+            
+            {/* Speaking indicator */}
+            {participantStatus.speaking && (
               <div className="indicator speaking">
                 <span className="icon">🗣️</span>
               </div>
             )}
             
-            {participant.connectionQuality && (
-              <div className={`indicator connection-quality ${participant.connectionQuality.toLowerCase()}`}>
+            {/* Network quality */}
+            {participantStatus.networkQuality !== 'unknown' && (
+              <div className={`indicator connection-quality ${participantStatus.networkQuality.toLowerCase()}`}>
                 <div className="signal-bars">
                   <div className="bar"></div>
                   <div className="bar"></div>

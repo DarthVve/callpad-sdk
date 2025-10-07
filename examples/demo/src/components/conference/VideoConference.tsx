@@ -1,4 +1,4 @@
-import { useCallState, useAutoJoinForCurrentUser, useSdk } from 'vg-x07df';
+import { useCallState, useAutoJoinForCurrentUser, useSdk, useErrorRecovery, useErrors, useCallTypeTracks, useAudioPlayback } from 'vg-x07df';
 import { ConferenceHeader } from './ConferenceHeader';
 import { ParticipantGrid } from './ParticipantGrid';
 import { EnhancedControlBar } from './EnhancedControlBar';
@@ -14,6 +14,16 @@ export function VideoConference({ onLeaveCall, onMinimize }: VideoConferenceProp
   const sdk = useSdk();
   const autoJoinState = sdk.store((state) => state.autoJoin);
   const userAutoJoin = useAutoJoinForCurrentUser();
+  const errorRecovery = useErrorRecovery();
+  const errorState = useErrors();
+  const audioPlayback = useAudioPlayback();
+  
+  // Set up call-type-aware track management
+  useCallTypeTracks({
+    enableCameraOnVideoCall: true,
+    enableMicrophoneOnCall: true,
+    disableTracksOnCallEnd: true,
+  });
 
   const handleMinimize = () => {
     onMinimize?.();
@@ -35,12 +45,49 @@ export function VideoConference({ onLeaveCall, onMinimize }: VideoConferenceProp
     return null;
   }
 
+  // Filter recent critical errors
+  const criticalErrors = errorState.errors.slice(0, 3); // Show only most recent 3 critical errors
+
   return (
     <div className="video-conference">
       <ConferenceHeader
         onMinimize={handleMinimize}
         onFullscreen={handleFullscreen}
       />
+
+      {/* Audio Activation Banner */}
+      {status === 'ACTIVE' && audioPlayback.needsUserInteraction && (
+        <div className="audio-activation-banner">
+          <div className="audio-message">
+            🔊 Audio playback requires your permission to start
+          </div>
+          <button
+            onClick={audioPlayback.startAudio}
+            disabled={audioPlayback.isStarting}
+            className="audio-start-button"
+          >
+            {audioPlayback.isStarting ? '🔄 Starting...' : '🔊 Enable Audio'}
+          </button>
+        </div>
+      )}
+
+      {/* Error Recovery Banner */}
+      {criticalErrors.length > 0 && (
+        <div className="error-recovery-banner">
+          <div className="error-message">
+            ⚠️ Connection issues detected: {criticalErrors[0].message}
+          </div>
+          {criticalErrors.length > 0 && (
+            <button
+              onClick={() => errorRecovery.cancelAllRetries()}
+              disabled={errorRecovery.status.isRecovering}
+              className="recovery-button"
+            >
+              {errorRecovery.status.isRecovering ? '🔄 Retrying...' : '❌ Cancel Recovery'}
+            </button>
+          )}
+        </div>
+      )}
       
       <div className="conference-content">
         {status === 'CALLING' || status === 'RINGING' || status === 'ACCEPTED' || status === 'AWAITING_JOIN_INFO' || status === 'READY_TO_JOIN' || status === 'CONNECTING' ? (

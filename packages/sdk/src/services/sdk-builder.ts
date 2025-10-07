@@ -72,6 +72,7 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
 
   const livekit = new LiveKitService({
     log: opts.log,
+    appId: opts.appId,
   });
 
   const callActions = createCallActions(signal, auth, livekit);

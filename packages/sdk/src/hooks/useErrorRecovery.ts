@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { eventBus } from "../core/events";
 import {
   type ErrorRecoveryConfig,
@@ -57,10 +57,15 @@ export function useErrorRecovery(config?: Partial<ErrorRecoveryConfig>) {
     activeRetries: new Map(),
   });
 
+  // Memoize config to prevent infinite re-renders
+  const memoizedConfig = useMemo(() => config, [JSON.stringify(config)]);
+  const configAppliedRef = useRef(false);
+
   useEffect(() => {
-    // Apply config if provided
-    if (config) {
-      errorRecoveryService.updateConfig(config);
+    // Apply config if provided and not already applied
+    if (memoizedConfig && !configAppliedRef.current) {
+      errorRecoveryService.updateConfig(memoizedConfig);
+      configAppliedRef.current = true;
     }
 
     // Listen for recovery events
@@ -112,7 +117,7 @@ export function useErrorRecovery(config?: Partial<ErrorRecoveryConfig>) {
       recoveryFailedSub.unsubscribe();
       clearInterval(updateInterval);
     };
-  }, [config]);
+  }, [memoizedConfig]);
 
   const updateConfig = (newConfig: Partial<ErrorRecoveryConfig>) => {
     errorRecoveryService.updateConfig(newConfig);
@@ -210,12 +215,13 @@ export function useGracefulDegradation(degradationConfig?: {
   enableLowerQualityFallback?: boolean;
   notifyUser?: boolean;
 }) {
-  const config = {
+  // Memoize config to prevent infinite re-renders
+  const config = useMemo(() => ({
     enableAudioOnlyFallback: true,
     enableLowerQualityFallback: true,
     notifyUser: true,
     ...degradationConfig,
-  };
+  }), [degradationConfig?.enableAudioOnlyFallback, degradationConfig?.enableLowerQualityFallback, degradationConfig?.notifyUser]);
 
   const [degradationStatus, setDegradationStatus] = useState({
     isAudioOnly: false,
