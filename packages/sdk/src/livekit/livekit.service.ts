@@ -94,11 +94,8 @@ export class LiveKitService {
     return this.roomManager.room;
   }
 
-  get media(): MediaControls {
-    if (!this.mediaControls) {
-      throw new Error("Media controls not available - room not connected");
-    }
-    return this.mediaControls;
+  get media(): MediaControls | null {
+    return this.mediaControls || null;
   }
 
   get devices(): DeviceManager {

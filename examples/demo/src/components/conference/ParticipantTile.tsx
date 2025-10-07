@@ -1,5 +1,5 @@
 import { useRef, useEffect } from 'react';
-import { useParticipantStatus, type Participant } from 'vg-x07df';
+import { useParticipantStatus, AudioTrack, type Participant } from 'vg-x07df';
 import type { RemoteTrack, LocalTrack } from 'livekit-client';
 import './ParticipantTile.css';
 
@@ -19,7 +19,6 @@ export function ParticipantTile({
   className = ''
 }: ParticipantTileProps) {
   const videoContainerRef = useRef<HTMLDivElement>(null);
-  const audioContainerRef = useRef<HTMLDivElement>(null);
   const participantStatus = useParticipantStatus(participant.id);
 
   // Handle video track using LiveKit's attach method
@@ -81,60 +80,6 @@ export function ParticipantTile({
     }
   }, [videoTrack, isLocal, participant.id]);
 
-  // Handle audio track using LiveKit's attach method (for remote participants only)
-  useEffect(() => {
-    if (!audioContainerRef.current || !audioTrack || isLocal) return;
-
-    let audioElement: HTMLAudioElement | null = null;
-
-    try {
-      const element = audioTrack.attach();
-      audioElement = element as HTMLAudioElement;
-      
-      // Configure audio element for optimal browser compatibility
-      audioElement.autoplay = true;
-      audioElement.controls = false; // Hide controls since we manage playback
-      audioElement.style.display = 'none'; // Hide audio element
-      audioElement.style.position = 'absolute'; // Ensure it doesn't affect layout
-      audioElement.style.pointerEvents = 'none'; // Prevent interaction
-      
-      // Set initial volume (can be controlled later if needed)
-      audioElement.volume = 1.0;
-      
-      // Add error handling for audio playback issues
-      const handleAudioError = (event: Event) => {
-        console.warn('Audio playback error for participant', participant.id, event);
-      };
-      
-      const handleAudioCanPlay = () => {
-        console.debug('Audio ready for participant', participant.id);
-      };
-
-      audioElement.addEventListener('error', handleAudioError);
-      audioElement.addEventListener('canplay', handleAudioCanPlay);
-      
-      audioContainerRef.current.appendChild(audioElement);
-
-      return () => {
-        if (audioElement) {
-          audioElement.removeEventListener('error', handleAudioError);
-          audioElement.removeEventListener('canplay', handleAudioCanPlay);
-          audioTrack.detach(audioElement);
-        }
-      };
-    } catch (error) {
-      console.error('Failed to attach audio track for participant', participant.id, error);
-      
-      // Cleanup on error
-      if (audioElement) {
-        try {
-          audioTrack.detach(audioElement);
-        } catch (detachError) {
-          console.warn('Failed to detach audio element after error', detachError);
-        }
-      }
-    }
-  }, [audioTrack, isLocal, participant.id]);
 
   const displayName = participant.info?.firstName && participant.info?.lastName
     ? `${participant.info.firstName} ${participant.info.lastName}`
@@ -152,10 +97,16 @@ export function ParticipantTile({
 
   return (
     <div className={`participant-tile ${isLocal ? 'local' : ''} ${className}`}>
-      {/* Audio container for remote participants (hidden) */}
-      {!isLocal && (
-        <div ref={audioContainerRef} style={{ display: 'none' }} />
-      )}
+      {/* Audio track rendering using AudioTrack component */}
+      <AudioTrack 
+        participantId={participant.id}
+        onSubscriptionStatusChanged={(subscribed) => {
+          console.debug('Audio subscription status changed', { 
+            participantId: participant.id, 
+            subscribed 
+          });
+        }}
+      />
       
       <div className="video-container">
         {participantStatus.mediaState.video === 'enabled' && videoTrack ? (

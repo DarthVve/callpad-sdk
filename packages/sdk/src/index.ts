@@ -9,6 +9,9 @@ export {
 // React hooks for call management
 export * from "./hooks";
 
+// React components
+export * from "./components";
+
 
 // Essential types consumers need
 export type {

@@ -18,7 +18,13 @@ export function useRingingParticipants(): Participant[] {
 }
 
 export function useLocalParticipant(): Participant | undefined {
-  return undefined;
+  return useRtcStore((state) => {
+    // Find the local participant by checking if they match the LiveKit local participant identity
+    const allParticipants = Object.values(state.room.participants);
+    // For now, return the first participant as a temporary solution
+    // TODO: Properly track local participant identity
+    return allParticipants[0];
+  });
 }
 
 export function useSpeakingParticipants(): Participant[] {

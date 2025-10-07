@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useParticipants, type Participant } from 'vg-x07df';
+import { useParticipants, useLocalParticipantId, type Participant } from 'vg-x07df';
 import { ParticipantWithMedia } from './ParticipantWithMedia';
 import { PaginationControls } from './PaginationControls';
 import './ParticipantGrid.css';
@@ -11,6 +11,7 @@ interface ParticipantGridProps {
 export function ParticipantGrid({ className = '' }: ParticipantGridProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const participantData = useParticipants({ page: currentPage, pageSize: 8 });
+  const localParticipantId = useLocalParticipantId();
   
   const {
     participants,
@@ -66,7 +67,7 @@ export function ParticipantGrid({ className = '' }: ParticipantGridProps) {
           <ParticipantWithMedia
             key={participant.id}
             participant={participant}
-            isLocal={participant.id === 'local'}
+            isLocal={participant.id === localParticipantId}
           />
         ))}
       </div>

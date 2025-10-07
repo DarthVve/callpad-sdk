@@ -16,6 +16,7 @@ export * from "./useCallTypeTracks";
 export * from "./useMediaControls";
 export * from "./useDevices";
 export * from "./useAudioPlayback";
+export * from "./useLocalParticipantId";
 
 // Event system hooks
 export * from "./useEvent";

@@ -53,6 +53,10 @@ export class LiveKitEventBridge {
       .on(RoomEvent.TrackMuted, this.handleTrackMuted)
       .on(RoomEvent.TrackUnmuted, this.handleTrackUnmuted)
 
+      // Local track events
+      .on(RoomEvent.LocalTrackPublished, this.handleLocalTrackPublished)
+      .on(RoomEvent.LocalTrackUnpublished, this.handleLocalTrackUnpublished)
+
       // Media events
       .on(RoomEvent.ActiveSpeakersChanged, this.handleActiveSpeakersChanged)
       .on(
@@ -369,6 +373,74 @@ export class LiveKitEventBridge {
     );
   };
 
+  private handleLocalTrackPublished = (
+    publication: TrackPublication,
+    participant: LocalParticipant
+  ): void => {
+    const pid = participant.identity;
+    const trackSid = publication.trackSid;
+
+    this.opts.log?.("debug", "Local track published", {
+      pid,
+      trackSid,
+      kind: publication.kind,
+      source: publication.source,
+    });
+
+    // Add to track registry
+    trackRegistry.add(trackSid, pid, publication.kind, publication.source);
+
+    // Emit SDK event for local track published
+    eventBus.emit(
+      'livekit:track-published' as any,
+      {
+        participantId: pid,
+        trackSid,
+        kind: publication.kind,
+        source: publication.source,
+        timestamp: Date.now(),
+      },
+      "livekit"
+    );
+
+    // Update local participant state with track information
+    this.updateParticipantMuteState(participant);
+  };
+
+  private handleLocalTrackUnpublished = (
+    publication: TrackPublication,
+    participant: LocalParticipant
+  ): void => {
+    const pid = participant.identity;
+    const trackSid = publication.trackSid;
+
+    this.opts.log?.("debug", "Local track unpublished", {
+      pid,
+      trackSid,
+      kind: publication.kind,
+      source: publication.source,
+    });
+
+    // Remove from track registry
+    trackRegistry.remove(trackSid);
+
+    // Emit SDK event for local track unpublished
+    eventBus.emit(
+      'livekit:track-unpublished' as any,
+      {
+        participantId: pid,
+        trackSid,
+        kind: publication.kind,
+        source: publication.source,
+        timestamp: Date.now(),
+      },
+      "livekit"
+    );
+
+    // Update local participant state
+    this.updateParticipantMuteState(participant);
+  };
+
   private async syncAllParticipants(): Promise<void> {
     const allParticipants = [
       this.room.localParticipant,
@@ -438,6 +510,8 @@ export class LiveKitEventBridge {
       .off(RoomEvent.TrackUnsubscribed, this.handleTrackUnsubscribed)
       .off(RoomEvent.TrackMuted, this.handleTrackMuted)
       .off(RoomEvent.TrackUnmuted, this.handleTrackUnmuted)
+      .off(RoomEvent.LocalTrackPublished, this.handleLocalTrackPublished)
+      .off(RoomEvent.LocalTrackUnpublished, this.handleLocalTrackUnpublished)
       .off(RoomEvent.ActiveSpeakersChanged, this.handleActiveSpeakersChanged)
       .off(
         RoomEvent.ConnectionQualityChanged,
