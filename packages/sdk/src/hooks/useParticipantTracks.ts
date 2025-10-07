@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Track } from 'livekit-client';
 import { useSdk } from '../provider/RtcProvider';
 import { useEvent } from './useEvent';
@@ -26,7 +26,9 @@ export function useParticipantTracks(
     state.room.participants[participantIdentity]
   );
 
-  const updateTrackRefs = useCallback(() => {
+  const sourcesKey = JSON.stringify(sources);
+
+  useEffect(() => {
     if (!livekitParticipant || !internalParticipant) {
       setTrackRefs([]);
       return;
@@ -43,7 +45,6 @@ export function useParticipantTracks(
           source,
         };
         
-        // Only add track property if it exists
         if (publication.track) {
           trackRef.track = publication.track;
         }
@@ -53,36 +54,31 @@ export function useParticipantTracks(
     });
 
     setTrackRefs(refs);
-  }, [livekitParticipant, internalParticipant, sources]);
+  }, [livekitParticipant, internalParticipant, sourcesKey]);
 
-  // Listen for track events but don't use the return value
   useEvent('livekit:track-subscribed', (event) => {
     if (event?.payload?.participantId === participantIdentity) {
-      updateTrackRefs();
+      setTrackRefs(prev => [...prev]);
     }
   });
 
   useEvent('livekit:track-unsubscribed', (event) => {
     if (event?.payload?.participantId === participantIdentity) {
-      updateTrackRefs();
+      setTrackRefs(prev => [...prev]);
     }
   });
 
   useEvent('livekit:track-muted', (event) => {
     if (event?.payload?.participantId === participantIdentity) {
-      updateTrackRefs();
+      setTrackRefs(prev => [...prev]);
     }
   });
 
   useEvent('livekit:track-unmuted', (event) => {
     if (event?.payload?.participantId === participantIdentity) {
-      updateTrackRefs();
+      setTrackRefs(prev => [...prev]);
     }
   });
-
-  useEffect(() => {
-    updateTrackRefs();
-  }, [updateTrackRefs]);
 
   return trackRefs;
 }

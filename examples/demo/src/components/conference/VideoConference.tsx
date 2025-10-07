@@ -1,4 +1,4 @@
-import { useCallState, useAutoJoinForCurrentUser, useSdk, useErrorRecovery, useErrors } from 'vg-x07df';
+import { useCallState, useAutoJoinForCurrentUser, useSdk, useErrorRecovery, useErrors, useCallTypeTracks, useAudioPlayback } from 'vg-x07df';
 import { ConferenceHeader } from './ConferenceHeader';
 import { ParticipantGrid } from './ParticipantGrid';
 import { EnhancedControlBar } from './EnhancedControlBar';
@@ -16,6 +16,14 @@ export function VideoConference({ onLeaveCall, onMinimize }: VideoConferenceProp
   const userAutoJoin = useAutoJoinForCurrentUser();
   const errorRecovery = useErrorRecovery();
   const errorState = useErrors();
+  const audioPlayback = useAudioPlayback();
+  
+  // Set up call-type-aware track management
+  useCallTypeTracks({
+    enableCameraOnVideoCall: true,
+    enableMicrophoneOnCall: true,
+    disableTracksOnCallEnd: true,
+  });
 
   const handleMinimize = () => {
     onMinimize?.();
@@ -46,6 +54,22 @@ export function VideoConference({ onLeaveCall, onMinimize }: VideoConferenceProp
         onMinimize={handleMinimize}
         onFullscreen={handleFullscreen}
       />
+
+      {/* Audio Activation Banner */}
+      {status === 'ACTIVE' && audioPlayback.needsUserInteraction && (
+        <div className="audio-activation-banner">
+          <div className="audio-message">
+            🔊 Audio playback requires your permission to start
+          </div>
+          <button
+            onClick={audioPlayback.startAudio}
+            disabled={audioPlayback.isStarting}
+            className="audio-start-button"
+          >
+            {audioPlayback.isStarting ? '🔄 Starting...' : '🔊 Enable Audio'}
+          </button>
+        </div>
+      )}
 
       {/* Error Recovery Banner */}
       {criticalErrors.length > 0 && (

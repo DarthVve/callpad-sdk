@@ -30,6 +30,9 @@ export class LiveKitEventBridge {
     this.room = room;
     this.opts = opts;
     this.setupEventListeners();
+    
+    // Always sync participants on construction - handles all room states
+    this.syncAllParticipants();
   }
 
   private setupEventListeners(): void {
@@ -175,6 +178,19 @@ export class LiveKitEventBridge {
     // Add to track registry
     trackRegistry.add(trackSid, pid, track.kind, publication.source);
 
+    // Emit SDK event for track subscription
+    eventBus.emit(
+      'livekit:track-subscribed' as any,
+      {
+        participantId: pid,
+        trackSid,
+        kind: track.kind,
+        source: publication.source,
+        timestamp: Date.now(),
+      },
+      "livekit"
+    );
+
     // Update participant mute states (for backward compatibility)
     this.updateParticipantMuteState(participant);
   };
@@ -196,6 +212,18 @@ export class LiveKitEventBridge {
     // Remove from track registry
     trackRegistry.remove(trackSid);
 
+    // Emit SDK event for track unsubscription
+    eventBus.emit(
+      'livekit:track-unsubscribed' as any,
+      {
+        participantId: pid,
+        trackSid,
+        kind: track.kind,
+        timestamp: Date.now(),
+      },
+      "livekit"
+    );
+
     // Update participant mute states (for backward compatibility)
     this.updateParticipantMuteState(participant);
   };
@@ -216,6 +244,19 @@ export class LiveKitEventBridge {
 
     // Update participant mute states
     this.updateParticipantMuteState(participant);
+
+    // Emit SDK event for track muted
+    eventBus.emit(
+      'livekit:track-muted' as any,
+      {
+        participantId: pid,
+        trackSid,
+        kind: publication.kind,
+        source: publication.source,
+        timestamp: Date.now(),
+      },
+      "livekit"
+    );
 
     // Update local state if it's our own track
     if (participant.isLocal) {
@@ -247,6 +288,19 @@ export class LiveKitEventBridge {
 
     // Update participant mute states
     this.updateParticipantMuteState(participant);
+
+    // Emit SDK event for track unmuted
+    eventBus.emit(
+      'livekit:track-unmuted' as any,
+      {
+        participantId: pid,
+        trackSid,
+        kind: publication.kind,
+        source: publication.source,
+        timestamp: Date.now(),
+      },
+      "livekit"
+    );
 
     // Update local state if it's our own track
     if (participant.isLocal) {

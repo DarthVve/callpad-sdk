@@ -108,6 +108,21 @@ export class LiveKitService {
     return this.deviceManager;
   }
 
+  /**
+   * Check if audio playback is currently allowed by the browser
+   */
+  get canPlaybackAudio(): boolean {
+    return this.roomManager.canPlaybackAudio;
+  }
+
+  /**
+   * Attempts to start audio playback (must be called from user interaction)
+   * Returns true if successful, false if user interaction is still required
+   */
+  async startAudioWithUserInteraction(): Promise<boolean> {
+    return this.roomManager.startAudioWithUserInteraction();
+  }
+
   destroy(): void {
     this.eventBridge?.destroy();
     this.eventBridge = undefined;

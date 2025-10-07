@@ -42,9 +42,15 @@ export const DEFAULT_ROOM_OPTIONS: RoomOptions = {
     // stopLocalTrackOnUnpublish: true, // Not available in current LiveKit version
   },
   audioCaptureDefaults: {
-    autoGainControl: true,
-    echoCancellation: true,
-    noiseSuppression: true,
+    // Force enable core audio processing with exact constraints
+    echoCancellation: { exact: true },
+    noiseSuppression: { exact: true },
+    autoGainControl: { exact: true },
+    
+    // Optimal settings for call quality
+    sampleRate: { ideal: 48000 }, // Best for echo cancellation
+    channelCount: { exact: 1 }, // Mono reduces echo issues
+    latency: { ideal: 0.01 }, // Low latency improves echo handling
   },
 
   // Audio handling

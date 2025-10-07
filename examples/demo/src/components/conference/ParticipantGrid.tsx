@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useParticipants, type Participant } from 'vg-x07df';
-import { ParticipantTile } from './ParticipantTile';
+import { ParticipantWithMedia } from './ParticipantWithMedia';
 import { PaginationControls } from './PaginationControls';
 import './ParticipantGrid.css';
 
@@ -63,11 +63,10 @@ export function ParticipantGrid({ className = '' }: ParticipantGridProps) {
         }}
       >
         {participants.map((participant: Participant) => (
-          <ParticipantTile
+          <ParticipantWithMedia
             key={participant.id}
             participant={participant}
             isLocal={participant.id === 'local'}
-            videoTrack={null}
           />
         ))}
       </div>
