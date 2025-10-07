@@ -31,20 +31,11 @@ const rtcOptions = {
   // Use new logging system
   logLevel: import.meta.env.VITE_DEBUG ? 'debug' as const : 'info' as const,
   enableDebug: !!import.meta.env.VITE_DEBUG,
-  // Auto-join configuration - industry standard defaults
+  // Auto-join configuration - simplified
   autoJoin: {
-    caller: {
-      enabled: true,
-      trigger: 'first-accept' as const,
-    },
-    callee: {
-      enabled: true,
-      trigger: 'immediate' as const,
-    },
-    fallback: {
-      onFailure: 'manual' as const,
-      retryAttempts: 2,
-    },
+    enabled: true,
+    retryOnFailure: true,
+    maxRetries: 2,
   },
 }
 

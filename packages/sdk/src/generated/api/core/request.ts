@@ -222,7 +222,7 @@ export const getResponseBody = async (response: Response): Promise<unknown> => {
 				}
 			}
 		} catch (error) {
-			// Response parsing error - silently ignore
+			console.error(error);
 		}
 	}
 	return undefined;

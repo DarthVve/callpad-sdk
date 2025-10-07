@@ -1,13 +1,11 @@
 import { useRef, useEffect } from 'react';
-import type { Participant } from 'vg-x07df';
+import { useParticipantStatus, type Participant } from 'vg-x07df';
 import './ParticipantTile.css';
 
 interface ParticipantTileProps {
   participant: Participant;
   isLocal?: boolean;
   videoTrack?: MediaStreamTrack | null;
-  isMuted?: boolean;
-  isVideoEnabled?: boolean;
   className?: string;
 }
 
@@ -15,11 +13,10 @@ export function ParticipantTile({
   participant, 
   isLocal = false,
   videoTrack,
-  isMuted = false,
-  isVideoEnabled = true,
   className = ''
 }: ParticipantTileProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const participantStatus = useParticipantStatus(participant.id);
 
   // Handle video track
   useEffect(() => {
@@ -34,16 +31,16 @@ export function ParticipantTile({
     };
   }, [videoTrack]);
 
-  const displayName = [participant.firstName, participant.lastName]
-    .filter(Boolean)
-    .join(' ') || `User ${participant.id}`;
+  const displayName = participant.info?.firstName && participant.info?.lastName
+    ? `${participant.info.firstName} ${participant.info.lastName}`
+    : participant.info?.firstName || `User ${participant.id}`;
 
   const getAvatarFallback = () => {
-    if (participant.firstName && participant.lastName) {
-      return `${participant.firstName.charAt(0)}${participant.lastName.charAt(0)}`.toUpperCase();
+    if (participant.info?.firstName && participant.info?.lastName) {
+      return `${participant.info.firstName.charAt(0)}${participant.info.lastName.charAt(0)}`.toUpperCase();
     }
-    if (participant.firstName) {
-      return participant.firstName.charAt(0).toUpperCase();
+    if (participant.info?.firstName) {
+      return participant.info.firstName.charAt(0).toUpperCase();
     }
     return displayName.charAt(0).toUpperCase();
   };
@@ -51,7 +48,7 @@ export function ParticipantTile({
   return (
     <div className={`participant-tile ${isLocal ? 'local' : ''} ${className}`}>
       <div className="video-container">
-        {isVideoEnabled && videoTrack ? (
+        {participantStatus.mediaState.video === 'enabled' && videoTrack ? (
           <video
             ref={videoRef}
             autoPlay
@@ -61,8 +58,8 @@ export function ParticipantTile({
           />
         ) : (
           <div className="video-placeholder">
-            {participant.avatarUrl ? (
-              <img src={participant.avatarUrl} alt={displayName} className="participant-avatar" />
+            {participant.info?.avatarUrl ? (
+              <img src={participant.info.avatarUrl} alt={displayName} className="participant-avatar" />
             ) : (
               <div className="avatar-fallback">
                 {getAvatarFallback()}
@@ -79,26 +76,49 @@ export function ParticipantTile({
           </div>
           
           <div className="participant-indicators">
-            {isMuted && (
+            {/* Connection status indicator */}
+            <div className={`indicator connection-status ${participantStatus.connectionState}`}>
+              {participantStatus.connectionState === 'connecting' && '🔄'}
+              {participantStatus.connectionState === 'reconnecting' && '⚠️'}
+              {participantStatus.connectionState === 'disconnected' && '❌'}
+            </div>
+            
+            {/* Audio status */}
+            {participantStatus.mediaState.audio === 'disabled' && (
               <div className="indicator muted">
                 <span className="icon">🔇</span>
               </div>
             )}
             
-            {!isVideoEnabled && (
+            {participantStatus.mediaState.audio === 'muted' && (
+              <div className="indicator muted">
+                <span className="icon">🔕</span>
+              </div>
+            )}
+            
+            {/* Video status */}
+            {participantStatus.mediaState.video === 'camera_off' && (
               <div className="indicator video-off">
                 <span className="icon">📹</span>
               </div>
             )}
             
-            {participant.isSpeaking && (
+            {participantStatus.mediaState.video === 'disabled' && (
+              <div className="indicator video-disabled">
+                <span className="icon">🚫</span>
+              </div>
+            )}
+            
+            {/* Speaking indicator */}
+            {participantStatus.speaking && (
               <div className="indicator speaking">
                 <span className="icon">🗣️</span>
               </div>
             )}
             
-            {participant.connectionQuality && (
-              <div className={`indicator connection-quality ${participant.connectionQuality.toLowerCase()}`}>
+            {/* Network quality */}
+            {participantStatus.networkQuality !== 'unknown' && (
+              <div className={`indicator connection-quality ${participantStatus.networkQuality.toLowerCase()}`}>
                 <div className="signal-bars">
                   <div className="bar"></div>
                   <div className="bar"></div>

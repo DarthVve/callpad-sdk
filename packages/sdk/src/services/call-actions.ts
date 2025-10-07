@@ -34,34 +34,12 @@ export function createCallActions(signal: SignalClient, auth: AuthManager, livek
         initiatedByMe: true,
       };
 
-      // Use participants from API response instead of request params
-      for (const participant of response.participants) {
-        const isCaller = participant.userId === response.callerId;
-        // Use userId as the key since that's what auth.getCurrentUserId() returns
-        const participantData: any = {
-          id: participant.userId, // Store the user ID as the participant ID
-          role: isCaller ? "CALLER" : "MEMBER",
-          callState: isCaller ? "JOINED" : "INVITED", // Caller is already in the call
-          invitedAt: Date.now(),
-          audioEnabled: true,
-          videoEnabled: true,
-          isSpeaking: false,
-        };
-        
-        // Set joinedAt only for caller
-        if (isCaller) {
-          participantData.joinedAt = Date.now();
-        }
-        
-        state.room.participants[participant.userId] = participantData;
-        
-        logger.debug("Created participant during call initiation", {
-          participantId: participant.userId,
-          role: isCaller ? "CALLER" : "MEMBER",
-          callState: "INVITED",
-          callId: response.id,
-        });
-      }
+      state.room.participants = {};
+      
+      logger.debug("Call initiated - waiting for participants to join", {
+        callId: response.id,
+        invitedCount: response.participants?.length || 0,
+      });
     });
 
     return response;
@@ -75,16 +53,17 @@ export function createCallActions(signal: SignalClient, auth: AuthManager, livek
         ...state.session,
         id: callId,
         status: "ACCEPTED", // Call accepted but not yet joined media
-        // Identity context: I accepted this call, so I'm the callee
         myRole: "CALLEE",
         initiatedByMe: false,
       };
-      // Clear incoming call
-      state.incomingCall = undefined;
-
-      // Note: Self presence will be updated via socket events from backend
-      // The backend will emit call.accepted event with participant info
+      
+      // Participants will be populated by LiveKit EventBridge when they connect
+      // No need to pre-populate from API response
+      state.room.participants = {};
     });
+
+    // Note: No longer emitting CALL_ACCEPTED event as it's been removed
+    // UI components should rely on session state changes instead
 
     return response;
   }
@@ -103,21 +82,28 @@ export function createCallActions(signal: SignalClient, auth: AuthManager, livek
         if (state.session.id === callId) {
           state.session.status = response.state as SessionStatus;
         }
-        // Clear incoming call
-        state.incomingCall = undefined;
-        logger.debug("Cleared incomingCall state");
       });
+
+      eventBus.emit(SdkEventType.CALL_DECLINED, {
+        callId,
+        reason,
+        timestamp: Date.now(),
+      }, "user");
 
       return response;
     } catch (error) {
       logger.error("Decline API failed", { callId, error });
 
-      // Even if API fails, clear the incoming call to prevent stuck modal
       rtcStore.getState().patch((state) => {
-        state.incomingCall = undefined;
         state.session.status = "IDLE";
-        logger.warn("Force-cleared state due to API failure");
+        logger.warn("Force-cleared session due to API failure");
       });
+
+      eventBus.emit(SdkEventType.CALL_DECLINED, {
+        callId,
+        reason: "api_error",
+        timestamp: Date.now(),
+      }, "user");
 
       throw error;
     }
@@ -154,13 +140,9 @@ export function createCallActions(signal: SignalClient, auth: AuthManager, livek
       return;
     }
 
-    // Get current user ID from auth instead of localParticipantId
-    const currentUserId = auth.getCurrentUserId();
-
     try {
       logger.info("Manually joining LiveKit room", {
         callId: joinInfo.callId,
-        currentUserId,
         roomName: joinInfo.roomName,
       });
 
@@ -174,54 +156,10 @@ export function createCallActions(signal: SignalClient, auth: AuthManager, livek
       // Update state after successful join
       rtcStore.getState().patch((state) => {
         state.session.status = "ACTIVE";
-        if (currentUserId) {
-          // Defensive check: create participant if it doesn't exist
-          if (!state.room.participants[currentUserId]) {
-            logger.warn("Creating missing participant during manual join", {
-              currentUserId,
-              callId: joinInfo.callId,
-            });
-            
-            state.room.participants[currentUserId] = {
-              id: currentUserId,
-              firstName: `User ${currentUserId}`,
-              role: state.session.myRole || "MEMBER",
-              callState: "INVITED",
-              invitedAt: Date.now(),
-              audioEnabled: true,
-              videoEnabled: true,
-              isSpeaking: false,
-            };
-          }
-          
-          state.room.participants[currentUserId].callState = "JOINED";
-          state.room.participants[currentUserId].joinedAt = Date.now();
-          
-          logger.debug("Participant joined during manual join", {
-            participantId: currentUserId,
-            callState: "JOINED",
-            callId: joinInfo.callId,
-          });
-        }
       });
-
-      // Emit participant joined event using session role context
-      eventBus.emit(
-        SdkEventType.PARTICIPANT_JOINED,
-        {
-          callId: joinInfo.callId,
-          participant: {
-            id: currentUserId || "unknown",
-            role: currentState.session.myRole || "CALLEE",
-          },
-          timestamp: Date.now(),
-        },
-        "user"
-      );
 
       logger.info("Successfully joined LiveKit room manually", {
         callId: joinInfo.callId,
-        currentUserId,
       });
 
     } catch (error) {
@@ -233,12 +171,6 @@ export function createCallActions(signal: SignalClient, auth: AuthManager, livek
       // Reset state on failure
       rtcStore.getState().patch((state) => {
         state.session.status = "READY_TO_JOIN";
-        if (currentUserId) {
-          // Defensive check: only update if participant exists
-          if (state.room.participants[currentUserId]) {
-            state.room.participants[currentUserId].callState = "LEFT";
-          }
-        }
       });
 
       pushLiveKitConnectError(

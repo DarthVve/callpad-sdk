@@ -42,18 +42,7 @@ export function useAutoJoin(): UseAutoJoinReturn {
  * Hook to determine if the current user should auto-join based on their role
  */
 export function useAutoJoinForCurrentUser() {
-  const sdk = useSdk();
   const autoJoin = useAutoJoin();
-  
-  // Get current user info from auth
-  const currentUserId = sdk.auth.getCurrentUserId();
-  
-  if (!currentUserId) {
-    return {
-      shouldAutoJoin: false,
-      reason: "No current user",
-    };
-  }
   
   return {
     shouldAutoJoin: autoJoin.isEnabled,

@@ -8,6 +8,7 @@ export * from "./useAutoJoin";
 // Participant management hooks
 export * from "./useParticipants";
 export * from "./useParticipantStatus";
+export * from "./useParticipantTracks";
 
 // Media control hooks
 export * from "./useMediaControls";

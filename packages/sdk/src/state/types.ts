@@ -9,25 +9,26 @@ export type SessionStatus =
   | "ACTIVE"         // Successfully connected to media session
   | "ENDED";
 
-// Unified Participant interface - combines all participant data
-export interface Participant {
+export interface ParticipantInfo {
   id: string;
-  // Profile data
   firstName?: string;
   lastName?: string;
   avatarUrl?: string;
+  email?: string;
+}
+
+export interface Participant {
+  id: string;
+  info?: ParticipantInfo;
   // Call state
   role: "CALLER" | "CALLEE" | "HOST" | "MEMBER";
-  callState: "INVITED" | "RINGING" | "JOINED" | "LEFT";
   // Media state
   audioEnabled: boolean;
   videoEnabled: boolean;
   isSpeaking: boolean;
   connectionQuality?: "excellent" | "good" | "poor" | "lost" | "unknown";
   // Timestamps
-  invitedAt?: number;
-  joinedAt?: number;
-  leftAt?: number;
+  joinedAt: number;
 }
 
 export type PermissionStatus = "granted" | "denied" | "prompt" | "unknown";
@@ -49,16 +50,6 @@ export interface DeviceState {
   lastEnumeratedAt: number | undefined;
 }
 
-export interface IncomingCallInfo {
-  callId: string;
-  caller: {
-    id: string;
-    name: string;
-    avatarUrl: string | undefined;
-  };
-  type: "AUDIO" | "VIDEO";
-  timestamp: number;
-}
 
 export interface LiveKitJoinInfo {
   token: string;
@@ -72,6 +63,13 @@ export interface RtcError {
   message: string;
   timestamp: number;
   context?: any;
+}
+
+export interface TrackReference {
+  participant: Participant;
+  publication: import("livekit-client").TrackPublication;
+  source: import("livekit-client").Track.Source;
+  track?: import("livekit-client").Track;
 }
 
 export type AutoJoinStatus = "idle" | "pending" | "retrying" | "succeeded" | "failed";
@@ -97,7 +95,7 @@ export interface RtcState {
   };
 
   room: {
-    participants: Record<string, Participant>; // Single unified record
+    participants: Record<string, Participant>;
   };
 
   local: {
@@ -115,7 +113,6 @@ export interface RtcState {
   autoJoin: AutoJoinState;
   devices: DeviceState;
   errors: RtcError[];
-  incomingCall: IncomingCallInfo | undefined;
 }
 
 export const defaultState: RtcState = {
@@ -147,5 +144,4 @@ export const defaultState: RtcState = {
     lastEnumeratedAt: undefined,
   },
   errors: [],
-  incomingCall: undefined,
 };

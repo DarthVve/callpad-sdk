@@ -222,4 +222,31 @@ appId
 		});
 	}
 
+	/**
+	 * @returns any Participant info retrieved successfully
+	 * @throws ApiError
+	 */
+	public static getSignalCallsParticipantsByIdentity(data: CallsData['payloads']['GetSignalCallsParticipantsByIdentity']): CancelablePromise<CallsData['responses']['GetSignalCallsParticipantsByIdentity']> {
+		const {
+                    
+                    identity,
+appId
+                } = data;
+		return __request(OpenAPI, {
+			method: 'GET',
+			url: '/signal/calls/participants/{identity}',
+			path: {
+				identity
+			},
+			query: {
+				appId
+			},
+			errors: {
+				400: `Invalid request`,
+				401: `Authentication required`,
+				404: `Participant not found`,
+			},
+		});
+	}
+
 }

@@ -1,4 +1,4 @@
-import { useCallState, useAutoJoinForCurrentUser, useSdk } from 'vg-x07df';
+import { useCallState, useAutoJoinForCurrentUser, useSdk, useErrorRecovery, useErrors } from 'vg-x07df';
 import { ConferenceHeader } from './ConferenceHeader';
 import { ParticipantGrid } from './ParticipantGrid';
 import { EnhancedControlBar } from './EnhancedControlBar';
@@ -14,6 +14,8 @@ export function VideoConference({ onLeaveCall, onMinimize }: VideoConferenceProp
   const sdk = useSdk();
   const autoJoinState = sdk.store((state) => state.autoJoin);
   const userAutoJoin = useAutoJoinForCurrentUser();
+  const errorRecovery = useErrorRecovery();
+  const errorState = useErrors();
 
   const handleMinimize = () => {
     onMinimize?.();
@@ -35,12 +37,33 @@ export function VideoConference({ onLeaveCall, onMinimize }: VideoConferenceProp
     return null;
   }
 
+  // Filter recent critical errors
+  const criticalErrors = errorState.errors.slice(0, 3); // Show only most recent 3 critical errors
+
   return (
     <div className="video-conference">
       <ConferenceHeader
         onMinimize={handleMinimize}
         onFullscreen={handleFullscreen}
       />
+
+      {/* Error Recovery Banner */}
+      {criticalErrors.length > 0 && (
+        <div className="error-recovery-banner">
+          <div className="error-message">
+            ⚠️ Connection issues detected: {criticalErrors[0].message}
+          </div>
+          {criticalErrors.length > 0 && (
+            <button
+              onClick={() => errorRecovery.cancelAllRetries()}
+              disabled={errorRecovery.status.isRecovering}
+              className="recovery-button"
+            >
+              {errorRecovery.status.isRecovering ? '🔄 Retrying...' : '❌ Cancel Recovery'}
+            </button>
+          )}
+        </div>
+      )}
       
       <div className="conference-content">
         {status === 'CALLING' || status === 'RINGING' || status === 'ACCEPTED' || status === 'AWAITING_JOIN_INFO' || status === 'READY_TO_JOIN' || status === 'CONNECTING' ? (

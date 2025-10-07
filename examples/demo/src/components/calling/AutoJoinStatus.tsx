@@ -1,10 +1,9 @@
-import { useAutoJoin, useAutoJoinForCurrentUser } from 'vg-x07df'
+import { useAutoJoinForCurrentUser } from 'vg-x07df'
 import { useSdk } from 'vg-x07df'
 
 export function AutoJoinStatus() {
   const sdk = useSdk()
   const autoJoinState = sdk.store((state) => state.autoJoin)
-  const autoJoin = useAutoJoin()
   const userAutoJoin = useAutoJoinForCurrentUser()
 
   // Don't show component when auto-join is idle or completed
@@ -54,7 +53,7 @@ export function AutoJoinStatus() {
           )}
           {userAutoJoin.shouldAutoJoin && (
             <p className="text-xs opacity-75 mt-1">
-              Mode: {userAutoJoin.trigger === 'immediate' ? 'Immediate' : 'After first accept'}
+              Auto-join enabled
             </p>
           )}
         </div>

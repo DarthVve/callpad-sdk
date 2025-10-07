@@ -11,7 +11,6 @@ export class CallParticipantAcceptedHandler extends BaseSocketHandler<CallPartic
 
   protected async handle(data: CallParticipantAcceptedEvent): Promise<void> {
     const currentState = rtcStore.getState();
-    const currentUserId = this.authManager?.getCurrentUserId();
     
     if (currentState.session.id !== data.callId) {
       pushStaleEventError("call.participant-accepted", "callId mismatch", {
@@ -24,11 +23,8 @@ export class CallParticipantAcceptedHandler extends BaseSocketHandler<CallPartic
     this.updateStore((state) => {
       state.session.status = "ACCEPTED";
       
-      const participant = state.room.participants[data.participantId];
-      if (participant) {
-        participant.callState = "RINGING";
-        participant.joinedAt = data.acceptedAt ? new Date(data.acceptedAt).getTime() : Date.now();
-      }
+      // Participant management is now handled by LiveKit EventBridge
+      // No need to update participant state via socket events
     });
   }
 }

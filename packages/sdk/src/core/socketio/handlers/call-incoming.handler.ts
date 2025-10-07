@@ -1,72 +1,45 @@
 import { BaseSocketHandler } from "./base.handler";
 import { callIncomingSchema } from "./schema";
 import type { CallIncomingEvent } from "./schema";
+import { SdkEventType, eventBus } from "../../events";
+import { extractCallerInfo } from "../../../utils/participant-adapter";
 
 export class CallIncomingHandler extends BaseSocketHandler<CallIncomingEvent> {
   protected readonly eventName = "call.incoming";
   protected readonly schema = callIncomingSchema;
 
   protected handle(data: CallIncomingEvent): void {
-    // Find caller from participants array
-    const caller = data.participants.find(
-      (p) => p.role === "CALLER" || p.role === "HOST"
-    );
+    const callerInfo = extractCallerInfo(data.participants);
 
-    if (!caller) {
-      this.logger.error("No caller found in participants", data);
+    if (!callerInfo) {
+      this.logger.error("No active caller found in participants", data);
       return;
     }
 
     this.updateStore((state) => {
-      state.incomingCall = {
-        callId: data.callId,
-        caller: {
-          id: caller.id,
-          name:
-            [caller.firstName, caller.lastName].filter(Boolean).join(" ") ||
-            caller.username ||
-            `Guest ${caller.id}`,
-          avatarUrl: caller.profilePhoto,
-        },
-        type: data.type,
-        timestamp: data.timestamp,
-      };
-
       state.session = {
         id: data.callId,
         status: "RINGING",
         mode: data.type,
-        // Identity context: incoming call, I haven't accepted yet
         initiatedByMe: false,
       };
+      
+      // Participants will be populated by LiveKit EventBridge when they connect
+      state.room.participants = {};
+    });
 
-      // Create unified participants from participants array
-      for (const participant of data.participants) {
-        const callState = participant.role === "CALLER" || participant.role === "HOST" ? "JOINED" : "INVITED";
-        
-        state.room.participants[participant.id] = {
-          id: participant.id,
-          firstName: participant.firstName || undefined,
-          lastName: participant.lastName || undefined,
-          avatarUrl: participant.profilePhoto || undefined,
-          role: participant.role || "MEMBER",
-          callState,
-          audioEnabled: false,
-          videoEnabled: false,
-          isSpeaking: false,
-          joinedAt:
-            participant.role === "CALLER" || participant.role === "HOST"
-              ? data.timestamp
-              : undefined,
-        };
-        
-        this.logger.debug("Created participant during incoming call", {
-          participantId: participant.id,
-          role: participant.role || "MEMBER",
-          callState,
-          callId: data.callId,
-        });
-      }
+    eventBus.emit(SdkEventType.CALL_INCOMING, {
+      callId: data.callId,
+      caller: callerInfo,
+      type: data.type,
+      timestamp: data.timestamp,
+      participants: data.participants,
+    }, "socket");
+
+    this.logger.debug("Incoming call event emitted", {
+      callId: data.callId,
+      caller: callerInfo.name,
+      type: data.type,
     });
   }
 }

@@ -21,7 +21,6 @@ export enum SdkEventType {
   // Call lifecycle events
   CALL_INITIATED = "call:initiated",
   CALL_INCOMING = "call:incoming",
-  CALL_ACCEPTED = "call:accepted",
   CALL_DECLINED = "call:declined",
   CALL_ENDED = "call:ended",
   CALL_CANCELED = "call:canceled",
@@ -29,10 +28,8 @@ export enum SdkEventType {
   JOIN_INFO_RECEIVED = "join-info:received",
 
   // Participant events
-  PARTICIPANT_JOINING = "participant:joining",
-  PARTICIPANT_JOINED = "participant:joined",
-  PARTICIPANT_LEFT = "participant:left",
   PARTICIPANT_UPDATED = "participant:updated",
+  PARTICIPANT_INVITED = "participant:invited",
 
   // Media events
   MEDIA_ENABLED = "media:enabled",
@@ -65,23 +62,25 @@ export interface CallIncomingEvent {
   callId: string;
   caller: {
     id: string;
-    firstName?: string;
-    lastName?: string;
+    name: string;
     avatarUrl?: string;
   };
   type: "AUDIO" | "VIDEO";
   timestamp: number;
+  // Additional participants info for context (but not stored in state)
+  participants?: Array<{
+    id: string;
+    firstName?: string;
+    lastName?: string;
+    avatarUrl?: string;
+    role?: "CALLER" | "CALLEE" | "HOST" | "MEMBER";
+  }>;
 }
 
-export interface CallAcceptedEvent {
-  callId: string;
-  participantId: string;
-  timestamp: number;
-}
 
 export interface CallDeclinedEvent {
   callId: string;
-  participantId: string;
+  participantId?: string;
   reason?: string;
   timestamp: number;
 }
@@ -102,24 +101,6 @@ export interface JoinInfoReceivedEvent {
   autoJoined?: boolean;
 }
 
-export interface ParticipantJoinedEvent {
-  callId: string;
-  participant: {
-    id: string;
-    firstName?: string;
-    lastName?: string;
-    avatarUrl?: string;
-    role: "CALLER" | "CALLEE" | "HOST" | "MEMBER";
-  };
-  timestamp: number;
-}
-
-export interface ParticipantLeftEvent {
-  callId: string;
-  participantId: string;
-  reason?: "user" | "timeout" | "error";
-  timestamp: number;
-}
 
 export interface MediaEnabledEvent {
   participantId: string;
@@ -163,3 +144,14 @@ export interface EventSubscription {
  * Event filter function type
  */
 export type EventFilter<T = any> = (event: SdkEvent<T>) => boolean;
+
+export interface ParticipantInvitedEvent {
+  callId: string;
+  participant: {
+    id: string;
+    name: string;
+    avatarUrl?: string;
+  };
+  timestamp: number;
+}
+

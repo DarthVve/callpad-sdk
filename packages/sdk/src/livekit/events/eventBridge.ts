@@ -8,6 +8,7 @@ import {
   type TrackPublication,
 } from "livekit-client";
 import { SdkEventType, eventBus } from "../../core/events";
+import { ParticipantInfoService } from "../../services/participant-info.service";
 import { rtcStore } from "../../state/store";
 import { trackRegistry } from "./trackRegistry";
 
@@ -17,6 +18,8 @@ export interface EventBridgeOptions {
     msg: string,
     extra?: any
   ) => void;
+  participantInfoService?: ParticipantInfoService;
+  appId?: string;
 }
 
 export class LiveKitEventBridge {
@@ -55,7 +58,7 @@ export class LiveKitEventBridge {
       );
   }
 
-  private handleConnected = (): void => {
+  private handleConnected = async (): Promise<void> => {
     this.opts.log?.("info", "LiveKit room connected");
 
     rtcStore.getState().patch((state) => {
@@ -64,7 +67,7 @@ export class LiveKitEventBridge {
     });
 
     // Sync all existing participants (including local)
-    this.syncAllParticipants();
+    await this.syncAllParticipants();
   };
 
   private handleDisconnected = (): void => {
@@ -93,27 +96,45 @@ export class LiveKitEventBridge {
     });
   };
 
-  private handleParticipantConnected = (participant: Participant): void => {
+  private handleParticipantConnected = async (participant: Participant): Promise<void> => {
     const pid = participant.identity;
     this.opts.log?.("info", "Participant connected", { pid });
+
+    // Fetch participant info if service is available
+    let participantInfo = undefined;
+    if (this.opts.participantInfoService && this.opts.appId) {
+      try {
+        participantInfo = await this.opts.participantInfoService.getParticipantInfo(pid, this.opts.appId);
+        this.opts.log?.("debug", "Fetched participant info", { pid, info: participantInfo });
+      } catch (error) {
+        this.opts.log?.("warn", "Failed to fetch participant info", { pid, error });
+        // Continue without participant info
+      }
+    }
 
     rtcStore.getState().patch((state) => {
       // Create or update participant in unified state
       if (!state.room.participants[pid]) {
-        state.room.participants[pid] = {
+        const newParticipant: any = {
           id: pid,
-          firstName: participant.name || "Unknown",
           role: "MEMBER",
-          callState: "JOINED",
-          joinedAt: Date.now(),
-          audioEnabled: true,
-          videoEnabled: true,
+          audioEnabled: !this.getAudioMutedState(participant),
+          videoEnabled: !this.getVideoMutedState(participant),
           isSpeaking: false,
+          joinedAt: Date.now(),
         };
+        if (participantInfo) {
+          newParticipant.info = participantInfo;
+        }
+        state.room.participants[pid] = newParticipant;
         this.opts.log?.("debug", "Created participant", { pid });
       } else {
         // Update existing participant
-        state.room.participants[pid].callState = "JOINED";
+        if (participantInfo) {
+          state.room.participants[pid].info = participantInfo;
+        }
+        state.room.participants[pid].audioEnabled = !this.getAudioMutedState(participant);
+        state.room.participants[pid].videoEnabled = !this.getVideoMutedState(participant);
         if (!state.room.participants[pid].joinedAt) {
           state.room.participants[pid].joinedAt = Date.now();
         }
@@ -294,15 +315,16 @@ export class LiveKitEventBridge {
     );
   };
 
-  private syncAllParticipants(): void {
+  private async syncAllParticipants(): Promise<void> {
     const allParticipants = [
       this.room.localParticipant,
       ...Array.from(this.room.remoteParticipants.values()),
     ];
 
-    for (const participant of allParticipants) {
-      this.handleParticipantConnected(participant);
-    }
+    // Process participants concurrently for faster loading
+    await Promise.allSettled(
+      allParticipants.map(participant => this.handleParticipantConnected(participant))
+    );
   }
 
   private updateParticipantMuteState(participant: Participant): void {

@@ -79,6 +79,7 @@ export interface LiveKitServiceOptions {
         extra?: any
       ) => void)
     | undefined;
+  appId?: string;
 }
 
 /**
