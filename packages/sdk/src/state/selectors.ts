@@ -12,7 +12,7 @@ export function useParticipant(id: string): Participant | undefined {
 export function useRingingParticipants(): Participant[] {
   return useRtcStore((state) =>
     Object.values(state.room.participants).filter(
-      (p) => p.callState === "RINGING"
+      (p) => state.session.status === "RINGING"
     )
   );
 }

@@ -28,10 +28,15 @@ export function extractCallerInfo(participants: SocketParticipant[]): {
   const caller = findCaller(participants);
   if (!caller) return null;
   
-  return {
+  const result: { id: string; name: string; avatarUrl?: string } = {
     id: caller.id,
     name: [caller.firstName, caller.lastName].filter(Boolean).join(" ") || 
           `Guest ${caller.id}`,
-    avatarUrl: caller.profilePhoto || undefined,
   };
+  
+  if (caller.profilePhoto) {
+    result.avatarUrl = caller.profilePhoto;
+  }
+  
+  return result;
 }
