@@ -10,17 +10,17 @@ import { rtcStore } from "../state/store";
 import type { SessionStatus } from "../state/types";
 import { createLogger } from "../utils/logger";
 
+
 export interface CallActions {
   initiate: (params: InitiateCallParams) => Promise<CallResponse>;
   accept: (callId: string) => Promise<CallActionResponse>;
   decline: (callId: string, reason?: string) => Promise<CallActionResponse>;
-  leave: (callId: string) => Promise<CallActionResponse>;
+  leave: (callId: string) => Promise<void>;
 }
 
 export function createCallActions(
   signal: SignalClient,
   auth: AuthManager,
-  livekit?: any
 ): CallActions {
   const logger = createLogger("call-actions");
   async function initiate(params: InitiateCallParams): Promise<CallResponse> {
@@ -116,8 +116,11 @@ export function createCallActions(
     }
   }
 
-  async function leave(callId: string): Promise<CallActionResponse> {
-    return await signal.leave(callId);
+  async function leave(callId: string): Promise<void> {
+     // await signal.leave(callId);
+      rtcStore.getState().patch((state) => {
+          state.session.status = "IDLE";
+      });
   }
 
   return {

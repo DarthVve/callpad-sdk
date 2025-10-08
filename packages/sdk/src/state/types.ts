@@ -31,24 +31,6 @@ export interface Participant {
   joinedAt: number;
 }
 
-export type PermissionStatus = "granted" | "denied" | "prompt" | "unknown";
-
-export interface DeviceState {
-  mics: MediaDeviceInfo[];
-  cams: MediaDeviceInfo[];
-  speakers: MediaDeviceInfo[];
-  selected: {
-    micId: string | undefined;
-    camId: string | undefined;
-    speakerId: string | undefined;
-  };
-  permissions: {
-    camera: PermissionStatus;
-    microphone: PermissionStatus;
-  };
-  isEnumerating: boolean;
-  lastEnumeratedAt: number | undefined;
-}
 
 export interface LiveKitJoinInfo {
   token: string;
@@ -86,19 +68,6 @@ export interface RtcState {
     participants: Record<string, Participant>;
   };
 
-  local: {
-    audioEnabled: boolean;
-    videoEnabled: boolean;
-    screenEnabled: boolean;
-  };
-
-  connection: {
-    connected: boolean;
-    reconnecting: boolean;
-    quality?: "excellent" | "good" | "poor" | "lost";
-  };
-
-  devices: DeviceState;
   errors: RtcError[];
 }
 
@@ -106,24 +75,6 @@ export const defaultState: RtcState = {
   session: { status: "IDLE", initiatedByMe: false },
   room: {
     participants: {},
-  },
-  local: { audioEnabled: false, videoEnabled: false, screenEnabled: false },
-  connection: { connected: false, reconnecting: false },
-  devices: {
-    mics: [],
-    cams: [],
-    speakers: [],
-    selected: {
-      micId: undefined,
-      camId: undefined,
-      speakerId: undefined,
-    },
-    permissions: {
-      camera: "unknown",
-      microphone: "unknown",
-    },
-    isEnumerating: false,
-    lastEnumeratedAt: undefined,
   },
   errors: [],
 };

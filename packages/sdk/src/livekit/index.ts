@@ -1,26 +1,3 @@
-// Internal LiveKit exports for SDK
-export * from "./types";
-export * from "./constants";
-export { LiveKitService } from "./livekit.service";
-export { LiveKitEventBridge } from "./events/eventBridge";
-export { trackRegistry } from "./events/trackRegistry";
-export type { MediaErrorInfo } from "./error-classifier";
-export {
-  classifyMediaError,
-  MediaDeviceError,
-  MediaPermissionError,
-  MediaNotFoundError,
-  MediaInUseError,
-  MediaUnknownError,
-} from "./error-classifier";
-
-// Additional exports for subpath consumers
-export { DeviceManager } from "./device.manager";
-export { MediaControls } from "./media.controls";
-export { RoomManager } from "./room.manager";
-
-export * from "./track.utils";
-
 // Re-export essential LiveKit client types that consumers might need
 export {
   Room,

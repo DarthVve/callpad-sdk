@@ -10,8 +10,6 @@ export * from "./hooks";
 export type {
   SessionStatus,
   Participant,
-  PermissionStatus,
-  DeviceState,
   LiveKitJoinInfo,
   RtcError,
   RtcState,

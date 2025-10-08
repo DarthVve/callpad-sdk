@@ -1,6 +1,5 @@
 import { AuthManager, SocketManager } from "../core";
 import { type ApiConfig, SignalClient, apiConfig } from "../core/signal";
-import { LiveKitService } from "../livekit";
 import { rtcStore } from "../state/store";
 import { type LogLevel, setGlobalLoggerOptions } from "../utils/logger";
 import { type CallActions, createCallActions } from "./call-actions";
@@ -23,7 +22,6 @@ export interface RtcSdk extends CallActions {
   auth: AuthManager;
   socket: SocketManager;
   signal: SignalClient;
-  livekit: LiveKitService;
   cleanup: () => void;
 
   configureApi: (config: ApiConfig) => void;
@@ -51,19 +49,12 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
     appId: opts.appId,
     authManager: auth,
   });
-
-  const livekit = new LiveKitService({
-    log: opts.log,
-    appId: opts.appId,
-  });
-
-  const callActions = createCallActions(signal, auth, livekit);
+  const callActions = createCallActions(signal, auth);
 
   // Socket now handles events directly - no event bridge needed
 
   const cleanup = () => {
     socket.destroy();
-    livekit.destroy();
     rtcStore.getState().reset();
   };
 
@@ -72,7 +63,6 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
     auth,
     socket,
     signal,
-    livekit,
     ...callActions,
     cleanup,
 
