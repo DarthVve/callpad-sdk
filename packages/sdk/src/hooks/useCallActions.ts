@@ -21,5 +21,3 @@ export function useCallActions() {
     },
   };
 }
-
-export type CallActionsHook = ReturnType<typeof useCallActions>;
