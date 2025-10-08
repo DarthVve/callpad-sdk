@@ -37,20 +37,21 @@ export class UserPresenceService {
 	 * @returns any User presence retrieved successfully
 	 * @throws ApiError
 	 */
-	public static getSignalPresenceByUserId(data: UserPresenceData['payloads']['GetSignalPresenceByUserId']): CancelablePromise<UserPresenceData['responses']['GetSignalPresenceByUserId']> {
+	public static getSignalPresenceUsersByUserId(data: UserPresenceData['payloads']['GetSignalPresenceUsersByUserId']): CancelablePromise<UserPresenceData['responses']['GetSignalPresenceUsersByUserId']> {
 		const {
                     
                     userId
                 } = data;
 		return __request(OpenAPI, {
 			method: 'GET',
-			url: '/signal/presence/{userId}',
+			url: '/signal/presence/users/{userId}',
 			path: {
 				userId
 			},
 			errors: {
 				400: `Invalid request`,
 				401: `Authentication required`,
+				403: `Insufficient permissions`,
 				404: `User not found or presence unavailable`,
 			},
 		});
@@ -74,6 +75,7 @@ export class UserPresenceService {
 			errors: {
 				400: `Invalid request`,
 				401: `Authentication required`,
+				403: `Insufficient permissions`,
 			},
 		});
 	}

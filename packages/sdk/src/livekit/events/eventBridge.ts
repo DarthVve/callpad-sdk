@@ -1,3 +1,4 @@
+// biome-ignore lint/style/useImportType: <explanation>
 import {
   ConnectionQuality,
   LocalParticipant,
@@ -8,7 +9,6 @@ import {
   type TrackPublication,
 } from "livekit-client";
 import { SdkEventType, eventBus } from "../../core/events";
-import { ParticipantInfoService } from "../../services/participant-info.service";
 import { rtcStore } from "../../state/store";
 import { trackRegistry } from "./trackRegistry";
 
@@ -18,7 +18,6 @@ export interface EventBridgeOptions {
     msg: string,
     extra?: any
   ) => void;
-  participantInfoService?: ParticipantInfoService;
   appId?: string;
 }
 
@@ -30,9 +29,6 @@ export class LiveKitEventBridge {
     this.room = room;
     this.opts = opts;
     this.setupEventListeners();
-    
-    // Always sync participants on construction - handles all room states
-    this.syncAllParticipants();
   }
 
   private setupEventListeners(): void {
@@ -41,14 +37,7 @@ export class LiveKitEventBridge {
       .on(RoomEvent.Connected, this.handleConnected)
       .on(RoomEvent.Disconnected, this.handleDisconnected)
       .on(RoomEvent.Reconnecting, this.handleReconnecting)
-      .on(RoomEvent.Reconnected, this.handleReconnected)
 
-      // Participant events
-      .on(RoomEvent.ParticipantConnected, this.handleParticipantConnected)
-      .on(RoomEvent.ParticipantDisconnected, this.handleParticipantDisconnected)
-
-      // Track events
-      .on(RoomEvent.TrackSubscribed, this.handleTrackSubscribed)
       .on(RoomEvent.TrackUnsubscribed, this.handleTrackUnsubscribed)
       .on(RoomEvent.TrackMuted, this.handleTrackMuted)
       .on(RoomEvent.TrackUnmuted, this.handleTrackUnmuted)
@@ -73,8 +62,6 @@ export class LiveKitEventBridge {
       state.connection.reconnecting = false;
     });
 
-    // Sync all existing participants (including local)
-    await this.syncAllParticipants();
   };
 
   private handleDisconnected = (): void => {
@@ -94,110 +81,6 @@ export class LiveKitEventBridge {
     });
   };
 
-  private handleReconnected = (): void => {
-    this.opts.log?.("info", "LiveKit room reconnected");
-
-    rtcStore.getState().patch((state) => {
-      state.connection.connected = true;
-      state.connection.reconnecting = false;
-    });
-  };
-
-  private handleParticipantConnected = async (participant: Participant): Promise<void> => {
-    const pid = participant.identity;
-    this.opts.log?.("info", "Participant connected", { pid });
-
-    // Fetch participant info if service is available
-    let participantInfo = undefined;
-    if (this.opts.participantInfoService && this.opts.appId) {
-      try {
-        participantInfo = await this.opts.participantInfoService.getParticipantInfo(pid, this.opts.appId);
-        this.opts.log?.("debug", "Fetched participant info", { pid, info: participantInfo });
-      } catch (error) {
-        this.opts.log?.("warn", "Failed to fetch participant info", { pid, error });
-        // Continue without participant info
-      }
-    }
-
-    rtcStore.getState().patch((state) => {
-      // Create or update participant in unified state
-      if (!state.room.participants[pid]) {
-        const newParticipant: any = {
-          id: pid,
-          role: "MEMBER",
-          audioEnabled: !this.getAudioMutedState(participant),
-          videoEnabled: !this.getVideoMutedState(participant),
-          isSpeaking: false,
-          joinedAt: Date.now(),
-        };
-        if (participantInfo) {
-          newParticipant.info = participantInfo;
-        }
-        state.room.participants[pid] = newParticipant;
-        this.opts.log?.("debug", "Created participant", { pid });
-      } else {
-        // Update existing participant
-        if (participantInfo) {
-          state.room.participants[pid].info = participantInfo;
-        }
-        state.room.participants[pid].audioEnabled = !this.getAudioMutedState(participant);
-        state.room.participants[pid].videoEnabled = !this.getVideoMutedState(participant);
-        if (!state.room.participants[pid].joinedAt) {
-          state.room.participants[pid].joinedAt = Date.now();
-        }
-      }
-    });
-  };
-
-  private handleParticipantDisconnected = (participant: Participant): void => {
-    const pid = participant.identity;
-    this.opts.log?.("info", "Participant disconnected", { pid });
-
-    // Simple strategy: don't immediately mark as left, rely on call.ended
-    // This handles transient disconnects gracefully
-
-    rtcStore.getState().patch((state) => {
-      // Clean up tracks for this participant
-      trackRegistry.removeByParticipant(pid);
-
-      // Keep profile and presence for history - UI can filter as needed
-    });
-  };
-
-  private handleTrackSubscribed = (
-    track: Track,
-    publication: TrackPublication,
-    participant: Participant
-  ): void => {
-    const pid = participant.identity;
-    const trackSid = publication.trackSid;
-
-    this.opts.log?.("debug", "Track subscribed", {
-      pid,
-      trackSid,
-      kind: track.kind,
-      source: publication.source,
-    });
-
-    // Add to track registry
-    trackRegistry.add(trackSid, pid, track.kind, publication.source);
-
-    // Emit SDK event for track subscription
-    eventBus.emit(
-      'livekit:track-subscribed' as any,
-      {
-        participantId: pid,
-        trackSid,
-        kind: track.kind,
-        source: publication.source,
-        timestamp: Date.now(),
-      },
-      "livekit"
-    );
-
-    // Update participant mute states (for backward compatibility)
-    this.updateParticipantMuteState(participant);
-  };
 
   private handleTrackUnsubscribed = (
     track: Track,
@@ -227,9 +110,6 @@ export class LiveKitEventBridge {
       },
       "livekit"
     );
-
-    // Update participant mute states (for backward compatibility)
-    this.updateParticipantMuteState(participant);
   };
 
   private handleTrackMuted = (
@@ -245,9 +125,6 @@ export class LiveKitEventBridge {
       kind: publication.kind,
       source: publication.source,
     });
-
-    // Update participant mute states
-    this.updateParticipantMuteState(participant);
 
     // Emit SDK event for track muted
     eventBus.emit(
@@ -289,9 +166,6 @@ export class LiveKitEventBridge {
       kind: publication.kind,
       source: publication.source,
     });
-
-    // Update participant mute states
-    this.updateParticipantMuteState(participant);
 
     // Emit SDK event for track unmuted
     eventBus.emit(
@@ -387,7 +261,6 @@ export class LiveKitEventBridge {
       source: publication.source,
     });
 
-    // Add to track registry
     trackRegistry.add(trackSid, pid, publication.kind, publication.source);
 
     // Emit SDK event for local track published
@@ -403,8 +276,6 @@ export class LiveKitEventBridge {
       "livekit"
     );
 
-    // Update local participant state with track information
-    this.updateParticipantMuteState(participant);
   };
 
   private handleLocalTrackUnpublished = (
@@ -436,27 +307,7 @@ export class LiveKitEventBridge {
       },
       "livekit"
     );
-
-    // Update local participant state
-    this.updateParticipantMuteState(participant);
   };
-
-  private async syncAllParticipants(): Promise<void> {
-    const allParticipants = [
-      this.room.localParticipant,
-      ...Array.from(this.room.remoteParticipants.values()),
-    ];
-
-    // Process participants concurrently for faster loading
-    await Promise.allSettled(
-      allParticipants.map(participant => this.handleParticipantConnected(participant))
-    );
-  }
-
-  private updateParticipantMuteState(participant: Participant): void {
-    // Media mute state will be tracked via track subscription/unsubscription events
-    // No need to maintain separate mute state in the new architecture
-  }
 
   private getAudioMutedState(participant: Participant): boolean {
     const audioPublication = participant.getTrackPublication(
@@ -500,13 +351,6 @@ export class LiveKitEventBridge {
       .off(RoomEvent.Connected, this.handleConnected)
       .off(RoomEvent.Disconnected, this.handleDisconnected)
       .off(RoomEvent.Reconnecting, this.handleReconnecting)
-      .off(RoomEvent.Reconnected, this.handleReconnected)
-      .off(RoomEvent.ParticipantConnected, this.handleParticipantConnected)
-      .off(
-        RoomEvent.ParticipantDisconnected,
-        this.handleParticipantDisconnected
-      )
-      .off(RoomEvent.TrackSubscribed, this.handleTrackSubscribed)
       .off(RoomEvent.TrackUnsubscribed, this.handleTrackUnsubscribed)
       .off(RoomEvent.TrackMuted, this.handleTrackMuted)
       .off(RoomEvent.TrackUnmuted, this.handleTrackUnmuted)
