@@ -3,12 +3,10 @@ import { pushSocketValidationError } from "../../../state/errors";
 import { rtcStore } from "../../../state/store";
 import { createLogger } from "../../../utils/logger";
 import type { CallpadLogger } from "../../../utils/logger";
-import type { AutoJoinConfig } from "../../types";
 import type { AuthManager } from "../../auth.manager";
 
 export interface SocketHandlerOptions {
   livekit?: any;
-  autoJoinConfig?: AutoJoinConfig | null;
   authManager?: AuthManager;
 }
 
@@ -82,115 +80,6 @@ export abstract class BaseSocketHandler<T = any> {
     return this.options.livekit;
   }
 
-  protected get autoJoinConfig() {
-    return this.options.autoJoinConfig;
-  }
-
-  /**
-   * Retry logic with exponential backoff for auto-join operations
-   */
-  protected async retryAutoJoin(
-    callId: string,
-    token: string,
-    url: string,
-    attempt = 1
-  ): Promise<boolean> {
-    const maxAttempts = this.autoJoinConfig?.maxRetries || 2;
-    
-    // Initialize auto-join state on first attempt
-    if (attempt === 1) {
-      this.updateStore((state) => {
-        state.autoJoin = {
-          status: "pending",
-          attempt: 1,
-          maxAttempts,
-          startedAt: Date.now(),
-        };
-      });
-    } else {
-      // Update state for retry attempts
-      this.updateStore((state) => {
-        state.autoJoin.status = "retrying";
-        state.autoJoin.attempt = attempt;
-      });
-    }
-    
-    if (attempt > maxAttempts) {
-      this.logger.warn("Max retry attempts reached for auto-join", {
-        callId,
-        maxAttempts,
-        finalAttempt: attempt - 1,
-      });
-      
-      // Mark as failed
-      this.updateStore((state) => {
-        state.autoJoin.status = "failed";
-        state.autoJoin.completedAt = Date.now();
-        state.autoJoin.lastError = "Max retry attempts reached";
-      });
-      
-      return false;
-    }
-
-    try {
-      this.logger.info("Attempting auto-join", {
-        callId,
-        attempt,
-        maxAttempts,
-      });
-
-      await this.livekit?.joinRoom(token, url);
-      
-      this.logger.info("Auto-join successful", {
-        callId,
-        attempt,
-      });
-      
-      // Mark as succeeded
-      this.updateStore((state) => {
-        state.autoJoin.status = "succeeded";
-        state.autoJoin.completedAt = Date.now();
-      });
-      
-      return true;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      
-      this.logger.warn("Auto-join attempt failed", {
-        callId,
-        attempt,
-        maxAttempts,
-        error: errorMessage,
-      });
-
-      // Update state with error
-      this.updateStore((state) => {
-        state.autoJoin.lastError = errorMessage;
-      });
-
-      if (attempt < maxAttempts) {
-        // Exponential backoff: 1s, 2s, 4s, etc.
-        // biome-ignore lint/style/useExponentiationOperator: <explanation>
-                const delayMs = Math.pow(2, attempt - 1) * 1000;
-        this.logger.debug("Retrying auto-join after delay", {
-          callId,
-          nextAttempt: attempt + 1,
-          delayMs,
-        });
-
-        await new Promise(resolve => setTimeout(resolve, delayMs));
-        return this.retryAutoJoin(callId, token, url, attempt + 1);
-      }
-
-      // Mark as failed after all attempts
-      this.updateStore((state) => {
-        state.autoJoin.status = "failed";
-        state.autoJoin.completedAt = Date.now();
-      });
-
-      return false;
-    }
-  }
 
   /**
    * Determines if an error is retryable

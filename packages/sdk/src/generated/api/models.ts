@@ -24,7 +24,7 @@ service: string
 export type UserPresenceData = {
         
         payloads: {
-            GetSignalPresenceByUserId: {
+            GetSignalPresenceUsersByUserId: {
                         userId: string
                         
                     };
@@ -36,38 +36,30 @@ GetSignalPresenceBulk: {
         
         
         responses: {
-            GetSignalPresenceByUserId: {
-        userId: number
-status: 'online' | 'offline'
-lastActive: number
-connections: Array<{
-        connectionId: string
-connectedAt: number
-lastActive: number
-state: 'connecting' | 'connected' | 'disconnecting' | 'disconnected'
-metadata?: {
-        device?: string
-    }
+            GetSignalPresenceUsersByUserId: {
+        userId: string
+state: 'offline' | 'online' | 'ringing' | 'in_call' | 'dnd'
+lastSeen: string
+devices: Array<{
+        device: 'web' | 'ios' | 'android' | 'unknown'
+count: number
     }>
-timestamp: number
+roomIds: Array<string>
+callId: string | null
     }
                 ,GetSignalPresenceBulk: {
         presences: Array<{
-        userId: number
-status: 'online' | 'offline'
-lastActive: number
-connections: Array<{
-        connectionId: string
-connectedAt: number
-lastActive: number
-state: 'connecting' | 'connected' | 'disconnecting' | 'disconnected'
-metadata?: {
-        device?: string
-    }
+        userId: string
+state: 'offline' | 'online' | 'ringing' | 'in_call' | 'dnd'
+lastSeen: string
+devices: Array<{
+        device: 'web' | 'ios' | 'android' | 'unknown'
+count: number
     }>
-timestamp: number
+roomIds: Array<string>
+callId: string | null
     }>
-timestamp: number
+timestamp: string
     }
                 
         }

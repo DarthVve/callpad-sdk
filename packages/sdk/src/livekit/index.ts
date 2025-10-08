@@ -19,7 +19,6 @@ export { DeviceManager } from "./device.manager";
 export { MediaControls } from "./media.controls";
 export { RoomManager } from "./room.manager";
 
-// Track utilities
 export * from "./track.utils";
 
 // Re-export essential LiveKit client types that consumers might need
@@ -32,8 +31,6 @@ export type {
   Track,
   LocalTrack,
   RemoteTrack,
-  AudioTrack,
-  VideoTrack,
   TrackPublication,
   LocalTrackPublication,
   RemoteTrackPublication,
@@ -42,8 +39,58 @@ export type {
   ParticipantEvent,
   RoomEvent,
   TrackEvent,
-  // Additional utility types
   ReconnectPolicy,
-  // Newer types that might be useful
   DataPacket_Kind,
 } from "livekit-client";
+
+// Livekit hooks
+export {
+    usePagination,
+    useParticipants,
+    useRemoteParticipant,
+    useRemoteParticipants,
+    useConnectionQualityIndicator,
+    useEnsureParticipant,
+    useEnsureRoom,
+    useLocalParticipant,
+    useAudioPlayback,
+    useConnectionState,
+    useDataChannel,
+    useDisconnectButton,
+    useEnsureTrackRef,
+    useIsMuted,
+    useIsSpeaking,
+    useIsRecording,
+    useLiveKitRoom,
+    useLocalParticipantPermissions,
+    useMediaDevices,
+    useParticipantInfo,
+    useParticipantTracks,
+    usePersistentUserChoices,
+    usePinnedTracks,
+    usePreviewTracks,
+    useRoomContext,
+    useRoomInfo,
+    useSortedParticipants,
+    useSpeakingParticipants,
+    useStartAudio,
+    useStartVideo,
+    useSwipe,
+    useTextStream,
+    useTracks,
+    useTrackByName,
+    useTrackMutedIndicator,
+    useTrackToggle,
+    useTrackVolume,
+} from "@livekit/components-react"
+
+export {
+    AudioTrack,
+    LiveKitRoom,
+    ParticipantContext,
+    RoomAudioRenderer,
+    RoomContext,
+    StartAudio,
+    StartMediaButton,
+    VideoTrack,
+} from "@livekit/components-react";

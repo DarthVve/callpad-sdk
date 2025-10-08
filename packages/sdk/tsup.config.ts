@@ -14,8 +14,6 @@ export default defineConfig({
   external: [
     "react",
     "react-dom",
-    "livekit-client",
-    "socket.io-client",
     "axios",
     "jwt-decode",
     "zustand",
