@@ -16,17 +16,17 @@ export class CallJoinInfoHandler extends BaseSocketHandler<CallJoinInfoEvent> {
     const currentState = rtcStore.getState();
     const currentSessionId = this.getSessionId();
 
-    if (currentSessionId !== data.callId) {
-      this.logger.error("CallId mismatch in join-info event", {
-        eventCallId: data.callId,
-        sessionCallId: currentSessionId,
-      });
-      pushStaleEventError("call.join-info", "callId mismatch", {
-        eventCallId: data.callId,
-        sessionCallId: currentSessionId,
-      });
-      return;
-    }
+    // if (currentSessionId !== data.callId) {
+    //   this.logger.error("CallId mismatch in join-info event", {
+    //     eventCallId: data.callId,
+    //     sessionCallId: currentSessionId,
+    //   });
+    //   pushStaleEventError("call.join-info", "callId mismatch", {
+    //     eventCallId: data.callId,
+    //     sessionCallId: currentSessionId,
+    //   });
+    //   return;
+    // }
 
     if (this.livekit?.room.state === "connected") {
       this.logger.warn("Already connected to LiveKit, ignoring join-info", {
