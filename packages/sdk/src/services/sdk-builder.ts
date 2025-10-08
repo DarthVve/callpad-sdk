@@ -1,6 +1,5 @@
 import { AuthManager, SocketManager } from "../core";
 import { type ApiConfig, SignalClient, apiConfig } from "../core/signal";
-import { type AutoJoinConfig } from "../core/types";
 import { LiveKitService } from "../livekit";
 import { rtcStore } from "../state/store";
 import { type LogLevel, setGlobalLoggerOptions } from "../utils/logger";
@@ -17,9 +16,6 @@ export interface SdkBuildOptions {
 
   // Custom log callback
   log?: (level: LogLevel, message: string, meta?: any) => void;
-
-  // Auto-join configuration
-  autoJoin?: Partial<AutoJoinConfig>;
 }
 
 export interface RtcSdk extends CallActions {
@@ -28,18 +24,10 @@ export interface RtcSdk extends CallActions {
   socket: SocketManager;
   signal: SignalClient;
   livekit: LiveKitService;
-  autoJoinConfig: AutoJoinConfig;
   cleanup: () => void;
 
   configureApi: (config: ApiConfig) => void;
 }
-
-// Default auto-join configuration
-const DEFAULT_AUTO_JOIN_CONFIG: AutoJoinConfig = {
-  enabled: true, // Everyone auto-joins by default
-  retryOnFailure: true,
-  maxRetries: 2,
-};
 
 export function buildSdk(opts: SdkBuildOptions): RtcSdk {
   // Configure global logging system
@@ -54,12 +42,6 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
     loggerOptions.customLogger = opts.log;
   }
   setGlobalLoggerOptions(loggerOptions);
-
-  // Merge auto-join configuration with defaults
-  const autoJoinConfig: AutoJoinConfig = {
-    ...DEFAULT_AUTO_JOIN_CONFIG,
-    ...opts.autoJoin,
-  };
 
   // Initialize core managers
   const auth = new AuthManager(opts.authProvider);
@@ -85,14 +67,12 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
     rtcStore.getState().reset();
   };
 
-
   return {
     store: rtcStore,
     auth,
     socket,
     signal,
     livekit,
-    autoJoinConfig,
     ...callActions,
     cleanup,
 
@@ -100,6 +80,5 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
     configureApi: (config: ApiConfig) => {
       apiConfig.configure(config);
     },
-
   };
 }

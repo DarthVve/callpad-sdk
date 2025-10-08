@@ -1,4 +1,3 @@
-// React integration - main SDK entry points
 export {
   RtcProvider,
   useSdk,
@@ -6,7 +5,6 @@ export {
   type RtcSdk,
 } from "./provider/RtcProvider";
 
-// React hooks for call management
 export * from "./hooks";
 
 export type {
@@ -37,9 +35,7 @@ export { apiConfig, type ApiConfig } from "./core/signal/api.config";
 
 // Event system for advanced usage
 export { eventBus } from "./core/events";
-export {
-  SdkEventType,
-} from "./core/events/types";
+export { SdkEventType } from "./core/events/types";
 export type {
   SdkEvent,
   EventHandler,

@@ -18,7 +18,6 @@ export const callIncomingSchema = z.object({
   timestamp: z.number(),
 });
 
-
 // call.participant-accepted event schema
 export const callParticipantAcceptedSchema = z.object({
   callId: z.string(),
@@ -37,13 +36,13 @@ export const callJoinInfoSchema = z.object({
 });
 
 // call.ended event schema
-export const callEndedSchema = z.object({
-  callId: z.string(),
-  reason: z.string().optional(),
-  endedAt: z.string().optional(),
-}).passthrough(); // Allow additional fields to pass through
-
-
+export const callEndedSchema = z
+  .object({
+    callId: z.string(),
+    reason: z.string().optional(),
+    endedAt: z.string().optional(),
+  })
+  .passthrough(); // Allow additional fields to pass through
 
 // call.timeout event schema
 export const callTimeoutSchema = z.object({
@@ -68,12 +67,15 @@ export const callCanceledSchema = z.object({
   by: socketParticipantSchema.optional(),
 });
 
-
 // Inferred types for use in handlers
 export type CallIncomingEvent = z.infer<typeof callIncomingSchema>;
-export type CallParticipantAcceptedEvent = z.infer<typeof callParticipantAcceptedSchema>;
+export type CallParticipantAcceptedEvent = z.infer<
+  typeof callParticipantAcceptedSchema
+>;
 export type CallJoinInfoEvent = z.infer<typeof callJoinInfoSchema>;
 export type CallEndedEvent = z.infer<typeof callEndedSchema>;
 export type CallTimeoutEvent = z.infer<typeof callTimeoutSchema>;
-export type CallParticipantDeclinedEvent = z.infer<typeof callParticipantDeclinedSchema>;
+export type CallParticipantDeclinedEvent = z.infer<
+  typeof callParticipantDeclinedSchema
+>;
 export type CallCanceledEvent = z.infer<typeof callCanceledSchema>;

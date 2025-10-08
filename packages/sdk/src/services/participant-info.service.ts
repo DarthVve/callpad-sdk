@@ -1,6 +1,6 @@
 import { CallsService } from "../generated/api";
+import type { ParticipantInfo } from "../state/types";
 import { createLogger } from "../utils/logger";
-import { ParticipantInfo } from "../state/types";
 
 const logger = createLogger("participant-info");
 
@@ -8,7 +8,10 @@ export class ParticipantInfoService {
   private cache = new Map<string, ParticipantInfo>();
   private pendingRequests = new Map<string, Promise<ParticipantInfo>>();
 
-  async getParticipantInfo(identity: string, appId: string): Promise<ParticipantInfo> {
+  async getParticipantInfo(
+    identity: string,
+    appId: string
+  ): Promise<ParticipantInfo> {
     if (this.cache.has(identity)) {
       return this.cache.get(identity)!;
     }
@@ -34,7 +37,10 @@ export class ParticipantInfoService {
     }
   }
 
-  private async fetchParticipantInfo(identity: string, appId: string): Promise<ParticipantInfo> {
+  private async fetchParticipantInfo(
+    identity: string,
+    appId: string
+  ): Promise<ParticipantInfo> {
     const response = await CallsService.getSignalCallsParticipantsByIdentity({
       identity,
       appId,

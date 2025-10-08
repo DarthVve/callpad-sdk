@@ -24,10 +24,6 @@ export abstract class BaseSocketHandler<T = any> {
     return this._logger;
   }
 
-  protected get authManager(): AuthManager | undefined {
-    return this.options.authManager;
-  }
-
   async handleRaw(rawData: unknown): Promise<void> {
     this.logger.info(`${this.eventName} received`, rawData);
 
@@ -78,24 +74,5 @@ export abstract class BaseSocketHandler<T = any> {
 
   protected get livekit() {
     return this.options.livekit;
-  }
-
-
-  /**
-   * Determines if an error is retryable
-   */
-  protected isRetryableError(error: any): boolean {
-    if (!error) return false;
-    
-    const errorMessage = error.message?.toLowerCase() || "";
-    const retryableErrors = [
-      "network",
-      "timeout",
-      "connection",
-      "websocket",
-      "transport",
-    ];
-    
-    return retryableErrors.some(keyword => errorMessage.includes(keyword));
   }
 }

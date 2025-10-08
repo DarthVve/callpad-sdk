@@ -1,7 +1,7 @@
 import { type Socket, io } from "socket.io-client";
 import { createLogger } from "../../utils/logger";
 import type { AuthManager } from "../auth.manager";
-import type { AutoJoinConfig, Nullable } from "../types";
+import type { Nullable } from "../types";
 import { SocketHandlerRegistry } from "./handlers";
 import type { SocketHandlerOptions } from "./handlers/base.handler";
 import type { ConnectionConfig, ConnectionState } from "./types";
@@ -13,7 +13,6 @@ export class SocketManager {
   private socket: Nullable<Socket> = null;
   private connectionState: ConnectionState = "DISCONNECTED";
   private livekit: any = null;
-  private autoJoinConfig: Nullable<AutoJoinConfig> = null;
   private handlerRegistry: Nullable<SocketHandlerRegistry> = null;
   private authManager: Nullable<AuthManager> = null;
 
@@ -30,11 +29,9 @@ export class SocketManager {
     baseUrl: string,
     authManager: AuthManager,
     config: ConnectionConfig = {},
-    livekit?: any,
-    autoJoinConfig?: AutoJoinConfig
+    livekit?: any
   ): Promise<void> {
     this.livekit = livekit;
-    this.autoJoinConfig = autoJoinConfig || null;
     this.authManager = authManager;
     if (this.socket?.connected) {
       return;
@@ -134,9 +131,8 @@ export class SocketManager {
 
     const options: SocketHandlerOptions = {
       livekit: this.livekit,
-      autoJoinConfig: this.autoJoinConfig,
     };
-    
+
     if (this.authManager) {
       options.authManager = this.authManager;
     }
@@ -144,7 +140,7 @@ export class SocketManager {
     this.handlerRegistry = new SocketHandlerRegistry(options);
 
     this.handlerRegistry.registerEventListeners(this.socket);
-    
+
     console.log("[SOCKET_MANAGER] Event handlers registered successfully");
   }
 

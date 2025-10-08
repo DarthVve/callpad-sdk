@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { eventBus } from "../core/events";
-import type { EventFilter, EventHandler, SdkEvent, SdkEventType } from "../core/events";
+import type {
+  EventFilter,
+  EventHandler,
+  SdkEvent,
+  SdkEventType,
+} from "../core/events";
 
 export function useEvent<T = any>(
   eventType: string | SdkEventType,

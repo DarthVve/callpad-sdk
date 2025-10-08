@@ -1,6 +1,5 @@
-import { pushStaleEventError, pushLiveKitConnectError } from "../../../state/errors";
+import { pushStaleEventError } from "../../../state/errors";
 import { rtcStore } from "../../../state/store";
-import { SdkEventType, eventBus } from "../../events";
 import { BaseSocketHandler } from "./base.handler";
 import { callParticipantAcceptedSchema } from "./schema";
 import type { CallParticipantAcceptedEvent } from "./schema";
@@ -11,7 +10,7 @@ export class CallParticipantAcceptedHandler extends BaseSocketHandler<CallPartic
 
   protected async handle(data: CallParticipantAcceptedEvent): Promise<void> {
     const currentState = rtcStore.getState();
-    
+
     if (currentState.session.id !== data.callId) {
       pushStaleEventError("call.participant-accepted", "callId mismatch", {
         eventCallId: data.callId,
@@ -22,9 +21,6 @@ export class CallParticipantAcceptedHandler extends BaseSocketHandler<CallPartic
 
     this.updateStore((state) => {
       state.session.status = "ACCEPTED";
-      
-      // Participant management is now handled by LiveKit EventBridge
-      // No need to update participant state via socket events
     });
   }
 }

@@ -77,7 +77,6 @@ export interface CallIncomingEvent {
   }>;
 }
 
-
 export interface CallDeclinedEvent {
   callId: string;
   participantId?: string;
@@ -96,11 +95,9 @@ export interface JoinInfoReceivedEvent {
   callId: string;
   participantId: string;
   timestamp: number;
-  hasUrl: boolean;
-  hasToken: boolean;
-  autoJoined?: boolean;
+  url: string;
+  token: string;
 }
-
 
 export interface MediaEnabledEvent {
   participantId: string;
@@ -154,4 +151,3 @@ export interface ParticipantInvitedEvent {
   };
   timestamp: number;
 }
-

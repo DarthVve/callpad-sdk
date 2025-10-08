@@ -18,7 +18,7 @@ export class CallEndedHandler extends BaseSocketHandler<CallEndedEvent> {
       }
 
       state.session.status = "ENDED";
-      
+
       // Clear participants - LiveKit will handle disconnections
       state.room.participants = {};
     });
