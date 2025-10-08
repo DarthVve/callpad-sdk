@@ -1,8 +1,8 @@
+import { extractCallerInfo } from "../../../utils/participant-adapter";
+import { SdkEventType, eventBus } from "../../events";
 import { BaseSocketHandler } from "./base.handler";
 import { callIncomingSchema } from "./schema";
 import type { CallIncomingEvent } from "./schema";
-import { SdkEventType, eventBus } from "../../events";
-import { extractCallerInfo } from "../../../utils/participant-adapter";
 
 export class CallIncomingHandler extends BaseSocketHandler<CallIncomingEvent> {
   protected readonly eventName = "call.incoming";
@@ -23,18 +23,22 @@ export class CallIncomingHandler extends BaseSocketHandler<CallIncomingEvent> {
         mode: data.type,
         initiatedByMe: false,
       };
-      
+
       // Participants will be populated by LiveKit EventBridge when they connect
       state.room.participants = {};
     });
 
-    eventBus.emit(SdkEventType.CALL_INCOMING, {
-      callId: data.callId,
-      caller: callerInfo,
-      type: data.type,
-      timestamp: data.timestamp,
-      participants: data.participants,
-    }, "socket");
+    eventBus.emit(
+      SdkEventType.CALL_INCOMING,
+      {
+        callId: data.callId,
+        caller: callerInfo,
+        type: data.type,
+        timestamp: data.timestamp,
+        participants: data.participants,
+      },
+      "socket"
+    );
 
     this.logger.debug("Incoming call event emitted", {
       callId: data.callId,

@@ -1,12 +1,12 @@
 export type SessionStatus =
   | "IDLE"
-  | "CALLING"        // Caller initiated, waiting for acceptance
-  | "RINGING"        // Incoming call (callee perspective)
-  | "ACCEPTED"       // Call accepted but not yet joined media
-  | "AWAITING_JOIN_INFO"  // Waiting for join credentials
-  | "READY_TO_JOIN"  // Has join-info but not connected to media
-  | "CONNECTING"     // Joining LiveKit room
-  | "ACTIVE"         // Successfully connected to media session
+  | "CALLING" // Caller initiated, waiting for acceptance
+  | "RINGING" // Incoming call (callee perspective)
+  | "ACCEPTED" // Call accepted but not yet joined media
+  | "AWAITING_JOIN_INFO" // Waiting for join credentials
+  | "READY_TO_JOIN" // Has join-info but not connected to media
+  | "CONNECTING" // Joining LiveKit room
+  | "ACTIVE" // Successfully connected to the media session
   | "ENDED";
 
 export interface ParticipantInfo {
@@ -50,7 +50,6 @@ export interface DeviceState {
   lastEnumeratedAt: number | undefined;
 }
 
-
 export interface LiveKitJoinInfo {
   token: string;
   roomName: string;
@@ -70,17 +69,6 @@ export interface TrackReference {
   publication: import("livekit-client").TrackPublication;
   source: import("livekit-client").Track.Source;
   track?: import("livekit-client").Track;
-}
-
-export type AutoJoinStatus = "idle" | "pending" | "retrying" | "succeeded" | "failed";
-
-export interface AutoJoinState {
-  status: AutoJoinStatus;
-  attempt: number;
-  maxAttempts: number;
-  lastError?: string;
-  startedAt?: number;
-  completedAt?: number;
 }
 
 export interface RtcState {
@@ -110,7 +98,6 @@ export interface RtcState {
     quality?: "excellent" | "good" | "poor" | "lost";
   };
 
-  autoJoin: AutoJoinState;
   devices: DeviceState;
   errors: RtcError[];
 }
@@ -122,11 +109,6 @@ export const defaultState: RtcState = {
   },
   local: { audioEnabled: false, videoEnabled: false, screenEnabled: false },
   connection: { connected: false, reconnecting: false },
-  autoJoin: {
-    status: "idle",
-    attempt: 0,
-    maxAttempts: 0,
-  },
   devices: {
     mics: [],
     cams: [],

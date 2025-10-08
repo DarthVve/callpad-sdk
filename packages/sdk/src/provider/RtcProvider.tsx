@@ -47,8 +47,7 @@ export function RtcProvider({
           reconnectAttempts: 5,
           reconnectDelay: 1000,
         },
-        sdk.livekit,
-        sdk.autoJoinConfig
+        sdk.livekit
       )
       .catch((error) => {
         options.log?.("error", "Failed to initialize socket connection", error);

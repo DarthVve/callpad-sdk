@@ -19,9 +19,6 @@ export function useCallActions() {
     cancel: (callId: string) => {
       return sdk.leave(callId);
     },
-    join: () => {
-      return sdk.join();
-    },
   };
 }
 

@@ -1,9 +1,14 @@
-import type {CallActionResponse, CallResponse, InitiateCallParams, SignalClient,} from "../core/signal";
-import type {AuthManager} from "../core";
-import {eventBus, SdkEventType} from "../core/events";
-import {rtcStore} from "../state/store";
-import type {SessionStatus} from "../state/types";
-import {createLogger} from "../utils/logger";
+import type { AuthManager } from "../core";
+import { SdkEventType, eventBus } from "../core/events";
+import type {
+  CallActionResponse,
+  CallResponse,
+  InitiateCallParams,
+  SignalClient,
+} from "../core/signal";
+import { rtcStore } from "../state/store";
+import type { SessionStatus } from "../state/types";
+import { createLogger } from "../utils/logger";
 
 export interface CallActions {
   initiate: (params: InitiateCallParams) => Promise<CallResponse>;
@@ -12,7 +17,11 @@ export interface CallActions {
   leave: (callId: string) => Promise<CallActionResponse>;
 }
 
-export function createCallActions(signal: SignalClient, auth: AuthManager, livekit?: any): CallActions {
+export function createCallActions(
+  signal: SignalClient,
+  auth: AuthManager,
+  livekit?: any
+): CallActions {
   const logger = createLogger("call-actions");
   async function initiate(params: InitiateCallParams): Promise<CallResponse> {
     const response = await signal.initiate(params);
@@ -28,7 +37,7 @@ export function createCallActions(signal: SignalClient, auth: AuthManager, livek
       };
 
       state.room.participants = {};
-      
+
       logger.debug("Call initiated - waiting for participants to join", {
         callId: response.id,
         invitedCount: response.participants?.length || 0,
@@ -49,7 +58,7 @@ export function createCallActions(signal: SignalClient, auth: AuthManager, livek
         myRole: "CALLEE",
         initiatedByMe: false,
       };
-      
+
       // Participants will be populated by LiveKit EventBridge when they connect
       // No need to pre-populate from API response
       state.room.participants = {};
@@ -74,11 +83,15 @@ export function createCallActions(signal: SignalClient, auth: AuthManager, livek
         }
       });
 
-      eventBus.emit(SdkEventType.CALL_DECLINED, {
-        callId,
-        reason,
-        timestamp: Date.now(),
-      }, "user");
+      eventBus.emit(
+        SdkEventType.CALL_DECLINED,
+        {
+          callId,
+          reason,
+          timestamp: Date.now(),
+        },
+        "user"
+      );
 
       return response;
     } catch (error) {
@@ -89,18 +102,22 @@ export function createCallActions(signal: SignalClient, auth: AuthManager, livek
         logger.warn("Force-cleared session due to API failure");
       });
 
-      eventBus.emit(SdkEventType.CALL_DECLINED, {
-        callId,
-        reason: "api_error",
-        timestamp: Date.now(),
-      }, "user");
+      eventBus.emit(
+        SdkEventType.CALL_DECLINED,
+        {
+          callId,
+          reason: "api_error",
+          timestamp: Date.now(),
+        },
+        "user"
+      );
 
       throw error;
     }
   }
 
   async function leave(callId: string): Promise<CallActionResponse> {
-      return await signal.leave(callId);
+    return await signal.leave(callId);
   }
 
   return {

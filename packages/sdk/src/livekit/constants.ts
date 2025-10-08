@@ -46,7 +46,7 @@ export const DEFAULT_ROOM_OPTIONS: RoomOptions = {
     echoCancellation: { exact: true },
     noiseSuppression: { exact: true },
     autoGainControl: { exact: true },
-    
+
     // Optimal settings for call quality
     sampleRate: { ideal: 48000 }, // Best for echo cancellation
     channelCount: { exact: 1 }, // Mono reduces echo issues

@@ -11,10 +11,12 @@ type SocketParticipant = z.infer<typeof socketParticipantSchema>;
 /**
  * Find caller from participants array in socket events
  */
-export function findCaller(participants: SocketParticipant[]): SocketParticipant | null {
-  return participants.find(p => 
-    p.role === "CALLER" || p.role === "HOST"
-  ) || null;
+export function findCaller(
+  participants: SocketParticipant[]
+): SocketParticipant | null {
+  return (
+    participants.find((p) => p.role === "CALLER" || p.role === "HOST") || null
+  );
 }
 
 /**
@@ -27,16 +29,17 @@ export function extractCallerInfo(participants: SocketParticipant[]): {
 } | null {
   const caller = findCaller(participants);
   if (!caller) return null;
-  
+
   const result: { id: string; name: string; avatarUrl?: string } = {
     id: caller.id,
-    name: [caller.firstName, caller.lastName].filter(Boolean).join(" ") || 
-          `Guest ${caller.id}`,
+    name:
+      [caller.firstName, caller.lastName].filter(Boolean).join(" ") ||
+      `Guest ${caller.id}`,
   };
-  
+
   if (caller.profilePhoto) {
     result.avatarUrl = caller.profilePhoto;
   }
-  
+
   return result;
 }

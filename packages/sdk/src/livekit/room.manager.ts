@@ -18,7 +18,7 @@ export class RoomManager {
       ...DEFAULT_ROOM_OPTIONS,
       ...options,
     });
-    
+
     this.setupAudioPlaybackMonitoring();
   }
 
@@ -80,7 +80,7 @@ export class RoomManager {
     this._audioPlaybackHandler = () => {
       const canPlayback = this._room.canPlaybackAudio;
       this.logger.debug("Audio playback status changed", { canPlayback });
-      
+
       if (!canPlayback) {
         this.logger.info(
           "Audio playback requires user interaction - audio will be silent until user interacts"
@@ -91,7 +91,10 @@ export class RoomManager {
       }
     };
 
-    this._room.on(RoomEvent.AudioPlaybackStatusChanged, this._audioPlaybackHandler);
+    this._room.on(
+      RoomEvent.AudioPlaybackStatusChanged,
+      this._audioPlaybackHandler
+    );
   }
 
   /**
@@ -101,10 +104,15 @@ export class RoomManager {
   async startAudioWithUserInteraction(): Promise<boolean> {
     try {
       await this._room.startAudio();
-      this.logger.info("Audio playback started successfully via user interaction");
+      this.logger.info(
+        "Audio playback started successfully via user interaction"
+      );
       return true;
     } catch (error) {
-      this.logger.warn("Failed to start audio playback even with user interaction", { error });
+      this.logger.warn(
+        "Failed to start audio playback even with user interaction",
+        { error }
+      );
       return false;
     }
   }
@@ -119,7 +127,10 @@ export class RoomManager {
   destroy(): void {
     // Clean up audio monitoring
     if (this._audioPlaybackHandler) {
-      this._room.off(RoomEvent.AudioPlaybackStatusChanged, this._audioPlaybackHandler);
+      this._room.off(
+        RoomEvent.AudioPlaybackStatusChanged,
+        this._audioPlaybackHandler
+      );
       this._audioPlaybackHandler = undefined;
     }
 
