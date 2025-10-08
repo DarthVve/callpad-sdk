@@ -22,9 +22,8 @@ export { RoomManager } from "./room.manager";
 export * from "./track.utils";
 
 // Re-export essential LiveKit client types that consumers might need
-export type {
+export {
   Room,
-  RoomOptions,
   Participant,
   LocalParticipant,
   RemoteParticipant,
@@ -39,7 +38,6 @@ export type {
   ParticipantEvent,
   RoomEvent,
   TrackEvent,
-  ReconnectPolicy,
   DataPacket_Kind,
 } from "livekit-client";
 
@@ -82,6 +80,7 @@ export {
   useTrackMutedIndicator,
   useTrackToggle,
   useTrackVolume,
+
 } from "@livekit/components-react";
 
 export {
