@@ -1,0 +1,61 @@
+import { SdkEventType, eventBus } from "../../events";
+import type { CallInviteEvent } from "../../../generated/socket";
+import { callInviteSchema } from "../../../generated/socket";
+import { BaseSocketHandler } from "./base.handler";
+
+/**
+ * Handles incoming call invitation (call:invite)
+ *
+ * Sets incomingInvite state to show incoming call UI
+ */
+export class InviteHandler extends BaseSocketHandler<CallInviteEvent> {
+  protected readonly eventName = "call:invite";
+  protected readonly schema = callInviteSchema;
+
+  protected handle(data: CallInviteEvent): void {
+    this.logger.info("Incoming call invitation", {
+      callId: data.callId,
+      caller: data.caller.userId,
+      mode: data.mode,
+    });
+
+    this.updateStore((state) => {
+      state.incomingInvite = {
+        callId: data.callId,
+        caller: {
+          userId: data.caller.userId,
+          firstName: data.caller.firstName,
+          lastName: data.caller.lastName,
+          username: data.caller.username,
+          email: data.caller.email,
+          profilePhoto: data.caller.profilePhoto,
+        },
+        mode: data.mode,
+        expiresAt: data.expiresAt,
+        expiresInMs: data.expiresInMs,
+      };
+
+      state.session = {
+        id: data.callId,
+        status: "pending",
+        mode: data.mode,
+        role: "PARTICIPANT",
+      };
+    });
+
+    // Emit SDK event for the application layer
+    eventBus.emit(SdkEventType.CALL_INCOMING, {
+      callId: data.callId,
+      caller: {
+        id: data.caller.userId,
+        firstName: data.caller.firstName,
+        lastName: data.caller.lastName,
+        avatarUrl: data.caller.profilePhoto,
+      },
+      type: data.mode,
+      timestamp: Date.now(),
+    });
+
+    this.logger.debug("Incoming invite state updated");
+  }
+}

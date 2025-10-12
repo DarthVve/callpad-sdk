@@ -1,0 +1,60 @@
+import { SdkEventType, eventBus } from "../../events";
+import { pushStaleEventError } from "../../../state/errors";
+import { rtcStore } from "../../../state/store";
+import type { CallEndedEvent } from "../../../generated/socket";
+import { callEndedSchema } from "../../../generated/socket";
+import { BaseSocketHandler } from "./base.handler";
+
+/**
+ * Handles call session ended (call:ended)
+ *
+ * Clears session state and disconnects from LiveKit
+ */
+export class SessionEndedHandler extends BaseSocketHandler<CallEndedEvent> {
+  protected readonly eventName = "call:ended";
+  protected readonly schema = callEndedSchema;
+
+  protected handle(data: CallEndedEvent): void {
+    const currentState = rtcStore.getState();
+
+    this.logger.info("Call session ended", {
+      callId: data.callId,
+      endedBy: data.endedByUserId,
+      reason: data.reason,
+    });
+
+    // Verify this matches our current session
+    if (currentState.session?.id !== data.callId) {
+      pushStaleEventError("call:ended", "callId mismatch", {
+        eventCallId: data.callId,
+        sessionCallId: currentState.session?.id,
+      });
+      this.logger.warn("Ignoring end event for different call", { callId: data.callId });
+      return;
+    }
+
+    this.updateStore((state) => {
+      state.initiated = false;
+      state.session = null;
+      state.outgoingInvites = {};
+      state.room.participants = {};
+    });
+
+    // Disconnect from LiveKit if connected
+    if (this.livekit) {
+      this.livekit.disconnect().catch((error: any) => {
+        this.logger.error("Error disconnecting from LiveKit", { error });
+      });
+    }
+
+    // Emit SDK event
+    eventBus.emit(SdkEventType.CALL_ENDED, {
+      callId: data.callId,
+      endedBy: data.endedByUserId,
+      reason: "user",
+      timestamp: Date.now(),
+    });
+
+    this.logger.debug("Session cleared and LiveKit disconnected");
+  }
+}
