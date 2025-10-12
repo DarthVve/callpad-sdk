@@ -60,10 +60,11 @@
   "dependencies": {
     "@livekit/components-react": "^2.9.15",
     "@livekit/components-styles": "^1.1.6",
-    "livekit-client": "^2.15.8",
     "axios": "^1.6.0",
     "immer": "^10.0.0",
     "jwt-decode": "^4.0.0",
+    "livekit-client": "^2.15.8",
+    "mitt": "^3.0.1",
     "zod": "^3.22.0",
     "zustand": "^4.5.0"
   },

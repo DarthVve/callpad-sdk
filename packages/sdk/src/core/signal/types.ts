@@ -1,11 +1,3 @@
-import type { AuthManager } from "../auth.manager";
-
-export interface SignalClientConfig {
-  baseUrl: string;
-  appId: string;
-  authManager: AuthManager;
-}
-
 export interface CallInfo {
   id: string;
   mode: "AUDIO" | "VIDEO";
@@ -49,17 +41,6 @@ export interface IncomingCallEvent {
 export type CallState = "RINGING" | "ACTIVE" | "ON_HOLD" | "ENDED";
 export type CallMode = "AUDIO" | "VIDEO";
 export type EndReason = "ENDED" | "TIMEOUT" | "ERROR" | "CANCELLED";
-
-export class SignalError extends Error {
-  constructor(
-    message: string,
-    public code: string,
-    public statusCode?: number
-  ) {
-    super(message);
-    this.name = "SignalError";
-  }
-}
 
 export interface InitiateCallParams {
   invitees: string[];
@@ -105,6 +86,3 @@ export interface CallActionResponse {
   token?: string;
   roomName?: string;
 }
-
-// Legacy alias for backward compatibility
-export type LeaveCallResponse = CallActionResponse;

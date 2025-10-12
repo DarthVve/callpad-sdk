@@ -38,7 +38,6 @@ export type {
   SdkEvent,
   EventHandler,
   EventSubscription,
-  EventFilter,
   CallInitiatedEvent,
   CallIncomingEvent,
   CallDeclinedEvent,

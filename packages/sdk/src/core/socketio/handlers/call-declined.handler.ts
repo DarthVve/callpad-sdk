@@ -21,8 +21,7 @@ export class CallParticipantDeclinedHandler extends BaseSocketHandler<CallPartic
         participantId: data.participantId,
         reason: "declined",
         timestamp: Date.now(),
-      },
-      "socket"
+      }
     );
   }
 }

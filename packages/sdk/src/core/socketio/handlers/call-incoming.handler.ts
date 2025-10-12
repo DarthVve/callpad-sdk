@@ -36,8 +36,7 @@ export class CallIncomingHandler extends BaseSocketHandler<CallIncomingEvent> {
         type: data.type,
         timestamp: data.timestamp,
         participants: data.participants,
-      },
-      "socket"
+      }
     );
 
     this.logger.debug("Incoming call event emitted", {

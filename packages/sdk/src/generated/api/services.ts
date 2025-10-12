@@ -1,7 +1,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { HealthData, UserPresenceData, CallsData } from './models';
+import type { HealthData, CallsData } from './models';
 
 export class HealthService {
 
@@ -31,64 +31,13 @@ export class HealthService {
 
 }
 
-export class UserPresenceService {
-
-	/**
-	 * @returns any User presence retrieved successfully
-	 * @throws ApiError
-	 */
-	public static getSignalPresenceUsersByUserId(data: UserPresenceData['payloads']['GetSignalPresenceUsersByUserId']): CancelablePromise<UserPresenceData['responses']['GetSignalPresenceUsersByUserId']> {
-		const {
-                    
-                    userId
-                } = data;
-		return __request(OpenAPI, {
-			method: 'GET',
-			url: '/signal/presence/users/{userId}',
-			path: {
-				userId
-			},
-			errors: {
-				400: `Invalid request`,
-				401: `Authentication required`,
-				403: `Insufficient permissions`,
-				404: `User not found or presence unavailable`,
-			},
-		});
-	}
-
-	/**
-	 * @returns any Bulk presence retrieved successfully
-	 * @throws ApiError
-	 */
-	public static getSignalPresenceBulk(data: UserPresenceData['payloads']['GetSignalPresenceBulk']): CancelablePromise<UserPresenceData['responses']['GetSignalPresenceBulk']> {
-		const {
-                    
-                    userIds
-                } = data;
-		return __request(OpenAPI, {
-			method: 'GET',
-			url: '/signal/presence/bulk',
-			query: {
-				userIds
-			},
-			errors: {
-				400: `Invalid request`,
-				401: `Authentication required`,
-				403: `Insufficient permissions`,
-			},
-		});
-	}
-
-}
-
 export class CallsService {
 
 	/**
-	 * @returns any Call started successfully
+	 * @returns any Invites sent successfully
 	 * @throws ApiError
 	 */
-	public static postSignalCalls(data: CallsData['payloads']['PostSignalCalls']): CancelablePromise<CallsData['responses']['PostSignalCalls']> {
+	public static postSignalCallsInvite(data: CallsData['payloads']['PostSignalCallsInvite']): CancelablePromise<CallsData['responses']['PostSignalCallsInvite']> {
 		const {
                     
                     appId,
@@ -96,7 +45,7 @@ requestBody
                 } = data;
 		return __request(OpenAPI, {
 			method: 'POST',
-			url: '/signal/calls',
+			url: '/signal/calls/invite',
 			query: {
 				appId
 			},
@@ -105,6 +54,8 @@ requestBody
 			errors: {
 				400: `Invalid request`,
 				401: `Authentication required`,
+				403: `User does not have permission to invite`,
+				404: `Call not found`,
 			},
 		});
 	}
@@ -146,7 +97,8 @@ appId
 		const {
                     
                     callId,
-appId
+appId,
+requestBody
                 } = data;
 		return __request(OpenAPI, {
 			method: 'POST',
@@ -157,12 +109,167 @@ appId
 			query: {
 				appId
 			},
+			body: requestBody,
+			mediaType: 'application/json',
 			errors: {
 				400: `Invalid request`,
 				401: `Authentication required`,
 				403: `User is not a participant`,
 				404: `Call not found`,
 				409: `Call cannot be declined in current state`,
+			},
+		});
+	}
+
+	/**
+	 * @returns any Call cancelled successfully
+	 * @throws ApiError
+	 */
+	public static postSignalCallsByCallIdCancel(data: CallsData['payloads']['PostSignalCallsByCallIdCancel']): CancelablePromise<CallsData['responses']['PostSignalCallsByCallIdCancel']> {
+		const {
+                    
+                    callId,
+appId
+                } = data;
+		return __request(OpenAPI, {
+			method: 'POST',
+			url: '/signal/calls/{callId}/cancel',
+			path: {
+				callId
+			},
+			query: {
+				appId
+			},
+			errors: {
+				400: `Invalid request`,
+				401: `Authentication required`,
+				403: `User does not have permission to cancel`,
+				404: `Call not found`,
+				409: `Call cannot be cancelled in current state`,
+			},
+		});
+	}
+
+	/**
+	 * @returns any Transfer initiated successfully
+	 * @throws ApiError
+	 */
+	public static postSignalCallsByCallIdTransfer(data: CallsData['payloads']['PostSignalCallsByCallIdTransfer']): CancelablePromise<CallsData['responses']['PostSignalCallsByCallIdTransfer']> {
+		const {
+                    
+                    callId,
+appId,
+requestBody
+                } = data;
+		return __request(OpenAPI, {
+			method: 'POST',
+			url: '/signal/calls/{callId}/transfer',
+			path: {
+				callId
+			},
+			query: {
+				appId
+			},
+			body: requestBody,
+			mediaType: 'application/json',
+			errors: {
+				400: `Invalid request`,
+				401: `Authentication required`,
+				403: `User does not have permission to transfer`,
+				404: `Call not found`,
+				409: `Call cannot be transferred in current state`,
+			},
+		});
+	}
+
+	/**
+	 * @returns any Participant kicked successfully
+	 * @throws ApiError
+	 */
+	public static postSignalCallsByCallIdKick(data: CallsData['payloads']['PostSignalCallsByCallIdKick']): CancelablePromise<CallsData['responses']['PostSignalCallsByCallIdKick']> {
+		const {
+                    
+                    callId,
+appId,
+requestBody
+                } = data;
+		return __request(OpenAPI, {
+			method: 'POST',
+			url: '/signal/calls/{callId}/kick',
+			path: {
+				callId
+			},
+			query: {
+				appId
+			},
+			body: requestBody,
+			mediaType: 'application/json',
+			errors: {
+				400: `Invalid request`,
+				401: `Authentication required`,
+				403: `User does not have permission to kick`,
+				404: `Call not found`,
+				409: `Participant cannot be kicked in current state`,
+			},
+		});
+	}
+
+	/**
+	 * @returns any Participant muted successfully
+	 * @throws ApiError
+	 */
+	public static postSignalCallsByCallIdMute(data: CallsData['payloads']['PostSignalCallsByCallIdMute']): CancelablePromise<CallsData['responses']['PostSignalCallsByCallIdMute']> {
+		const {
+                    
+                    callId,
+appId,
+requestBody
+                } = data;
+		return __request(OpenAPI, {
+			method: 'POST',
+			url: '/signal/calls/{callId}/mute',
+			path: {
+				callId
+			},
+			query: {
+				appId
+			},
+			body: requestBody,
+			mediaType: 'application/json',
+			errors: {
+				400: `Invalid request`,
+				401: `Authentication required`,
+				403: `User does not have permission to mute`,
+				404: `Call not found`,
+				409: `Participant cannot be muted in current state`,
+			},
+		});
+	}
+
+	/**
+	 * @returns any Call ended successfully
+	 * @throws ApiError
+	 */
+	public static postSignalCallsByCallIdEnd(data: CallsData['payloads']['PostSignalCallsByCallIdEnd']): CancelablePromise<CallsData['responses']['PostSignalCallsByCallIdEnd']> {
+		const {
+                    
+                    callId,
+appId
+                } = data;
+		return __request(OpenAPI, {
+			method: 'POST',
+			url: '/signal/calls/{callId}/end',
+			path: {
+				callId
+			},
+			query: {
+				appId
+			},
+			errors: {
+				400: `Invalid request`,
+				401: `Authentication required`,
+				403: `Only host can end call`,
+				404: `Call not found`,
 			},
 		});
 	}
@@ -189,64 +296,7 @@ appId
 			errors: {
 				400: `Invalid request`,
 				401: `Authentication required`,
-				403: `User is not a participant`,
 				404: `Call not found`,
-				409: `Call cannot be left in current state`,
-			},
-		});
-	}
-
-	/**
-	 * @returns any Call retrieved successfully
-	 * @throws ApiError
-	 */
-	public static getSignalCallsByCallId(data: CallsData['payloads']['GetSignalCallsByCallId']): CancelablePromise<CallsData['responses']['GetSignalCallsByCallId']> {
-		const {
-                    
-                    callId,
-appId
-                } = data;
-		return __request(OpenAPI, {
-			method: 'GET',
-			url: '/signal/calls/{callId}',
-			path: {
-				callId
-			},
-			query: {
-				appId
-			},
-			errors: {
-				400: `Invalid request`,
-				401: `Authentication required`,
-				403: `User does not have access to this call`,
-				404: `Call not found`,
-			},
-		});
-	}
-
-	/**
-	 * @returns any Participant info retrieved successfully
-	 * @throws ApiError
-	 */
-	public static getSignalCallsParticipantsByIdentity(data: CallsData['payloads']['GetSignalCallsParticipantsByIdentity']): CancelablePromise<CallsData['responses']['GetSignalCallsParticipantsByIdentity']> {
-		const {
-                    
-                    identity,
-appId
-                } = data;
-		return __request(OpenAPI, {
-			method: 'GET',
-			url: '/signal/calls/participants/{identity}',
-			path: {
-				identity
-			},
-			query: {
-				appId
-			},
-			errors: {
-				400: `Invalid request`,
-				401: `Authentication required`,
-				404: `Participant not found`,
 			},
 		});
 	}

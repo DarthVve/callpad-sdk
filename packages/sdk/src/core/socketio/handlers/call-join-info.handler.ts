@@ -26,8 +26,7 @@ export class CallJoinInfoHandler extends BaseSocketHandler<CallJoinInfoEvent> {
         url: data.url,
         roomName: data.roomName,
         token: data.token,
-      },
-      "socket"
+      }
     );
   }
 }

@@ -10,7 +10,6 @@ export interface SdkEvent<T = any> {
   type: string;
   payload: T;
   timestamp: number;
-  source: "socket" | "livekit" | "user";
 }
 
 /**
@@ -121,7 +120,6 @@ export interface ErrorOccurredEvent {
   code: string;
   message: string;
   details?: any;
-  source: "socket" | "livekit" | "user";
   timestamp: number;
 }
 
@@ -136,11 +134,6 @@ export type EventHandler<T = any> = (event: SdkEvent<T>) => void;
 export interface EventSubscription {
   unsubscribe: () => void;
 }
-
-/**
- * Event filter function type
- */
-export type EventFilter<T = any> = (event: SdkEvent<T>) => boolean;
 
 export interface ParticipantInvitedEvent {
   callId: string;

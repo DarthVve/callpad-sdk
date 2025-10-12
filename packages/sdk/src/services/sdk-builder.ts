@@ -1,8 +1,8 @@
 import { AuthManager, SocketManager } from "../core";
-import { type ApiConfig, SignalClient, apiConfig } from "../core/signal";
+import { type ApiConfig, apiConfig } from "../core/signal";
 import { rtcStore } from "../state/store";
 import { type LogLevel, setGlobalLoggerOptions } from "../utils/logger";
-import { type CallActions, createCallActions } from "./call-actions";
+import { type CallsServiceInstance, createCallsService } from "./calls.service";
 
 export interface SdkBuildOptions {
   appId: string;
@@ -17,11 +17,11 @@ export interface SdkBuildOptions {
   log?: (level: LogLevel, message: string, meta?: any) => void;
 }
 
-export interface RtcSdk extends CallActions {
+export interface RtcSdk {
   store: typeof rtcStore;
   auth: AuthManager;
   socket: SocketManager;
-  signal: SignalClient;
+  calls: CallsServiceInstance;
   cleanup: () => void;
 
   configureApi: (config: ApiConfig) => void;
@@ -44,12 +44,7 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
   // Initialize core managers
   const auth = new AuthManager(opts.authProvider);
   const socket = SocketManager.getInstance();
-  const signal = new SignalClient({
-    baseUrl: opts.signalHost,
-    appId: opts.appId,
-    authManager: auth,
-  });
-  const callActions = createCallActions(signal, auth);
+  const callsService = createCallsService({ appId: opts.appId });
 
   // Socket now handles events directly - no event bridge needed
 
@@ -62,8 +57,7 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
     store: rtcStore,
     auth,
     socket,
-    signal,
-    ...callActions,
+    calls: callsService,
     cleanup,
 
     // API configuration

@@ -1,7 +1,5 @@
-export { SignalClient } from "./signal.client";
 export { apiConfig } from "./api.config";
 export type {
-  SignalClientConfig,
   CallInfo,
   CallParticipant,
   LiveKitJoinInfo,
