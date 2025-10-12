@@ -10,9 +10,14 @@ export interface SocketHandlerOptions {
   authManager?: AuthManager;
 }
 
-export abstract class BaseSocketHandler<T = any> {
+/**
+ * Base handler for Socket.IO events with automatic validation and type safety.
+ *
+ * @template TPayload - The type of the event payload
+ */
+export abstract class BaseSocketHandler<TPayload = any> {
   protected abstract readonly eventName: string;
-  protected abstract readonly schema: ZodSchema<T>;
+  protected abstract readonly schema: ZodSchema<TPayload>;
   private _logger?: CallpadLogger;
 
   constructor(protected readonly options: SocketHandlerOptions = {}) {}
@@ -66,7 +71,7 @@ export abstract class BaseSocketHandler<T = any> {
     }
   }
 
-  protected abstract handle(data: T): Promise<void> | void;
+  protected abstract handle(data: TPayload): Promise<void> | void;
 
   protected updateStore(updater: (state: any) => void): void {
     rtcStore.getState().patch(updater);

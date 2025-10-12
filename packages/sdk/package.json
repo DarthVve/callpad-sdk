@@ -30,6 +30,8 @@
   },
   "scripts": {
     "generate:api": "openapi-ts",
+    "generate:socket": "tsx scripts/generate-socket-types.ts",
+    "generate": "pnpm generate:api && pnpm generate:socket",
     "build": "tsup",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
@@ -72,10 +74,12 @@
     "@hey-api/openapi-ts": "^0.37.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
+    "json-schema-to-zod": "^2.6.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "rimraf": "^6.0.0",
     "tsup": "^8.0.0",
+    "tsx": "^4.20.6",
     "typescript": "^5.2.0"
   },
   "engines": {

@@ -1,16 +1,13 @@
 import type { Socket } from "socket.io-client";
 import { createLogger } from "../../../utils/logger";
 import type { SocketHandlerOptions } from "./base.handler";
-import { CallParticipantAcceptedHandler } from "./call-accepted.handler";
-import { CallCanceledHandler } from "./call-canceled.handler";
-import { CallParticipantDeclinedHandler } from "./call-declined.handler";
-import { CallEndedHandler } from "./call-ended.handler";
-import { CallIncomingHandler } from "./call-incoming.handler";
-import { CallJoinInfoHandler } from "./call-join-info.handler";
-import { CallTimeoutHandler } from "./call-timeout.handler";
 
 const logger = createLogger("socketio:registry");
 
+/**
+ * Registry for Socket.IO event handlers.
+ * Automatically registers handlers with proper typing and error handling.
+ */
 export class SocketHandlerRegistry {
   private handlers = new Map<string, any>();
 
@@ -20,13 +17,11 @@ export class SocketHandlerRegistry {
 
   private initializeHandlers(): void {
     const handlers = [
-      new CallIncomingHandler(this.options),
-      new CallParticipantAcceptedHandler(this.options),
-      new CallParticipantDeclinedHandler(this.options),
-      new CallEndedHandler(this.options),
-      new CallJoinInfoHandler(this.options),
-      new CallTimeoutHandler(this.options),
-      new CallCanceledHandler(this.options),
+      // TODO: Add new handlers here as they are implemented
+      // Example:
+      // new InviteHandler(this.options),
+      // new InviteAcceptedHandler(this.options),
+      // etc.
     ];
 
     for (const handler of handlers) {
@@ -52,5 +47,12 @@ export class SocketHandlerRegistry {
 
   destroy(): void {
     this.handlers.clear();
+  }
+
+  /**
+   * Get all registered event names
+   */
+  getRegisteredEvents(): string[] {
+    return Array.from(this.handlers.keys());
   }
 }
