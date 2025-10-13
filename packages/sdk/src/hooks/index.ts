@@ -7,6 +7,5 @@ export * from "./useInviteAccepted";
 export * from "./useCallInitiated";
 export * from "./useSessionId";
 export * from "./useSessionDuration";
-export * from "./useRoom";
 export * from "./useParticipantMetadata";
-
+export * from "./useLivekitInfo";
