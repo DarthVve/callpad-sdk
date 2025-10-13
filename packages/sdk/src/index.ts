@@ -4,47 +4,28 @@ export {
   type RtcOptions,
   type RtcSdk,
 } from "./provider/RtcProvider";
-
 export * from "./hooks";
-
 export type {
-  SessionStatus,
-  Participant,
+  ParticipantMetadata,
   LiveKitJoinInfo,
+  Session,
+  IncomingInvite,
+  OutgoingInvite,
   RtcError,
   RtcState,
-  TrackReference,
 } from "./state/types";
-
-// Signal client types for call initiation
 export type {
   InitiateCallParams,
   CallResponse,
   CallActionResponse,
 } from "./core/signal/types";
-
-export type { CallJoinInfoEvent } from "./core/socketio/handlers/schema";
-
-// Error management
+export  * from "./generated/socket/events";
 export * from "./state/errors";
-
-// API configuration
 export { apiConfig, type ApiConfig } from "./core/signal/api.config";
-
-// Event system for advanced usage
 export { eventBus } from "./core/events";
 export { SdkEventType } from "./core/events/types";
 export type {
   SdkEvent,
   EventHandler,
   EventSubscription,
-  CallInitiatedEvent,
-  CallIncomingEvent,
-  CallDeclinedEvent,
-  CallEndedEvent,
-  MediaEnabledEvent,
-  MediaDisabledEvent,
-  ConnectionQualityChangedEvent,
-  ErrorOccurredEvent,
-  ParticipantInvitedEvent,
 } from "./core/events/types";

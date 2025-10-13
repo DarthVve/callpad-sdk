@@ -1,35 +1,85 @@
 import { useSdk } from "../provider/RtcProvider";
+import { useSessionId } from "./useSessionId";
+import { useIncomingInvite } from "./useIncomingInvite";
 
 export function useCallActions() {
   const sdk = useSdk();
+  const sessionId = useSessionId();
+  const incomingInvite = useIncomingInvite();
 
   return {
     initiate: (participants: string[], type: "AUDIO" | "VIDEO") => {
       return sdk.calls.initiate({ invitees: participants, mode: type });
     },
-    accept: (callId: string) => {
-      return sdk.calls.accept(callId);
+    invite: (participants: string[]) => {
+      if (!sessionId) {
+        throw new Error("No active session to invite participants to");
+      }
+
+      const session = sdk.store.getState().session;
+      const mode = session?.mode || "VIDEO";
+
+      return sdk.calls.initiate({
+        invitees: participants,
+        mode,
+        callId: sessionId,
+      });
     },
-    decline: (callId: string, reason?: string) => {
-      return sdk.calls.decline(callId, reason);
+    accept: () => {
+      if (!incomingInvite) {
+        throw new Error("No incoming invite to accept");
+      }
+
+      return sdk.calls.accept(incomingInvite.callId);
     },
-    cancel: (callId: string) => {
-      return sdk.calls.cancel(callId);
+    decline: (reason?: string) => {
+      if (!incomingInvite) {
+        throw new Error("No incoming invite to decline");
+      }
+
+      return sdk.calls.decline(incomingInvite.callId, reason);
     },
-    leave: (callId: string) => {
-      return sdk.calls.leave(callId);
+    cancel: () => {
+      if (!sessionId) {
+        throw new Error("No active session to cancel");
+      }
+
+      return sdk.calls.cancel(sessionId);
     },
-    end: (callId: string) => {
-      return sdk.calls.end(callId);
+    leave: () => {
+      if (!sessionId) {
+        throw new Error("No active session to leave");
+      }
+
+      return sdk.calls.leave(sessionId);
     },
-    transfer: (callId: string, targetParticipantId: string, reason?: string) => {
-      return sdk.calls.transfer(callId, targetParticipantId, reason);
+    end: () => {
+      if (!sessionId) {
+        throw new Error("No active session to end");
+      }
+
+      return sdk.calls.end(sessionId);
     },
-    kick: (callId: string, participantId: string, reason?: string) => {
-      return sdk.calls.kick(callId, participantId, reason);
+    transfer: (targetParticipantId: string, reason?: string) => {
+      if (!sessionId) {
+        throw new Error("No active session to transfer");
+      }
+
+      return sdk.calls.transfer(sessionId, targetParticipantId, reason);
     },
-    mute: (callId: string, participantId: string) => {
-      return sdk.calls.mute(callId, participantId);
+    kick: (participantId: string, reason?: string) => {
+      if (!sessionId) {
+        throw new Error("No active session to kick participant from");
+      }
+
+      return sdk.calls.kick(sessionId, participantId, reason);
+    },
+    mute: (participantId: string) => {
+      if (!sessionId) {
+        throw new Error("No active session to mute participant in");
+      }
+
+      return sdk.calls.mute(sessionId, participantId);
     },
   };
 }

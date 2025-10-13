@@ -17,6 +17,7 @@ export {
   TrackEvent,
   DataPacket_Kind,
 } from "livekit-client";
+export type { RoomOptions } from "livekit-client";
 
 // Livekit hooks
 export {
@@ -57,6 +58,7 @@ export {
   useTrackMutedIndicator,
   useTrackToggle,
   useTrackVolume,
+
 } from "@livekit/components-react";
 
 export {
@@ -69,3 +71,5 @@ export {
   StartMediaButton,
   VideoTrack,
 } from "@livekit/components-react";
+
+export * from "./custom";

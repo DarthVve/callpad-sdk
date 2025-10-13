@@ -142,7 +142,6 @@ export type CallInviteMissedEvent = z.infer<typeof callInviteMissedSchema>;
 // Event: call:inviteSent
 export const callInviteSentSchema = z.object({
   callId: z.string(),
-  callStatus: z.enum(["pending", "active", "ended"]),
   invitee: z.object({
     firstName: z.string().nullable(),
     lastName: z.string().nullable(),
@@ -152,7 +151,6 @@ export const callInviteSentSchema = z.object({
     userId: z.string(),
   }).strict(),
   status: z.literal("sent"),
-  expiresAt: z.string(),
 }).strict();
 
 export type CallInviteSentEvent = z.infer<typeof callInviteSentSchema>;

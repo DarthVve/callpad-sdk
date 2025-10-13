@@ -46,6 +46,16 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
   const socket = SocketManager.getInstance();
   const callsService = createCallsService({ appId: opts.appId });
 
+  // Configure API immediately with the signal host and auth provider
+  // This ensures API is ready before any requests are made
+  apiConfig.configure({
+    baseUrl: opts.signalHost,
+    token: async () => {
+      const token = auth.getCurrentToken();
+      return token || "";
+    },
+  });
+
   // Socket now handles events directly - no event bridge needed
 
   const cleanup = () => {
@@ -60,7 +70,7 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
     calls: callsService,
     cleanup,
 
-    // API configuration
+    // API configuration - can be called again to override if needed
     configureApi: (config: ApiConfig) => {
       apiConfig.configure(config);
     },

@@ -18,26 +18,7 @@ export function RtcProvider({
   const sdk = useMemo(() => buildSdk(options), [options]);
 
   useEffect(() => {
-    // Configure API first
-    try {
-      sdk.configureApi({
-        baseUrl: options.signalHost,
-        token: async () => {
-          const token = sdk.auth.getCurrentToken();
-          return token || "";
-        },
-      });
-      options.log?.("info", "API configured successfully");
-    } catch (error) {
-      options.log?.("error", "Failed to configure API", error);
-      rtcStore.getState().addError({
-        code: "API_CONFIG_ERROR",
-        message: "Failed to configure API",
-        timestamp: Date.now(),
-        context: error,
-      });
-    }
-
+    // API is already configured in buildSdk, so we can directly initialize the socket
     // Initialize socket connection with livekit service
     sdk.socket
       .initialize(

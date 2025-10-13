@@ -17,7 +17,6 @@ export class InviteSentHandler extends BaseSocketHandler<CallInviteSentEvent> {
 
   protected handle(data: CallInviteSentEvent): void {
     const currentState = rtcStore.getState();
-
     this.logger.info("Invitation sent to participant", {
       callId: data.callId,
       invitee: data.invitee.userId,

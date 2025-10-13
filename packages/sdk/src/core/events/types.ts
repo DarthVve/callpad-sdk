@@ -61,19 +61,12 @@ export interface CallIncomingEvent {
   callId: string;
   caller: {
     id: string;
-    name: string;
-    avatarUrl?: string;
+    firstName: string | null;
+    lastName: string | null;
+    avatarUrl: string | null;
   };
   type: "AUDIO" | "VIDEO";
   timestamp: number;
-  // Additional participants info for context (but not stored in state)
-  participants?: Array<{
-    id: string;
-    firstName?: string;
-    lastName?: string;
-    avatarUrl?: string;
-    role?: "CALLER" | "CALLEE" | "HOST" | "MEMBER";
-  }>;
 }
 
 export interface CallDeclinedEvent {
@@ -139,8 +132,9 @@ export interface ParticipantInvitedEvent {
   callId: string;
   participant: {
     id: string;
-    name: string;
-    avatarUrl?: string;
+    firstName: string | null;
+    lastName: string | null;
+    avatarUrl: string | null;
   };
   timestamp: number;
 }

@@ -1,770 +1,239 @@
-# CallPad SDK Documentation
+# CallPad Web SDK Documentation
 
-A production-ready headless SDK for CallPad audio/video calls built on React, LiveKit, and Socket.IO.
+## Overview
 
-## Table of Contents
+The CallPad Web SDK provides a complete real-time calling solution for web applications. It handles call signaling, state management, and LiveKit media streaming through a simple React-based API.
 
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-- [RTC Provider Configuration](#rtc-provider-configuration)
-- [Core Concepts](#core-concepts)
-- [Call Management](#call-management)
-  - [Intercepting Incoming Calls](#intercepting-incoming-calls)
-  - [Initiating Calls](#initiating-calls)
-  - [Accepting and Declining Calls](#accepting-and-declining-calls)
-  - [Managing Call State](#managing-call-state)
-- [Hooks Reference](#hooks-reference)
-- [Event System](#event-system)
-- [Media Controls](#media-controls)
-- [Participant Management](#participant-management)
-- [Auto-Join Configuration](#auto-join-configuration)
-- [Error Handling](#error-handling)
-- [TypeScript Support](#typescript-support)
-- [Advanced Usage](#advanced-usage)
-- [Examples](#examples)
+### Key Features
+
+- **Backend-driven state management**: All state changes triggered by server events
+- **Real-time signaling**: Socket.IO integration for instant call updates
+- **LiveKit integration**: High-quality audio/video streaming
+- **Type-safe API**: Full TypeScript support
+- **React hooks**: Simple, idiomatic React integration
+- **Flexible architecture**: Support for both inbound and outbound call flows
+
+### Architecture
+
+```
+┌─────────────────┐
+│  React App      │
+│  (Your Code)    │
+└────────┬────────┘
+         │
+         │ Hooks API
+         ▼
+┌─────────────────┐
+│  CallPad SDK    │
+│  - State (Zustand)
+│  - Socket.IO    │
+│  - REST API     │
+└────────┬────────┘
+         │
+         ├──────────► Signal Service (Backend)
+         │             - Call signaling
+         │             - Invite management
+         │
+         └──────────► LiveKit (Media)
+                       - Audio/Video streaming
+                       - Participant management
+```
+
+---
 
 ## Installation
 
-Install the SDK using pnpm (recommended):
-
 ```bash
-pnpm add vg-x07df
+npm install @voyatek/callpad-sdk
+# or
+pnpm add @voyatek/callpad-sdk
+# or
+yarn add @voyatek/callpad-sdk
 ```
 
-Or using npm:
+---
 
-```bash
-npm install vg-x07df
-```
+## Setup
 
-### Peer Dependencies
-
-The SDK requires the following peer dependencies:
-
-```bash
-pnpm add react@>=18 react-dom@>=18 livekit-client@^2.8.0 socket.io-client@^4.7.0
-```
-
-## Quick Start
-
-### 1. Setup the RTC Provider
-
-Wrap your application with the `RtcProvider` to enable CallPad functionality:
+### 1. Wrap Your App with RtcProvider
 
 ```tsx
-import React from 'react';
-import { RtcProvider } from 'vg-x07df';
-
-const rtcOptions = {
-  appId: 'your-app-id',
-  signalHost: 'https://your-signal-server.com',
-  authProvider: () => {
-    // Return your authentication token
-    return localStorage.getItem('auth-token');
-  },
-  logLevel: 'info',
-  enableDebug: false,
-};
+import { RtcProvider } from "@voyatek/callpad-sdk";
 
 function App() {
   return (
-    <RtcProvider options={rtcOptions}>
-      <YourAppComponents />
+    <RtcProvider
+      options={{
+        appId: "your-app-id",
+        signalHost: "https://signal.yourapp.com",
+        authProvider: () => getYourJWTToken(),
+        logLevel: "info",
+        enableDebug: true,
+      }}
+    >
+      <YourApp />
     </RtcProvider>
   );
 }
 ```
 
-### 2. Use Basic Hooks
+### 2. Configuration Options
 
-```tsx
-import { useCallState, useCallActions } from 'vg-x07df';
+| Option | Type | Required | Description |
+|--------|------|----------|-------------|
+| `appId` | `string` | Yes | Your application identifier |
+| `signalHost` | `string` | Yes | Signal service base URL |
+| `authProvider` | `() => string \| null` | Yes | Function that returns JWT token |
+| `logLevel` | `"debug" \| "info" \| "warn" \| "error"` | No | Logging verbosity (default: `"info"`) |
+| `enableDebug` | `boolean` | No | Enable debug logging (default: `false`) |
+| `log` | `(level, message, meta?) => void` | No | Custom log handler |
 
-function CallComponent() {
-  const callState = useCallState();
-  const { initiate, accept, decline } = useCallActions();
-
-  const handleInitiateCall = () => {
-    initiate(['user-id-1', 'user-id-2'], 'VIDEO');
-  };
-
-  return (
-    <div>
-      <p>Call Status: {callState.status}</p>
-      <button onClick={handleInitiateCall}>Start Video Call</button>
-    </div>
-  );
-}
-```
-
-## RTC Provider Configuration
-
-The `RtcProvider` accepts an `options` prop with the following configuration:
-
-### Required Options
-
-```tsx
-interface RtcOptions {
-  appId: string;              // Your application identifier
-  signalHost: string;         // Signal server URL
-  authProvider: () => string | null;  // Token provider function
-}
-```
-
-### Optional Configuration
-
-```tsx
-interface RtcOptions {
-  // Logging configuration
-  logLevel?: 'debug' | 'info' | 'warn' | 'error';
-  enableDebug?: boolean;
-  log?: (level: string, message: string, meta?: any) => void;
-
-  // Auto-join configuration
-  autoJoin?: Partial<AutoJoinConfig>;
-}
-```
-
-### Auto-Join Configuration
-
-```tsx
-interface AutoJoinConfig {
-  enabled: boolean;           // Enable auto-join (default: true)
-  retryOnFailure: boolean;    // Retry on connection failure (default: true)
-  maxRetries: number;         // Maximum retry attempts (default: 2)
-}
-```
-
-### Complete Configuration Example
-
-```tsx
-const rtcOptions = {
-  appId: 'callpad-app',
-  signalHost: 'https://signal.example.com',
-  authProvider: () => authService.getToken(),
-  
-  // Logging
-  logLevel: 'debug',
-  enableDebug: true,
-  log: (level, message, meta) => {
-    console.log(`[${level.toUpperCase()}] ${message}`, meta);
-  },
-  
-  // Auto-join
-  autoJoin: {
-    enabled: true,
-    retryOnFailure: true,
-    maxRetries: 3,
-  },
-};
-```
+---
 
 ## Core Concepts
 
-### Session Status
+### Backend-Driven State
 
-The SDK tracks call sessions through various states:
+The SDK follows a **backend-driven architecture**:
+- All state changes are triggered by Socket.IO events from the backend
+- API calls (like `initiate()`, `accept()`) do NOT update state directly
+- State updates happen when the server confirms actions via socket events
 
-- `IDLE` - No active call
-- `CALLING` - Outgoing call initiated, waiting for response
-- `RINGING` - Incoming call received
-- `ACCEPTED` - Call accepted but not yet connected to media
-- `AWAITING_JOIN_INFO` - Waiting for LiveKit connection details
-- `READY_TO_JOIN` - Ready to connect to media session
-- `CONNECTING` - Joining LiveKit room
-- `ACTIVE` - Successfully connected to media session
-- `ENDED` - Call completed
+### Session Lifecycle
 
-### Participants
+A call session has three states:
 
-Participants represent users in a call with the following properties:
-
-```tsx
-interface Participant {
-  id: string;
-  firstName?: string;
-  lastName?: string;
-  avatarUrl?: string;
-  role: "CALLER" | "CALLEE" | "HOST" | "MEMBER";
-  callState: "INVITED" | "RINGING" | "JOINED" | "LEFT";
-  audioEnabled: boolean;
-  videoEnabled: boolean;
-  isSpeaking: boolean;
-  connectionQuality?: "excellent" | "good" | "poor" | "lost" | "unknown";
-  invitedAt?: number;
-  joinedAt?: number;
-  leftAt?: number;
-}
+```
+┌──────────┐   accept()   ┌──────────┐   end()    ┌──────────┐
+│ pending  │ ──────────► │  active  │ ──────────►│  ended   │
+└──────────┘              └──────────┘            └──────────┘
+     │                                                  ▲
+     │ decline() / cancel()                             │
+     └──────────────────────────────────────────────────┘
 ```
 
-## Call Management
+- **pending**: Call created, invitations sent, awaiting acceptance
+- **active**: At least one participant connected to LiveKit room
+- **ended**: Call terminated
 
-### Intercepting Incoming Calls
+### Inbound vs Outbound Flows
 
-Use the `useCallState` hook to detect incoming calls:
+**Outbound (Caller perspective)**:
+- You initiate the call → `initiated: true`
+- Track invitation responses via `outgoingInvites`
+- You are the HOST
 
-```tsx
-import { useCallState, useCallActions } from 'vg-x07df';
+**Inbound (Callee perspective)**:
+- You receive an invite → `incomingInvite` populated
+- You accept/decline → Session created on accept
+- You are a PARTICIPANT
 
-function IncomingCallHandler() {
-  const { incomingCall, status } = useCallState();
-  const { accept, decline } = useCallActions();
+---
 
-  if (status === 'RINGING' && incomingCall) {
-    return (
-      <div className="incoming-call-modal">
-        <h3>Incoming {incomingCall.type} call</h3>
-        <p>From: {incomingCall.caller.name}</p>
-        
-        <button onClick={() => accept(incomingCall.callId)}>
-          Accept
-        </button>
-        <button onClick={() => decline(incomingCall.callId)}>
-          Decline
-        </button>
-      </div>
-    );
-  }
+## Available Hooks
 
-  return null;
-}
-```
+### `useCallState()`
 
-### Advanced Incoming Call Handling
-
-Use event hooks for more sophisticated incoming call management:
+Get the current call session state.
 
 ```tsx
-import { useEvent, SdkEventType } from 'vg-x07df';
+import { useCallState } from "@voyatek/callpad-sdk";
 
-function AdvancedIncomingCallHandler() {
-  useEvent(SdkEventType.CALL_INCOMING, (event) => {
-    const { callId, caller, type } = event.payload;
-    
-    // Show custom notification
-    showNotification({
-      title: `Incoming ${type} call`,
-      body: `${caller.firstName} ${caller.lastName} is calling`,
-      actions: [
-        { action: 'accept', title: 'Accept' },
-        { action: 'decline', title: 'Decline' }
-      ]
-    });
-  });
-
-  return <div>Listening for incoming calls...</div>;
-}
-```
-
-### Initiating Calls
-
-Use the `useCallActions` hook to start calls:
-
-```tsx
-function CallInitiator() {
-  const { initiate } = useCallActions();
-  const [participants, setParticipants] = useState(['']);
-
-  const handleVideoCall = async () => {
-    try {
-      const response = await initiate(participants, 'VIDEO');
-      console.log('Call initiated:', response);
-    } catch (error) {
-      console.error('Failed to initiate call:', error);
-    }
-  };
-
-  const handleAudioCall = async () => {
-    try {
-      const response = await initiate(participants, 'AUDIO');
-      console.log('Call initiated:', response);
-    } catch (error) {
-      console.error('Failed to initiate call:', error);
-    }
-  };
-
-  return (
-    <div>
-      <input 
-        value={participants[0]} 
-        onChange={(e) => setParticipants([e.target.value])}
-        placeholder="User ID to call"
-      />
-      <button onClick={handleVideoCall}>Video Call</button>
-      <button onClick={handleAudioCall}>Audio Call</button>
-    </div>
-  );
-}
-```
-
-### Accepting and Declining Calls
-
-```tsx
-function CallResponseHandler() {
-  const { accept, decline } = useCallActions();
-  const { incomingCall } = useCallState();
-
-  const handleAccept = async () => {
-    if (incomingCall) {
-      try {
-        await accept(incomingCall.callId);
-      } catch (error) {
-        console.error('Failed to accept call:', error);
-      }
-    }
-  };
-
-  const handleDecline = async () => {
-    if (incomingCall) {
-      try {
-        await decline(incomingCall.callId);
-      } catch (error) {
-        console.error('Failed to decline call:', error);
-      }
-    }
-  };
-
-  return (
-    <div>
-      <button onClick={handleAccept}>Accept Call</button>
-      <button onClick={handleDecline}>Decline Call</button>
-    </div>
-  );
-}
-```
-
-### Managing Call State
-
-Monitor and respond to call state changes:
-
-```tsx
-function CallStateManager() {
+function CallStatus() {
   const callState = useCallState();
 
-  useEffect(() => {
-    switch (callState.status) {
-      case 'CALLING':
-        console.log('Outgoing call initiated');
-        break;
-      case 'RINGING':
-        console.log('Incoming call received');
-        break;
-      case 'ACTIVE':
-        console.log('Call is now active');
-        break;
-      case 'ENDED':
-        console.log('Call has ended');
-        break;
-    }
-  }, [callState.status]);
-
-  return (
-    <div>
-      <h3>Call Information</h3>
-      <p>Status: {callState.status}</p>
-      <p>Mode: {callState.mode || 'None'}</p>
-      <p>Room: {callState.roomName || 'None'}</p>
-      {callState.id && <p>Call ID: {callState.id}</p>}
-    </div>
-  );
-}
-```
-
-## Hooks Reference
-
-### Call Management Hooks
-
-#### `useCallState()`
-
-Returns current call state information:
-
-```tsx
-interface CallState {
-  id: string | undefined;
-  status: SessionStatus;
-  mode: "AUDIO" | "VIDEO" | undefined;
-  roomName: string | undefined;
-  incomingCall: IncomingCallInfo | undefined;
-}
-
-const callState = useCallState();
-```
-
-#### `useCallActions()`
-
-Provides call action functions:
-
-```tsx
-interface CallActions {
-  initiate: (participants: string[], type: "AUDIO" | "VIDEO") => Promise<CallResponse>;
-  accept: (callId: string) => Promise<CallActionResponse>;
-  decline: (callId: string) => Promise<CallActionResponse>;
-  end: (callId: string) => Promise<CallActionResponse>;
-  cancel: (callId: string) => Promise<CallActionResponse>;
-  join: () => Promise<void>;
-}
-
-const actions = useCallActions();
-```
-
-#### `useCallQuality()`
-
-Monitor call quality metrics:
-
-```tsx
-const quality = useCallQuality();
-// Returns quality information and metrics
-```
-
-### Media Control Hooks
-
-#### `useMediaControls()`
-
-Comprehensive media control interface:
-
-```tsx
-const {
-  // State
-  isVideoEnabled,
-  isAudioEnabled,
-  isCameraAvailable,
-  isMicrophoneAvailable,
-  isConnected,
-  isLoading,
-  errors,
-  devices,
-
-  // Actions
-  enableCamera,
-  disableCamera,
-  enableMicrophone,
-  disableMicrophone,
-  toggleCamera,
-  toggleMicrophone,
-  toggleAudio,
-  toggleVideo,
-  switchCamera,
-  switchMicrophone
-} = useMediaControls();
-```
-
-#### `useDevices()`
-
-Access and manage media devices:
-
-```tsx
-const devices = useDevices();
-// Returns cameras, microphones, speakers, and permissions
-```
-
-### Event System Hooks
-
-#### `useEvent(eventType, callback?, filter?)`
-
-Subscribe to specific SDK events:
-
-```tsx
-// Listen for specific event
-const callEvent = useEvent(SdkEventType.CALL_ACCEPTED);
-
-// Listen with callback
-useEvent(SdkEventType.MEDIA_ENABLED, (event) => {
-  console.log('Media enabled:', event.payload);
-});
-
-// Listen with filter
-useEvent('call:*', null, (event) => 
-  event.payload.callId === 'specific-call'
-);
-```
-
-#### `useCallEvents(callId?)`
-
-Subscribe to call-specific events:
-
-```tsx
-const {
-  callAccepted,
-  callDeclined,
-  callEnded,
-  participantJoined,
-  participantLeft
-} = useCallEvents(callId);
-```
-
-#### `useMediaEvents(participantId?)`
-
-Subscribe to media events for a specific participant:
-
-```tsx
-const { mediaEnabled, mediaDisabled } = useMediaEvents(participantId);
-```
-
-### Participant Hooks
-
-#### `useParticipants()`
-
-Get all call participants:
-
-```tsx
-const participants = useParticipants();
-// Returns array of Participant objects
-```
-
-#### `useParticipantStatus(participantId)`
-
-Get status for a specific participant:
-
-```tsx
-const status = useParticipantStatus('user-123');
-```
-
-### Auto-Join Hooks
-
-#### `useAutoJoin()`
-
-Access auto-join configuration:
-
-```tsx
-const {
-  config,
-  isEnabled,
-  retryOnFailure,
-  maxRetries
-} = useAutoJoin();
-```
-
-### Error Handling Hooks
-
-#### `useErrorRecovery()`
-
-Access error recovery functionality:
-
-```tsx
-const recovery = useErrorRecovery();
-```
-
-#### `useErrors()`
-
-Get current error state:
-
-```tsx
-const errors = useErrors();
-const connectionErrors = useErrorsByCode('CONNECTION_');
-const errorCount = useErrorCount();
-```
-
-## Event System
-
-The SDK provides a comprehensive event system for real-time communication updates.
-
-### Event Types
-
-```tsx
-enum SdkEventType {
-  // Call lifecycle
-  CALL_INITIATED = "call:initiated",
-  CALL_INCOMING = "call:incoming",
-  CALL_ACCEPTED = "call:accepted",
-  CALL_DECLINED = "call:declined",
-  CALL_ENDED = "call:ended",
-  CALL_CANCELED = "call:canceled",
-  CALL_TIMEOUT = "call:timeout",
-
-  // Participants
-  PARTICIPANT_JOINED = "participant:joined",
-  PARTICIPANT_LEFT = "participant:left",
-
-  // Media
-  MEDIA_ENABLED = "media:enabled",
-  MEDIA_DISABLED = "media:disabled",
-
-  // Connection
-  CONNECTION_ESTABLISHED = "connection:established",
-  CONNECTION_LOST = "connection:lost",
-  CONNECTION_QUALITY_CHANGED = "connection:quality-changed",
-
-  // Errors
-  ERROR_OCCURRED = "error:occurred",
-}
-```
-
-### Event Usage Examples
-
-```tsx
-// Single event listener
-useEvent(SdkEventType.CALL_ACCEPTED, (event) => {
-  console.log('Call accepted:', event.payload);
-});
-
-// Pattern matching
-useEvent('call:*', (event) => {
-  console.log('Any call event:', event.type, event.payload);
-});
-
-// Event with filter
-useEvent(
-  SdkEventType.PARTICIPANT_JOINED, 
-  (event) => {
-    console.log('New participant:', event.payload.participant);
-  },
-  (event) => event.payload.callId === currentCallId
-);
-
-// One-time event listener
-useEventOnce(SdkEventType.CALL_ENDED, (event) => {
-  console.log('Call ended, cleaning up...');
-});
-```
-
-### Direct Event Bus Access
-
-```tsx
-const eventBus = useEventBus();
-
-// Emit custom event
-eventBus.emit('custom:event', { data: 'test' });
-
-// Get event history
-const history = eventBus.getEventHistory();
-
-// Get filtered events
-const callEvents = eventBus.getEventsWhere(
-  (event) => event.type.startsWith('call:')
-);
-```
-
-## Media Controls
-
-### Basic Media Controls
-
-```tsx
-function MediaControlPanel() {
-  const {
-    isVideoEnabled,
-    isAudioEnabled,
-    toggleVideo,
-    toggleAudio,
-    devices
-  } = useMediaControls();
-
-  return (
-    <div>
-      <button 
-        onClick={toggleVideo}
-        className={isVideoEnabled ? 'enabled' : 'disabled'}
-      >
-        {isVideoEnabled ? 'Disable Video' : 'Enable Video'}
-      </button>
-      
-      <button 
-        onClick={toggleAudio}
-        className={isAudioEnabled ? 'enabled' : 'disabled'}
-      >
-        {isAudioEnabled ? 'Disable Audio' : 'Enable Audio'}
-      </button>
-    </div>
-  );
-}
-```
-
-### Device Management
-
-```tsx
-function DeviceSelector() {
-  const { devices, switchCamera, switchMicrophone } = useMediaControls();
-
-  return (
-    <div>
-      <select onChange={(e) => switchCamera(e.target.value)}>
-        <option value="">Select Camera</option>
-        {devices.cameras.map(camera => (
-          <option key={camera.deviceId} value={camera.deviceId}>
-            {camera.label}
-          </option>
-        ))}
-      </select>
-
-      <select onChange={(e) => switchMicrophone(e.target.value)}>
-        <option value="">Select Microphone</option>
-        {devices.microphones.map(mic => (
-          <option key={mic.deviceId} value={mic.deviceId}>
-            {mic.label}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-}
-```
-
-### Advanced Media Controls
-
-```tsx
-function AdvancedMediaControls() {
-  const {
-    enableCamera,
-    disableCamera,
-    enableMicrophone,
-    disableMicrophone,
-    isLoading,
-    errors
-  } = useMediaControls();
-
-  const handleCameraToggle = async () => {
-    try {
-      if (isVideoEnabled) {
-        await disableCamera();
-      } else {
-        await enableCamera();
-      }
-    } catch (error) {
-      console.error('Camera control failed:', error);
-    }
-  };
-
-  if (errors.length > 0) {
-    return (
-      <div className="media-errors">
-        {errors.map(error => (
-          <p key={error.code}>{error.message}</p>
-        ))}
-      </div>
-    );
+  if (!callState.id) {
+    return <div>No active call</div>;
   }
 
   return (
     <div>
-      <button onClick={handleCameraToggle} disabled={isLoading}>
-        {isLoading ? 'Loading...' : 'Toggle Camera'}
-      </button>
+      <p>Call ID: {callState.id}</p>
+      <p>Status: {callState.status}</p>
+      <p>Mode: {callState.mode}</p>
+      <p>Room: {callState.roomName}</p>
     </div>
   );
 }
 ```
 
-## Participant Management
+**Returns**: `CallState`
+```typescript
+interface CallState {
+  id: string | null;
+  status: "pending" | "active" | "ended" | null;
+  mode: "AUDIO" | "VIDEO" | null;
+  roomName: string | null;
+}
+```
 
-### Displaying Participants
+---
+
+### `useIncomingInvite()`
+
+Detect incoming call invitations.
 
 ```tsx
-function ParticipantList() {
-  const participants = useParticipants();
+import { useIncomingInvite, useCallActions } from "@voyatek/callpad-sdk";
+
+function IncomingCallDialog() {
+  const invite = useIncomingInvite();
+  const { accept, decline } = useCallActions();
+
+  if (!invite) {
+    return null;
+  }
 
   return (
-    <div className="participants">
-      {participants.map(participant => (
-        <div key={participant.id} className="participant">
-          <img src={participant.avatarUrl} alt={participant.firstName} />
-          <span>{participant.firstName} {participant.lastName}</span>
-          <span className={`status ${participant.callState.toLowerCase()}`}>
-            {participant.callState}
+    <div className="incoming-call">
+      <p>{invite.caller.firstName} is calling...</p>
+      <p>Mode: {invite.mode}</p>
+      <button onClick={() => accept(invite.callId)}>Accept</button>
+      <button onClick={() => decline(invite.callId)}>Decline</button>
+    </div>
+  );
+}
+```
+
+**Returns**: `IncomingInvite | null`
+```typescript
+interface IncomingInvite {
+  callId: string;
+  caller: {
+    userId: string;
+    firstName?: string | null;
+    lastName?: string | null;
+    username?: string | null;
+    email?: string | null;
+    profilePhoto?: string | null;
+  };
+  mode: "AUDIO" | "VIDEO";
+  expiresAt: string;
+  expiresInMs: number;
+}
+```
+
+---
+
+### `useOutgoingInvites()`
+
+Track invitations you've sent (caller perspective).
+
+```tsx
+import { useOutgoingInvites } from "@voyatek/callpad-sdk";
+
+function OutgoingInviteList() {
+  const invites = useOutgoingInvites();
+
+  return (
+    <div>
+      <h3>Invitations Sent</h3>
+      {Object.values(invites).map((invite) => (
+        <div key={invite.userId}>
+          <p>{invite.participant.firstName}</p>
+          <span className={`status-${invite.status}`}>
+            {invite.status}
           </span>
-          <div className="media-status">
-            {participant.audioEnabled && <span>🎤</span>}
-            {participant.videoEnabled && <span>📹</span>}
-            {participant.isSpeaking && <span>🔊</span>}
-          </div>
         </div>
       ))}
     </div>
@@ -772,322 +241,848 @@ function ParticipantList() {
 }
 ```
 
-### Participant Status Monitoring
+**Returns**: `Record<string, OutgoingInvite>`
+```typescript
+interface OutgoingInvite {
+  userId: string;
+  status: "sent" | "accepted" | "declined" | "missed";
+  participant: ParticipantInfo;
+}
+```
+
+---
+
+### `useCallInitiated()`
+
+Check if the current call was initiated by you.
 
 ```tsx
-function ParticipantMonitor({ participantId }) {
-  const status = useParticipantStatus(participantId);
-  const { mediaEnabled, mediaDisabled } = useMediaEvents(participantId);
+import { useCallInitiated } from "@voyatek/callpad-sdk";
 
-  useEffect(() => {
-    if (mediaEnabled) {
-      console.log(`${participantId} enabled ${mediaEnabled.payload.mediaType}`);
-    }
-  }, [mediaEnabled, participantId]);
-
-  useEffect(() => {
-    if (mediaDisabled) {
-      console.log(`${participantId} disabled ${mediaDisabled.payload.mediaType}`);
-    }
-  }, [mediaDisabled, participantId]);
+function CallControls() {
+  const initiated = useCallInitiated();
 
   return (
     <div>
-      <h4>Participant: {participantId}</h4>
-      <p>Connection: {status?.connectionQuality}</p>
-      <p>Speaking: {status?.isSpeaking ? 'Yes' : 'No'}</p>
+      {initiated ? (
+        <button>End Call (Host)</button>
+      ) : (
+        <button>Leave Call</button>
+      )}
     </div>
   );
 }
 ```
 
-## Auto-Join Configuration
+**Returns**: `boolean`
 
-### Using Auto-Join
+---
+
+### `useCallActions()`
+
+Access all call control methods.
 
 ```tsx
-function AutoJoinExample() {
-  const autoJoin = useAutoJoin();
-  const { shouldAutoJoin, reason } = useAutoJoinForCurrentUser();
+import { useCallActions } from "@voyatek/callpad-sdk";
+
+function CallControls() {
+  const actions = useCallActions();
+
+  const startCall = async () => {
+    const response = await actions.initiate(
+      ["user-id-1", "user-id-2"],
+      "VIDEO"
+    );
+    console.log("Call started:", response.callId);
+  };
+
+  return <button onClick={startCall}>Start Video Call</button>;
+}
+```
+
+**Available Methods**:
+
+| Method | Signature | Description |
+|--------|-----------|-------------|
+| `initiate` | `(participants: string[], type: "AUDIO" \| "VIDEO") => Promise<CallResponse>` | Start a new call |
+| `accept` | `(callId: string) => Promise<CallResponse>` | Accept an invitation |
+| `decline` | `(callId: string, reason?: string) => Promise<CallResponse>` | Decline an invitation |
+| `cancel` | `(callId: string) => Promise<CallResponse>` | Cancel pending invitations |
+| `leave` | `(callId: string) => Promise<CallResponse>` | Leave an active call |
+| `end` | `(callId: string) => Promise<CallResponse>` | End call (host only) |
+| `transfer` | `(callId: string, targetParticipantId: string, reason?: string) => Promise<CallResponse>` | Transfer call |
+| `kick` | `(callId: string, participantId: string, reason?: string) => Promise<CallResponse>` | Remove participant (host only) |
+| `mute` | `(callId: string, participantId: string) => Promise<CallResponse>` | Mute participant (host only) |
+
+---
+
+### `useParticipantInfo()`
+
+Get typed participant information from LiveKit participant metadata.
+
+```tsx
+import { useParticipantInfo, useParticipants } from "@voyatek/callpad-sdk";
+
+function ParticipantCard({ participantIdentity }: { participantIdentity: string }) {
+  const participantInfo = useParticipantInfo(participantIdentity);
+
+  if (!participantInfo) {
+    return <div>Loading participant info...</div>;
+  }
+
+  return (
+    <div className="participant-card">
+      <img src={participantInfo.profilePhoto} alt={participantInfo.firstName} />
+      <h3>{participantInfo.firstName} {participantInfo.lastName}</h3>
+      <p>@{participantInfo.username}</p>
+      <span className="role">{participantInfo.role}</span>
+    </div>
+  );
+}
+
+// Or get current participant from context
+function CurrentUserInfo() {
+  const myInfo = useParticipantInfo();
 
   return (
     <div>
-      <h3>Auto-Join Status</h3>
-      <p>Enabled: {autoJoin.isEnabled ? 'Yes' : 'No'}</p>
-      <p>Max Retries: {autoJoin.maxRetries}</p>
-      <p>Should Auto-Join: {shouldAutoJoin ? 'Yes' : 'No'}</p>
-      <p>Reason: {reason}</p>
+      <p>You are: {myInfo?.firstName}</p>
+      <p>Role: {myInfo?.role}</p>
+    </div>
+  );
+}
+
+// Or use with participant object
+function ParticipantList() {
+  const participants = useParticipants();
+
+  return (
+    <div>
+      {participants.map((participant) => {
+        const info = useParticipantInfo(participant);
+        return (
+          <div key={participant.identity}>
+            {info?.firstName || participant.identity}
+          </div>
+        );
+      })}
     </div>
   );
 }
 ```
 
-## Error Handling
+**Parameters**:
+- `participantOrIdentity` (optional): `string | Participant`
+  - If string: participant identity to look up
+  - If Participant: LiveKit participant object
+  - If undefined: uses current participant from context
 
-### Error Recovery
+**Returns**: `ParticipantInfo | null`
+```typescript
+interface ParticipantInfo {
+  userId: string;
+  role: "HOST" | "PARTICIPANT" | "GUEST";
+  firstName: string;
+  lastName: string;
+  username: string;
+  email: string;
+  profilePhoto: string;
+}
+```
+
+**Note**: This hook parses the JSON metadata stored in the LiveKit participant's metadata field. The backend must store participant information in this format when generating LiveKit tokens.
+
+---
+
+### `useRoom()`
+
+Access the LiveKit Room instance for media management.
 
 ```tsx
-function ErrorRecoveryExample() {
-  const recovery = useErrorRecovery();
-  const errors = useErrors();
+import { useRoom } from "@voyatek/callpad-sdk";
+import { useParticipants, useTracks } from "@livekit/components-react";
+import { Track } from "livekit-client";
 
-  const handleRecovery = async () => {
+function VideoCall() {
+  const room = useRoom();
+
+  // Use LiveKit's hooks (they work with our room)
+  const participants = useParticipants({ room });
+  const tracks = useTracks([Track.Source.Camera], { room });
+
+  if (!room) {
+    return <div>Connecting...</div>;
+  }
+
+  return (
+    <div className="video-grid">
+      {tracks.map((track) => (
+        <VideoTrack key={track.participant.identity} {...track} />
+      ))}
+    </div>
+  );
+}
+```
+
+**Returns**: `Room | null`
+
+**With Custom Options**:
+```tsx
+import { useRoom } from "@voyatek/callpad-sdk";
+import type { RoomOptions } from "livekit-client";
+
+const customOptions: RoomOptions = {
+  adaptiveStream: true,
+  dynacast: true,
+  videoCaptureDefaults: {
+    resolution: {
+      width: 1280,
+      height: 720,
+    },
+  },
+};
+
+function VideoCall() {
+  const room = useRoom(customOptions);
+  // ...
+}
+```
+
+---
+
+## Call Flows
+
+### Flow 1: Initiating a Call (Outbound)
+
+```tsx
+import {
+  useCallActions,
+  useCallState,
+  useOutgoingInvites,
+  useRoom,
+} from "@voyatek/callpad-sdk";
+
+function CallInitiator() {
+  const { initiate } = useCallActions();
+  const callState = useCallState();
+  const invites = useOutgoingInvites();
+  const room = useRoom();
+
+  const startCall = async () => {
     try {
-      await recovery.attemptRecovery();
+      const response = await initiate(
+        ["user-123", "user-456"],
+        "VIDEO"
+      );
+
+      console.log("Call initiated:", response.callId);
+      // State will update via socket events:
+      // 1. call:created → session created, initiated: true
+      // 2. call:inviteSent → outgoingInvites populated
+      // 3. call:inviteAccepted → invite status updated
+      // 4. call:joinInfo → livekitInfo set, room connects
+
     } catch (error) {
-      console.error('Recovery failed:', error);
+      console.error("Failed to initiate call:", error);
     }
   };
 
-  if (errors.length > 0) {
+  if (!callState.id) {
+    return <button onClick={startCall}>Start Call</button>;
+  }
+
+  if (callState.status === "pending") {
     return (
-      <div className="error-panel">
-        <h3>Errors Detected</h3>
-        {errors.map(error => (
-          <div key={error.code} className="error">
-            <strong>{error.code}</strong>: {error.message}
+      <div>
+        <p>Waiting for participants...</p>
+        {Object.values(invites).map((invite) => (
+          <div key={invite.userId}>
+            {invite.participant.firstName}: {invite.status}
           </div>
         ))}
-        <button onClick={handleRecovery}>Attempt Recovery</button>
       </div>
     );
+  }
+
+  if (callState.status === "active" && room) {
+    return <VideoCallUI room={room} />;
   }
 
   return null;
 }
 ```
 
-### Custom Error Handling
+---
+
+### Flow 2: Receiving a Call (Inbound)
 
 ```tsx
-function CustomErrorHandler() {
-  useEvent(SdkEventType.ERROR_OCCURRED, (event) => {
-    const { code, message, source } = event.payload;
-    
-    // Custom error handling logic
-    switch (code) {
-      case 'CONNECTION_LOST':
-        showReconnectingNotification();
-        break;
-      case 'MEDIA_PERMISSION_DENIED':
-        showPermissionRequestDialog();
-        break;
-      default:
-        showGenericErrorToast(message);
-    }
-  });
-
-  return <div>Error handler active</div>;
-}
-```
-
-## TypeScript Support
-
-The SDK is built with full TypeScript support. All hooks, components, and utilities are fully typed.
-
-### Type Definitions
-
-```tsx
-import type {
-  // Core types
-  SessionStatus,
-  Participant,
-  IncomingCallInfo,
-  RtcError,
-  
-  // Config types
-  RtcOptions,
-  AutoJoinConfig,
-  
-  // Event types
-  SdkEvent,
-  SdkEventType,
-  CallAcceptedEvent,
-  
-  // API types
-  InitiateCallParams,
-  CallResponse,
-  CallActionResponse,
-} from 'vg-x07df';
-```
-
-### Custom Hook Example
-
-```tsx
-import { useCallState, useCallActions } from 'vg-x07df';
-import type { SessionStatus } from 'vg-x07df';
-
-function useCallManager() {
-  const callState = useCallState();
-  const actions = useCallActions();
-
-  const isCallActive = (): boolean => {
-    return callState.status === 'ACTIVE';
-  };
-
-  const canInitiateCall = (): boolean => {
-    return callState.status === 'IDLE';
-  };
-
-  return {
-    ...callState,
-    ...actions,
-    isCallActive,
-    canInitiateCall,
-  };
-}
-```
-
-## Advanced Usage
-
-### Direct SDK Access
-
-Access the SDK instance directly for advanced operations:
-
-```tsx
-import { useSdk } from 'vg-x07df';
-
-function AdvancedComponent() {
-  const sdk = useSdk();
-
-  const performAdvancedOperation = async () => {
-    // Direct access to SDK components
-    const authToken = sdk.auth.getCurrentToken();
-    await sdk.signal.customApiCall();
-    sdk.livekit.performAdvancedMediaOperation();
-  };
-
-  return <button onClick={performAdvancedOperation}>Advanced Op</button>;
-}
-```
-
-### Custom Logging
-
-```tsx
-const rtcOptions = {
-  appId: 'my-app',
-  signalHost: 'https://signal.example.com',
-  authProvider: () => getToken(),
-  
-  // Custom logging
-  log: (level, message, meta) => {
-    // Send to your logging service
-    analyticsService.log({
-      level,
-      message,
-      meta,
-      timestamp: Date.now(),
-      userId: getCurrentUserId(),
-    });
-  },
-};
-```
-
-### State Management Integration
-
-```tsx
-// Redux integration example
-function useCallStateSync() {
-  const callState = useCallState();
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-    dispatch(updateCallState(callState));
-  }, [callState, dispatch]);
-}
-```
-
-## Examples
-
-### Complete Call Application
-
-```tsx
-import React from 'react';
 import {
-  RtcProvider,
-  useCallState,
+  useIncomingInvite,
   useCallActions,
-  useMediaControls,
-  useParticipants,
-  useEvent,
-  SdkEventType
-} from 'vg-x07df';
+  useCallState,
+  useRoom,
+} from "@voyatek/callpad-sdk";
 
-// Main app with provider
-function App() {
-  const rtcOptions = {
-    appId: 'demo-app',
-    signalHost: 'https://your-signal-server.com',
-    authProvider: () => localStorage.getItem('token'),
-    logLevel: 'info',
-    autoJoin: { enabled: true, maxRetries: 2 }
+function IncomingCallHandler() {
+  const invite = useIncomingInvite();
+  const { accept, decline } = useCallActions();
+  const callState = useCallState();
+  const room = useRoom();
+
+  const handleAccept = async () => {
+    if (!invite) return;
+
+    try {
+      await accept(invite.callId);
+      // State will update via socket events:
+      // 1. call:inviteAccepted → sent to caller
+      // 2. call:joinInfo → livekitInfo set, room connects
+      // 3. call:participantAdded → broadcast to room
+
+    } catch (error) {
+      console.error("Failed to accept call:", error);
+    }
+  };
+
+  const handleDecline = async () => {
+    if (!invite) return;
+
+    try {
+      await decline(invite.callId, "User declined");
+      // State cleared via socket events:
+      // 1. call:inviteDeclined → sent to caller
+      // 2. incomingInvite → cleared
+
+    } catch (error) {
+      console.error("Failed to decline call:", error);
+    }
+  };
+
+  // Show incoming call dialog
+  if (invite && !callState.id) {
+    return (
+      <div className="incoming-call-dialog">
+        <h2>{invite.caller.firstName} is calling</h2>
+        <p>Mode: {invite.mode}</p>
+        <button onClick={handleAccept}>Accept</button>
+        <button onClick={handleDecline}>Decline</button>
+      </div>
+    );
+  }
+
+  // Call accepted, waiting for connection
+  if (callState.status === "pending") {
+    return <div>Connecting...</div>;
+  }
+
+  // Call active, show video UI
+  if (callState.status === "active" && room) {
+    return <VideoCallUI room={room} />;
+  }
+
+  return null;
+}
+```
+
+---
+
+### Flow 3: During a Call (Media Management)
+
+```tsx
+import { useRoom } from "@voyatek/callpad-sdk";
+import {
+  useParticipants,
+  useTracks,
+  VideoTrack,
+  AudioTrack,
+} from "@livekit/components-react";
+import { Track } from "livekit-client";
+import { useState } from "react";
+
+function VideoCallUI() {
+  const room = useRoom();
+  const participants = useParticipants({ room });
+  const videoTracks = useTracks([Track.Source.Camera], { room });
+  const [isMuted, setIsMuted] = useState(false);
+  const [isCameraOff, setIsCameraOff] = useState(false);
+
+  if (!room) {
+    return <div>No active room</div>;
+  }
+
+  const toggleMute = async () => {
+    await room.localParticipant.setMicrophoneEnabled(isMuted);
+    setIsMuted(!isMuted);
+  };
+
+  const toggleCamera = async () => {
+    await room.localParticipant.setCameraEnabled(isCameraOff);
+    setIsCameraOff(!isCameraOff);
+  };
+
+  const shareScreen = async () => {
+    await room.localParticipant.setScreenShareEnabled(true);
   };
 
   return (
-    <RtcProvider options={rtcOptions}>
+    <div className="video-call">
+      <div className="video-grid">
+        {videoTracks.map((track) => (
+          <div key={track.participant.identity} className="participant">
+            <VideoTrack {...track} />
+            <p>{track.participant.identity}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="controls">
+        <button onClick={toggleMute}>
+          {isMuted ? "Unmute" : "Mute"}
+        </button>
+        <button onClick={toggleCamera}>
+          {isCameraOff ? "Camera On" : "Camera Off"}
+        </button>
+        <button onClick={shareScreen}>Share Screen</button>
+      </div>
+
+      <div className="participant-list">
+        <h3>Participants ({participants.length})</h3>
+        {participants.map((p) => (
+          <div key={p.identity}>
+            {p.identity} - {p.isSpeaking ? "🎤 Speaking" : ""}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+```
+
+---
+
+### Flow 4: Ending a Call
+
+```tsx
+import {
+  useCallActions,
+  useCallState,
+  useCallInitiated,
+  useRoom,
+} from "@voyatek/callpad-sdk";
+
+function EndCallButton() {
+  const { end, leave } = useCallActions();
+  const callState = useCallState();
+  const initiated = useCallInitiated();
+  const room = useRoom();
+
+  const handleEndCall = async () => {
+    if (!callState.id) return;
+
+    try {
+      if (initiated) {
+        // Host ends call for everyone
+        await end(callState.id);
+        // State cleared via socket events:
+        // 1. call:ended → broadcast to all participants
+        // 2. session → null, room disconnects
+
+      } else {
+        // Participant leaves call
+        await leave(callState.id);
+        // State cleared via socket events
+      }
+
+    } catch (error) {
+      console.error("Failed to end/leave call:", error);
+    }
+  };
+
+  if (!room) {
+    return null;
+  }
+
+  return (
+    <button onClick={handleEndCall} className="end-call-btn">
+      {initiated ? "End Call" : "Leave Call"}
+    </button>
+  );
+}
+```
+
+---
+
+## LiveKit Integration
+
+### Using LiveKit Components
+
+The SDK re-exports all LiveKit components and hooks for convenience:
+
+```tsx
+import {
+  useRoom,
+  // LiveKit hooks (re-exported)
+  useParticipants,
+  useTracks,
+  useLocalParticipant,
+  useRemoteParticipants,
+  useConnectionState,
+  useIsSpeaking,
+  useTrackToggle,
+  // LiveKit components (re-exported)
+  VideoTrack,
+  AudioTrack,
+  ParticipantContext,
+  RoomAudioRenderer,
+} from "@voyatek/callpad-sdk";
+import { Track } from "livekit-client";
+
+function AdvancedVideoUI() {
+  const room = useRoom();
+  const localParticipant = useLocalParticipant({ room });
+  const remoteParticipants = useRemoteParticipants({ room });
+  const connectionState = useConnectionState(room);
+
+  return (
+    <div>
+      <p>Connection: {connectionState}</p>
+
+      {/* Local participant video */}
+      {localParticipant && (
+        <ParticipantContext.Provider value={localParticipant}>
+          <VideoTrack source={Track.Source.Camera} />
+        </ParticipantContext.Provider>
+      )}
+
+      {/* Remote participants */}
+      {remoteParticipants.map((participant) => (
+        <ParticipantContext.Provider key={participant.sid} value={participant}>
+          <VideoTrack source={Track.Source.Camera} />
+        </ParticipantContext.Provider>
+      ))}
+
+      {/* Render audio for all participants */}
+      <RoomAudioRenderer />
+    </div>
+  );
+}
+```
+
+### Advanced Room Features
+
+```tsx
+import { useRoom } from "@voyatek/callpad-sdk";
+import { RoomEvent, DataPacket_Kind } from "livekit-client";
+import { useEffect } from "react";
+
+function AdvancedRoomFeatures() {
+  const room = useRoom();
+
+  useEffect(() => {
+    if (!room) return;
+
+    // Listen to room events
+    const handleDataReceived = (
+      payload: Uint8Array,
+      participant: any,
+      kind: DataPacket_Kind
+    ) => {
+      const text = new TextDecoder().decode(payload);
+      console.log("Data received:", text, "from:", participant.identity);
+    };
+
+    room.on(RoomEvent.DataReceived, handleDataReceived);
+
+    return () => {
+      room.off(RoomEvent.DataReceived, handleDataReceived);
+    };
+  }, [room]);
+
+  const sendData = () => {
+    if (!room) return;
+
+    const encoder = new TextEncoder();
+    const data = encoder.encode("Hello from participant!");
+    room.localParticipant.publishData(data, DataPacket_Kind.RELIABLE);
+  };
+
+  return <button onClick={sendData}>Send Data</button>;
+}
+```
+
+---
+
+## State Management
+
+### State Structure
+
+```typescript
+interface RtcState {
+  // Did we initiate the current call?
+  initiated: boolean;
+
+  // Active session (null when no active call)
+  session: Session | null;
+
+  // Incoming invitation (null when no pending invite)
+  incomingInvite: IncomingInvite | null;
+
+  // Outgoing invites (when I'm the HOST/caller)
+  outgoingInvites: Record<string, OutgoingInvite>;
+
+  // Error tracking
+  errors: RtcError[];
+}
+
+interface Session {
+  id: string;
+  status: "pending" | "active" | "ended";
+  mode: "AUDIO" | "VIDEO";
+  role: "HOST" | "PARTICIPANT" | "GUEST";
+  livekitInfo?: {
+    token: string;
+    roomName: string;
+    url: string;
+  };
+}
+```
+
+### Direct State Access
+
+You can access the Zustand store directly if needed:
+
+```tsx
+import { useSdk } from "@voyatek/callpad-sdk";
+
+function AdvancedStateAccess() {
+  const sdk = useSdk();
+
+  // Subscribe to specific state
+  const errors = sdk.store((state) => state.errors);
+  const session = sdk.store((state) => state.session);
+
+  // Access selectors
+  const outgoingInvites = sdk.store(selectOutgoingInvites);
+
+  return (
+    <div>
+      <h3>Errors ({errors.length})</h3>
+      {errors.map((err, i) => (
+        <div key={i}>{err.message}</div>
+      ))}
+    </div>
+  );
+}
+```
+
+---
+
+## Error Handling
+
+### Handling API Errors
+
+```tsx
+import { useCallActions } from "@voyatek/callpad-sdk";
+
+function ErrorHandlingExample() {
+  const { accept } = useCallActions();
+
+  const handleAccept = async (callId: string) => {
+    try {
+      await accept(callId);
+    } catch (error: any) {
+      // Check HTTP status codes
+      if (error.status === 403) {
+        console.error("Not authorized to accept this call");
+      } else if (error.status === 404) {
+        console.error("Call not found");
+      } else if (error.status === 409) {
+        console.error("Call cannot be accepted in current state");
+      } else {
+        console.error("Failed to accept call:", error.message);
+      }
+    }
+  };
+
+  return <button onClick={() => handleAccept("call-id")}>Accept</button>;
+}
+```
+
+### Tracking SDK Errors
+
+```tsx
+import { useSdk } from "@voyatek/callpad-sdk";
+
+function ErrorDisplay() {
+  const sdk = useSdk();
+  const errors = sdk.store((state) => state.errors);
+
+  if (errors.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="error-banner">
+      {errors.map((error, i) => (
+        <div key={i} className="error-item">
+          <strong>{error.code}</strong>: {error.message}
+          <button onClick={() => sdk.store.getState().clearErrors()}>
+            Dismiss
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+---
+
+## Complete Example
+
+Here's a complete working example combining all features:
+
+```tsx
+import {
+  RtcProvider,
+  useIncomingInvite,
+  useCallActions,
+  useCallState,
+  useCallInitiated,
+  useRoom,
+  useParticipants,
+  useTracks,
+  VideoTrack,
+  RoomAudioRenderer,
+} from "@voyatek/callpad-sdk";
+import { Track } from "livekit-client";
+import { useState } from "react";
+
+// 1. Wrap your app
+function App() {
+  return (
+    <RtcProvider
+      options={{
+        appId: "my-app",
+        signalHost: "https://signal.myapp.com",
+        authProvider: () => localStorage.getItem("jwt"),
+      }}
+    >
       <CallApp />
     </RtcProvider>
   );
 }
 
-// Call application component
+// 2. Main call component
 function CallApp() {
+  const invite = useIncomingInvite();
   const callState = useCallState();
-  const { initiate, accept, decline, end } = useCallActions();
-  const { toggleVideo, toggleAudio, isVideoEnabled, isAudioEnabled } = useMediaControls();
-  const participants = useParticipants();
+  const room = useRoom();
 
-  // Handle incoming calls
-  useEvent(SdkEventType.CALL_INCOMING, (event) => {
-    const { caller, type } = event.payload;
-    const response = confirm(`Accept ${type} call from ${caller.firstName}?`);
-    if (response) {
-      accept(event.payload.callId);
-    } else {
-      decline(event.payload.callId);
-    }
-  });
+  // Show incoming call dialog
+  if (invite && !callState.id) {
+    return <IncomingCallDialog invite={invite} />;
+  }
 
-  const startVideoCall = () => {
-    initiate(['user-123'], 'VIDEO');
-  };
+  // Show active call UI
+  if (callState.status === "active" && room) {
+    return <ActiveCallUI />;
+  }
 
-  const endCall = () => {
-    if (callState.id) {
-      end(callState.id);
-    }
+  // Show call initiator
+  return <CallInitiator />;
+}
+
+// 3. Incoming call dialog
+function IncomingCallDialog({ invite }: { invite: IncomingInvite }) {
+  const { accept, decline } = useCallActions();
+
+  return (
+    <div className="incoming-call">
+      <h2>{invite.caller.firstName} is calling</h2>
+      <p>Mode: {invite.mode}</p>
+      <button onClick={() => accept(invite.callId)}>Accept</button>
+      <button onClick={() => decline(invite.callId)}>Decline</button>
+    </div>
+  );
+}
+
+// 4. Call initiator
+function CallInitiator() {
+  const { initiate } = useCallActions();
+  const [participants, setParticipants] = useState("");
+
+  const startCall = async () => {
+    const userIds = participants.split(",").map((id) => id.trim());
+    await initiate(userIds, "VIDEO");
   };
 
   return (
     <div>
-      <h1>CallPad Demo</h1>
-      
-      <div>Status: {callState.status}</div>
-      
-      {callState.status === 'IDLE' && (
-        <button onClick={startVideoCall}>Start Video Call</button>
-      )}
-      
-      {callState.status === 'ACTIVE' && (
-        <div>
-          <button onClick={toggleVideo}>
-            {isVideoEnabled ? 'Disable Video' : 'Enable Video'}
-          </button>
-          <button onClick={toggleAudio}>
-            {isAudioEnabled ? 'Mute' : 'Unmute'}
-          </button>
-          <button onClick={endCall}>End Call</button>
-          
-          <div>
-            <h3>Participants ({participants.length})</h3>
-            {participants.map(p => (
-              <div key={p.id}>
-                {p.firstName} {p.lastName} - {p.callState}
-              </div>
-            ))}
+      <h2>Start a Call</h2>
+      <input
+        placeholder="User IDs (comma-separated)"
+        value={participants}
+        onChange={(e) => setParticipants(e.target.value)}
+      />
+      <button onClick={startCall}>Start Video Call</button>
+    </div>
+  );
+}
+
+// 5. Active call UI
+function ActiveCallUI() {
+  const room = useRoom();
+  const { end, leave } = useCallActions();
+  const callState = useCallState();
+  const initiated = useCallInitiated();
+  const participants = useParticipants({ room });
+  const tracks = useTracks([Track.Source.Camera], { room });
+  const [isMuted, setIsMuted] = useState(false);
+
+  if (!room || !callState.id) return null;
+
+  const toggleMute = async () => {
+    await room.localParticipant.setMicrophoneEnabled(isMuted);
+    setIsMuted(!isMuted);
+  };
+
+  const endCall = async () => {
+    if (initiated) {
+      await end(callState.id);
+    } else {
+      await leave(callState.id);
+    }
+  };
+
+  return (
+    <div className="active-call">
+      <div className="video-grid">
+        {tracks.map((track) => (
+          <div key={track.participant.identity}>
+            <VideoTrack {...track} />
+            <p>{track.participant.identity}</p>
           </div>
-        </div>
-      )}
+        ))}
+      </div>
+
+      <RoomAudioRenderer />
+
+      <div className="controls">
+        <button onClick={toggleMute}>
+          {isMuted ? "Unmute" : "Mute"}
+        </button>
+        <button onClick={endCall} className="end-call">
+          {initiated ? "End Call" : "Leave"}
+        </button>
+      </div>
+
+      <div className="info">
+        <p>Participants: {participants.length}</p>
+        <p>Status: {callState.status}</p>
+        <p>Role: {initiated ? "Host" : "Participant"}</p>
+      </div>
     </div>
   );
 }
@@ -1095,38 +1090,274 @@ function CallApp() {
 export default App;
 ```
 
-### Notification Service Integration
+---
+
+## TypeScript Support
+
+The SDK is fully typed. Import types as needed:
+
+```typescript
+import type {
+  RtcOptions,
+  CallState,
+  IncomingInvite,
+  OutgoingInvite,
+  Session,
+  RtcState,
+  ParticipantInfo,
+} from "@voyatek/callpad-sdk";
+
+// LiveKit types are also re-exported
+import type {
+  Room,
+  Participant,
+  Track,
+  RoomOptions,
+} from "@voyatek/callpad-sdk";
+```
+
+---
+
+## Best Practices
+
+### 1. Handle All Call States
+
+Always account for all possible states in your UI:
 
 ```tsx
-function NotificationService() {
-  useEvent(SdkEventType.CALL_INCOMING, (event) => {
-    const { callId, caller, type } = event.payload;
-    
-    if ('Notification' in window && Notification.permission === 'granted') {
-      const notification = new Notification(
-        `Incoming ${type} Call`,
-        {
-          body: `${caller.firstName} ${caller.lastName} is calling`,
-          icon: caller.avatarUrl,
-          actions: [
-            { action: 'accept', title: 'Accept' },
-            { action: 'decline', title: 'Decline' }
-          ]
-        }
-      );
-      
-      notification.onclick = (event) => {
-        if (event.action === 'accept') {
-          acceptCall(callId);
-        } else if (event.action === 'decline') {
-          declineCall(callId);
-        }
-      };
-    }
-  });
+function CallComponent() {
+  const invite = useIncomingInvite();
+  const callState = useCallState();
+  const room = useRoom();
 
-  return null;
+  // Incoming invite
+  if (invite && !callState.id) {
+    return <IncomingCallDialog />;
+  }
+
+  // Pending connection
+  if (callState.status === "pending") {
+    return <LoadingScreen />;
+  }
+
+  // Active call
+  if (callState.status === "active" && room) {
+    return <ActiveCall />;
+  }
+
+  // No call
+  return <IdleScreen />;
 }
 ```
 
-This comprehensive documentation covers all major aspects of the CallPad SDK, providing developers with the information needed to integrate audio/video calling functionality into their React applications.
+### 2. Clean Up on Unmount
+
+The SDK handles cleanup automatically, but always clean up your own listeners:
+
+```tsx
+useEffect(() => {
+  if (!room) return;
+
+  const handler = () => { /* ... */ };
+  room.on(RoomEvent.ParticipantConnected, handler);
+
+  return () => {
+    room.off(RoomEvent.ParticipantConnected, handler);
+  };
+}, [room]);
+```
+
+### 3. Error Boundaries
+
+Wrap your call UI in error boundaries:
+
+```tsx
+import { ErrorBoundary } from "react-error-boundary";
+
+function App() {
+  return (
+    <ErrorBoundary fallback={<ErrorFallback />}>
+      <RtcProvider options={config}>
+        <CallApp />
+      </RtcProvider>
+    </ErrorBoundary>
+  );
+}
+```
+
+### 4. Optimize Re-renders
+
+Use specific state selectors to avoid unnecessary re-renders:
+
+```tsx
+// ❌ Bad - re-renders on any state change
+const state = useSdk().store((state) => state);
+
+// ✅ Good - only re-renders when session changes
+const session = useSdk().store((state) => state.session);
+```
+
+---
+
+## Authorization & Security
+
+### How Authorization Works
+
+The SDK automatically handles authorization for all API requests to the signal server. Here's how it works:
+
+1. **Token Provider**: You provide an `authProvider` function when initializing the SDK:
+```tsx
+<RtcProvider
+  options={{
+    authProvider: () => getYourJWTToken(), // Returns JWT token
+    // ... other options
+  }}
+>
+```
+
+2. **Automatic Token Injection**: The SDK configures the API client during initialization to:
+   - Call your `authProvider` function before each request
+   - Add the token as an `Authorization: Bearer {token}` header
+   - Handle token refresh automatically
+
+3. **Request Flow**:
+```
+API Call → Token Provider → Add Auth Header → Signal Server
+   (e.g., accept())  →  authProvider()  →  Authorization: Bearer xxx  →  Request
+```
+
+### Token Requirements
+
+Your `authProvider` function should:
+- Return a valid JWT token as a string
+- Return `null` if no token is available
+- Be synchronous or asynchronous (both are supported)
+
+```tsx
+// Synchronous example
+const authProvider = () => {
+  return localStorage.getItem("jwt_token");
+};
+
+// Asynchronous example
+const authProvider = async () => {
+  const token = await refreshTokenIfNeeded();
+  return token;
+};
+```
+
+### Debugging Authorization
+
+The SDK includes built-in logging to help debug authorization issues:
+
+```tsx
+<RtcProvider
+  options={{
+    logLevel: "debug", // Enable debug logs
+    enableDebug: true,
+    authProvider: () => getToken(),
+  }}
+>
+```
+
+With debug logging enabled, you'll see messages like:
+- `"Token resolved successfully"` - Token was obtained from your provider
+- `"Token provider returned empty token"` - Your provider returned null/empty
+- `"API Request with Authorization header"` - Request includes auth header
+- `"API Request WITHOUT Authorization header"` - Warning: no auth header
+
+### Common Authorization Issues
+
+#### 1. Token Not Being Sent
+
+**Symptom**: Getting 401 Unauthorized errors
+
+**Solution**: Check that your `authProvider` is returning a valid token:
+```tsx
+const authProvider = () => {
+  const token = getToken();
+  console.log("Token:", token); // Debug log
+  return token;
+};
+```
+
+#### 2. Expired Tokens
+
+**Symptom**: Requests succeed initially but fail after some time
+
+**Solution**: Implement token refresh in your provider:
+```tsx
+const authProvider = async () => {
+  const token = getStoredToken();
+
+  if (isTokenExpired(token)) {
+    const refreshed = await refreshToken();
+    storeToken(refreshed);
+    return refreshed;
+  }
+
+  return token;
+};
+```
+
+#### 3. Token Provider Not Called
+
+**Symptom**: `authProvider` logs not appearing
+
+**Solution**: Ensure the SDK is properly initialized and API is being called:
+```tsx
+// Make sure RtcProvider is mounted
+<RtcProvider options={{ authProvider, ... }}>
+  <YourApp />
+</RtcProvider>
+```
+
+### Security Best Practices
+
+1. **Never hardcode tokens** in your code
+2. **Store tokens securely** (use httpOnly cookies for web apps)
+3. **Implement token refresh** to avoid expired token issues
+4. **Use HTTPS** for all API communication
+5. **Keep tokens short-lived** (15-60 minutes) with refresh capability
+
+---
+
+## Troubleshooting
+
+### Call Not Connecting
+
+1. Check that `authProvider` returns a valid JWT token
+2. Verify `signalHost` is correct and accessible
+3. Check browser console for socket connection errors
+4. Ensure LiveKit server is running and accessible
+
+### No Audio/Video
+
+1. Check browser permissions for microphone/camera
+2. Verify LiveKit room is properly connected: `room.state === ConnectionState.Connected`
+3. Check that tracks are published: `room.localParticipant.isMicrophoneEnabled`
+4. Inspect network tab for WebRTC connection issues
+
+### State Not Updating
+
+1. Verify socket connection is established
+2. Check that JWT token is valid and not expired
+3. Ensure you're subscribed to the correct socket rooms
+4. Check browser console for socket event errors
+
+---
+
+## Support
+
+For issues, questions, or contributions:
+- GitHub: [your-repo-url]
+- Email: support@yourapp.com
+- Docs: https://docs.yourapp.com
+
+
+
+lastName: callerInfo?.lastName,
+username: callerInfo?.username,
+email: callerInfo?.email,
+profilePhoto: callerInfo?.profilePhoto,
+}
