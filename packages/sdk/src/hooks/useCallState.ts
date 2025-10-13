@@ -2,7 +2,7 @@ import { useRtcStore } from "../state/store";
 
 export interface CallState {
   id: string | null;
-  status: "pending" | "active" | "ended" | null;
+  status: "pending" | "active" | "ended" | "ready" | null;
   mode: "AUDIO" | "VIDEO" | null;
   roomName: string | null;
 }

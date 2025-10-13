@@ -55,7 +55,7 @@ export type CallEndedEvent = z.infer<typeof callEndedSchema>;
 // Event: call:invite
 export const callInviteSchema = z.object({
   callId: z.string(),
-  status: z.enum(["pending", "active", "ended"]),
+  status: z.enum(["pending", "ready", "active", "ended"]),
   caller: z.object({
     firstName: z.string().nullable(),
     lastName: z.string().nullable(),
@@ -75,7 +75,7 @@ export type CallInviteEvent = z.infer<typeof callInviteSchema>;
 // Event: call:inviteAccepted
 export const callInviteAcceptedSchema = z.object({
   callId: z.string(),
-  status: z.enum(["pending", "active", "ended"]),
+  status: z.enum(["pending", "ready", "active", "ended"]),
   participant: z.object({
     firstName: z.string().nullable(),
     lastName: z.string().nullable(),
@@ -93,7 +93,7 @@ export type CallInviteAcceptedEvent = z.infer<typeof callInviteAcceptedSchema>;
 // Event: call:inviteCancelled
 export const callInviteCancelledSchema = z.object({
   callId: z.string(),
-  status: z.enum(["pending", "active", "ended"]),
+  status: z.enum(["pending", "ready", "active", "ended"]),
   cancelledByUserId: z.string(),
   cancelledAt: z.string(),
   reason: z.string(),
@@ -105,7 +105,7 @@ export type CallInviteCancelledEvent = z.infer<typeof callInviteCancelledSchema>
 // Event: call:inviteDeclined
 export const callInviteDeclinedSchema = z.object({
   callId: z.string(),
-  status: z.enum(["pending", "active", "ended"]),
+  status: z.enum(["pending", "ready", "active", "ended"]),
   participant: z.object({
     firstName: z.string().nullable(),
     lastName: z.string().nullable(),
@@ -124,7 +124,7 @@ export type CallInviteDeclinedEvent = z.infer<typeof callInviteDeclinedSchema>;
 // Event: call:inviteMissed
 export const callInviteMissedSchema = z.object({
   callId: z.string(),
-  status: z.enum(["pending", "active", "ended"]),
+  status: z.enum(["pending", "ready", "active", "ended"]),
   participant: z.object({
     firstName: z.string().nullable(),
     lastName: z.string().nullable(),
@@ -181,7 +181,7 @@ export type CallMissedEvent = z.infer<typeof callMissedSchema>;
 // Event: call:participantAdded
 export const callParticipantAddedSchema = z.object({
   callId: z.string(),
-  status: z.enum(["pending", "active", "ended"]),
+  status: z.enum(["pending", "ready", "active", "ended"]),
   participant: z.object({
     participantId: z.string(),
     userId: z.string(),
@@ -196,3 +196,14 @@ export const callParticipantAddedSchema = z.object({
 }).strict();
 
 export type CallParticipantAddedEvent = z.infer<typeof callParticipantAddedSchema>;
+
+// Event: call:roomStarted
+// Event: call:roomStarted
+export const callRoomStartedSchema = z.object({
+  callId: z.string(),
+  roomName: z.string(),
+  startedAt: z.string(),
+  status: z.literal("active"),
+}).strict();
+
+export type CallRoomStartedEvent = z.infer<typeof callRoomStartedSchema>;

@@ -35,6 +35,13 @@ export class ParticipantAddedHandler extends BaseSocketHandler<CallParticipantAd
       return;
     }
 
+    // Sync session status from backend event
+    this.updateStore((state) => {
+      if (state.session && data.status) {
+        state.session.status = data.status;
+      }
+    });
+
     // Emit SDK event
     eventBus.emit(SdkEventType.PARTICIPANT_UPDATED, {
       participantId: data.participant.participantId,

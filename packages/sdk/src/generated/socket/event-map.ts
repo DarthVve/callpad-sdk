@@ -14,6 +14,7 @@ import type {
   CallJoinInfoEvent,
   CallMissedEvent,
   CallParticipantAddedEvent,
+  CallRoomStartedEvent,
 } from "./events";
 
 /**
@@ -33,6 +34,7 @@ export interface SocketEventMap {
   "call:joinInfo": CallJoinInfoEvent;
   "call:missed": CallMissedEvent;
   "call:participantAdded": CallParticipantAddedEvent;
+  "call:roomStarted": CallRoomStartedEvent;
 }
 
 export type SocketEventName = keyof SocketEventMap;

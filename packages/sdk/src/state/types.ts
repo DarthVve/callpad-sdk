@@ -16,7 +16,7 @@ export interface LiveKitJoinInfo {
 
 export interface Session {
   id: string;
-  status: "pending" | "active" | "ended";
+  status: "pending" | "ready" | "active" | "ended";
   mode: "AUDIO" | "VIDEO";
   role: "HOST" | "PARTICIPANT" | "GUEST";
   livekitInfo?: LiveKitJoinInfo;

@@ -1,23 +1,12 @@
 import { useParticipantInfo as useLiveKitParticipantInfo, useParticipants } from "@livekit/components-react";
-import type { Participant as LiveKitParticipant } from "livekit-client";
-import { useRoom } from "./useRoom";
 import type { ParticipantMetadata } from "../state/types";
 
 export function useParticipantMetadata(
-  participantOrIdentity?: string | LiveKitParticipant
+  participantId?: string
 ): ParticipantMetadata | null {
-  const room = useRoom();
-  const participants = useParticipants(room ? { room } : {});
-  let resolvedParticipant: LiveKitParticipant | undefined;
+  const participants = useParticipants();
 
-  if (typeof participantOrIdentity === "string") {
-    resolvedParticipant = participants.find(
-      (p) => p.identity === participantOrIdentity
-    );
-  } else if (participantOrIdentity) {
-    resolvedParticipant = participantOrIdentity;
-  }
-
+  const resolvedParticipant = participants.find((p) => p.identity === participantId)
   const livekitInfo = useLiveKitParticipantInfo(
     resolvedParticipant ? { participant: resolvedParticipant } : {}
   );

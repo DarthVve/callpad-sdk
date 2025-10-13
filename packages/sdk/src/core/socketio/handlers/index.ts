@@ -14,3 +14,4 @@ export { SessionCancelledHandler } from "./call-cancelled.handler";
 export { SessionMissedHandler } from "./call-missed.handler";
 export { JoinInfoHandler } from "./join-info.handler";
 export { ParticipantAddedHandler } from "./participant-added.handler";
+export { RoomStartedHandler } from "./room-started.handler";

@@ -13,6 +13,7 @@ import { SessionCancelledHandler } from "./call-cancelled.handler";
 import { SessionMissedHandler } from "./call-missed.handler";
 import { JoinInfoHandler } from "./join-info.handler";
 import { ParticipantAddedHandler } from "./participant-added.handler";
+import { RoomStartedHandler } from "./room-started.handler";
 
 const logger = createLogger("socketio:registry");
 
@@ -46,6 +47,9 @@ export class SocketHandlerRegistry {
       new SessionCancelledHandler(this.options),
       new SessionMissedHandler(this.options),
       new ParticipantAddedHandler(this.options),
+
+      // Phase 4: LiveKit room events
+      new RoomStartedHandler(this.options),
     ];
 
     for (const handler of handlers) {
