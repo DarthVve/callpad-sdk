@@ -9,3 +9,4 @@ export * from "./useSessionId";
 export * from "./useSessionDuration";
 export * from "./useParticipantMetadata";
 export * from "./useLivekitInfo";
+export * from "./useHasActiveSession";
