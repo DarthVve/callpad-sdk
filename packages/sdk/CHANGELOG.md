@@ -1,5 +1,13 @@
 # vg-x07df
 
+## 1.3.0
+
+### Minor Changes
+
+- edaed71: Bug fixes
+- 72bb02b: exit
+- 77d4cf4: Peformance and bug fixes
+
 ## 1.0.2
 
 ### Patch Changes
