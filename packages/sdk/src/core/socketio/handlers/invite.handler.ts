@@ -31,8 +31,6 @@ export class InviteHandler extends BaseSocketHandler<CallInviteEvent> {
           profilePhoto: data.caller.profilePhoto,
         },
         mode: data.mode,
-        expiresAt: data.expiresAt,
-        expiresInMs: data.expiresInMs,
       };
 
       state.session = {
