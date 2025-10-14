@@ -35,14 +35,12 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
-    "lint": "echo \"Lint not configured - add ESLint setup\"",
     "clean": "rimraf dist",
     "prepublishOnly": "npm run clean && npm run build && npm run typecheck"
   },
   "author": "Voyatek Group",
   "repository": {
     "type": "git",
-    "url": "https://github.com/VoyatekGroup/go-callpad.git",
     "directory": "web-sdk/packages/sdk"
   },
   "peerDependencies": {

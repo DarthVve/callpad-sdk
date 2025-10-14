@@ -1,26 +1,18 @@
-import { useParticipantInfo as useLiveKitParticipantInfo, useParticipants } from "@livekit/components-react";
+import {
+    useParticipantInfo,
+
+} from "@livekit/components-react";
 import type { ParticipantMetadata } from "../state/types";
+import type {Participant} from "livekit-client";
 
 export function useParticipantMetadata(
-  participantId?: string
+  participant: Participant
 ): ParticipantMetadata | null {
-  const participants = useParticipants();
-
-  const resolvedParticipant = participants.find((p) => p.identity === participantId)
-  const livekitInfo = useLiveKitParticipantInfo(
-    resolvedParticipant ? { participant: resolvedParticipant } : {}
-  );
-
-  if (!livekitInfo.metadata) {
-    return null;
-  }
+    const info = useParticipantInfo({ participant})
 
   try {
-    const metadata = JSON.parse(livekitInfo.metadata) as ParticipantMetadata;
-    if (!metadata.userId || !metadata.role) {
-      console.warn("Invalid participant metadata: missing required fields", metadata);
-      return null;
-    }
+    // biome-ignore lint/style/noNonNullAssertion: <explanation>
+    const metadata = JSON.parse(info.metadata!) as ParticipantMetadata;
 
     return {
       userId: metadata.userId,

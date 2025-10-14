@@ -2,6 +2,7 @@ import { CallsService } from "../generated/api";
 import type { CallsData } from "../generated/api/models";
 import { apiConfig } from "../core/signal/api.config";
 import { createLogger } from "../utils/logger";
+import { rtcStore } from "../state/store";
 
 const logger = createLogger("calls-service");
 
@@ -51,6 +52,12 @@ export function createCallsService(config: CallsServiceConfig) {
     callId: string
   ): Promise<CallsData["responses"]["PostSignalCallsByCallIdAccept"]> {
     ensureApiConfigured();
+
+    // Clear incoming invite immediately for instant UI feedback
+    rtcStore.setState((state) => {
+      state.incomingInvite = null;
+    });
+
     return CallsService.postSignalCallsByCallIdAccept({
       callId,
       appId,

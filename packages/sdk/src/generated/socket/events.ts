@@ -65,8 +65,6 @@ export const callInviteSchema = z.object({
     userId: z.string(),
   }).strict(),
   mode: z.enum(["VIDEO", "AUDIO"]),
-  expiresAt: z.string(),
-  expiresInMs: z.number(),
 }).strict();
 
 export type CallInviteEvent = z.infer<typeof callInviteSchema>;
