@@ -1,18 +1,11 @@
-import {
-    useParticipantInfo,
-
-} from "@livekit/components-react";
+import type { Participant } from "livekit-client";
 import type { ParticipantMetadata } from "../state/types";
-import type {Participant} from "livekit-client";
 
 export function useParticipantMetadata(
   participant: Participant
 ): ParticipantMetadata | null {
-    const info = useParticipantInfo({ participant})
-
   try {
-    // biome-ignore lint/style/noNonNullAssertion: <explanation>
-    const metadata = JSON.parse(info.metadata!) as ParticipantMetadata;
+    const metadata = participant.metadata ? JSON.parse(participant.metadata) as ParticipantMetadata : {} as ParticipantMetadata;
 
     return {
       userId: metadata.userId,

@@ -30,7 +30,6 @@ export enum SdkEventType {
   // Participant events
   PARTICIPANT_UPDATED = "participant:updated",
   PARTICIPANT_INVITED = "participant:invited",
-
 }
 
 /**

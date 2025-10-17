@@ -58,7 +58,6 @@ export {
   useTrackMutedIndicator,
   useTrackToggle,
   useTrackVolume,
-
 } from "@livekit/components-react";
 
 export {
@@ -73,4 +72,3 @@ export {
 } from "@livekit/components-react";
 
 export * from "./custom";
-

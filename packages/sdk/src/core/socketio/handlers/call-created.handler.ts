@@ -1,6 +1,6 @@
-import { SdkEventType, eventBus } from "../../events";
 import type { CallCreatedEvent } from "../../../generated/socket";
 import { callCreatedSchema } from "../../../generated/socket";
+import { SdkEventType, eventBus } from "../../events";
 import { BaseSocketHandler } from "./base.handler";
 
 /**

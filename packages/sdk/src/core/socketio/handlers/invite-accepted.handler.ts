@@ -1,7 +1,7 @@
-import { pushStaleEventError } from "../../../state/errors";
-import { rtcStore } from "../../../state/store";
 import type { CallInviteAcceptedEvent } from "../../../generated/socket";
 import { callInviteAcceptedSchema } from "../../../generated/socket";
+import { pushStaleEventError } from "../../../state/errors";
+import { rtcStore } from "../../../state/store";
 import { BaseSocketHandler } from "./base.handler";
 
 /**
@@ -28,15 +28,18 @@ export class InviteAcceptedHandler extends BaseSocketHandler<CallInviteAcceptedE
         eventCallId: data.callId,
         sessionCallId: currentState.session?.id,
       });
-      this.logger.warn("Ignoring accept event for different call", { callId: data.callId });
+      this.logger.warn("Ignoring accept event for different call", {
+        callId: data.callId,
+      });
       return;
     }
 
     this.updateStore((state) => {
-      // Sync session status from backend event
+      // Sync session status from a backend event
       if (state.session && data.status) {
         state.session.status = data.status;
       }
+      console.log("state.session.status", state.session.status, data.status);
 
       const userId = data.participant.userId;
 

@@ -1,8 +1,8 @@
-import { SdkEventType, eventBus } from "../../events";
-import { pushStaleEventError } from "../../../state/errors";
-import { rtcStore } from "../../../state/store";
 import type { CallEndedEvent } from "../../../generated/socket";
 import { callEndedSchema } from "../../../generated/socket";
+import { pushStaleEventError } from "../../../state/errors";
+import { rtcStore } from "../../../state/store";
+import { SdkEventType, eventBus } from "../../events";
 import { BaseSocketHandler } from "./base.handler";
 
 /**
@@ -29,7 +29,9 @@ export class SessionEndedHandler extends BaseSocketHandler<CallEndedEvent> {
         eventCallId: data.callId,
         sessionCallId: currentState.session?.id,
       });
-      this.logger.warn("Ignoring end event for different call", { callId: data.callId });
+      this.logger.warn("Ignoring end event for different call", {
+        callId: data.callId,
+      });
       return;
     }
 

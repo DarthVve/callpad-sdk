@@ -1,5 +1,10 @@
 import mitt, { type Emitter } from "mitt";
-import type { EventHandler, EventSubscription, SdkEvent, SdkEventType } from "./types";
+import type {
+  EventHandler,
+  EventSubscription,
+  SdkEvent,
+  SdkEventType,
+} from "./types";
 
 type Events = Record<string, any>;
 

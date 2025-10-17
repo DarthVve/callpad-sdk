@@ -1,8 +1,8 @@
-import { SdkEventType, eventBus } from "../../events";
-import { pushStaleEventError } from "../../../state/errors";
-import { rtcStore } from "../../../state/store";
 import type { CallInviteSentEvent } from "../../../generated/socket";
 import { callInviteSentSchema } from "../../../generated/socket";
+import { pushStaleEventError } from "../../../state/errors";
+import { rtcStore } from "../../../state/store";
+import { SdkEventType, eventBus } from "../../events";
 import { BaseSocketHandler } from "./base.handler";
 
 /**
@@ -28,7 +28,9 @@ export class InviteSentHandler extends BaseSocketHandler<CallInviteSentEvent> {
         eventCallId: data.callId,
         sessionCallId: currentState.session?.id,
       });
-      this.logger.warn("Ignoring invite sent for different call", { callId: data.callId });
+      this.logger.warn("Ignoring invite sent for different call", {
+        callId: data.callId,
+      });
       return;
     }
 

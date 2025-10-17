@@ -26,7 +26,7 @@ export const callCreatedSchema = z.object({
     username: z.string().nullable(),
     email: z.string().nullable(),
     profilePhoto: z.string().nullable(),
-    userId: z.string(),
+    userId: z.union([z.string(), z.number()]),
   }).strict(),
   participants: z.array(z.object({
     firstName: z.string().nullable(),
@@ -34,7 +34,7 @@ export const callCreatedSchema = z.object({
     username: z.string().nullable(),
     email: z.string().nullable(),
     profilePhoto: z.string().nullable(),
-    userId: z.string(),
+    userId: z.union([z.string(), z.number()]),
   }).strict()),
 }).strict();
 
@@ -55,6 +55,7 @@ export type CallEndedEvent = z.infer<typeof callEndedSchema>;
 // Event: call:invite
 export const callInviteSchema = z.object({
   callId: z.string(),
+  inviteId: z.string(),
   status: z.enum(["pending", "ready", "active", "ended"]),
   caller: z.object({
     firstName: z.string().nullable(),
@@ -62,7 +63,7 @@ export const callInviteSchema = z.object({
     username: z.string().nullable(),
     email: z.string().nullable(),
     profilePhoto: z.string().nullable(),
-    userId: z.string(),
+    userId: z.union([z.string(), z.number()]),
   }).strict(),
   mode: z.enum(["VIDEO", "AUDIO"]),
 }).strict();
@@ -80,7 +81,7 @@ export const callInviteAcceptedSchema = z.object({
     username: z.string().nullable(),
     email: z.string().nullable(),
     profilePhoto: z.string().nullable(),
-    userId: z.string(),
+    userId: z.union([z.string(), z.number()]),
   }).strict(),
   acceptedAt: z.string(),
 }).strict();
@@ -110,7 +111,7 @@ export const callInviteDeclinedSchema = z.object({
     username: z.string().nullable(),
     email: z.string().nullable(),
     profilePhoto: z.string().nullable(),
-    userId: z.string(),
+    userId: z.union([z.string(), z.number()]),
   }).strict(),
   reason: z.string().optional(),
   declinedAt: z.string(),
@@ -129,7 +130,7 @@ export const callInviteMissedSchema = z.object({
     username: z.string().nullable(),
     email: z.string().nullable(),
     profilePhoto: z.string().nullable(),
-    userId: z.string(),
+    userId: z.union([z.string(), z.number()]),
   }).strict(),
   missedAt: z.string(),
 }).strict();
@@ -146,7 +147,7 @@ export const callInviteSentSchema = z.object({
     username: z.string().nullable(),
     email: z.string().nullable(),
     profilePhoto: z.string().nullable(),
-    userId: z.string(),
+    userId: z.union([z.string(), z.number()]),
   }).strict(),
   status: z.literal("sent"),
 }).strict();
@@ -194,6 +195,27 @@ export const callParticipantAddedSchema = z.object({
 }).strict();
 
 export type CallParticipantAddedEvent = z.infer<typeof callParticipantAddedSchema>;
+
+// Event: call:ready
+// Event: call:ready
+export const callReadySchema = z.object({
+  callId: z.string(),
+  status: z.literal("ready"),
+  participant: z.object({
+    firstName: z.string().nullable(),
+    lastName: z.string().nullable(),
+    username: z.string().nullable(),
+    email: z.string().nullable(),
+    profilePhoto: z.string().nullable(),
+    userId: z.union([z.string(), z.number()]),
+  }).strict(),
+  joinInfo: z.object({
+    token: z.string(),
+    lkUrl: z.string(),
+  }).strict(),
+}).strict();
+
+export type CallReadyEvent = z.infer<typeof callReadySchema>;
 
 // Event: call:roomStarted
 // Event: call:roomStarted

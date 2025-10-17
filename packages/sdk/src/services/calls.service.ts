@@ -1,10 +1,7 @@
 import { CallsService } from "../generated/api";
 import type { CallsData } from "../generated/api/models";
-import { apiConfig } from "../core/signal/api.config";
-import { createLogger } from "../utils/logger";
 import { rtcStore } from "../state/store";
-
-const logger = createLogger("calls-service");
+import {eventBus, SdkEventType} from "../core/events";
 
 export interface CallsServiceConfig {
   appId: string;
@@ -19,70 +16,132 @@ export interface InitiateCallParams {
 export function createCallsService(config: CallsServiceConfig) {
   const { appId } = config;
 
-  // Helper to ensure API is configured before making requests
-  const ensureApiConfigured = () => {
-    if (!apiConfig.isConfigured()) {
-      logger.error("API not configured before making call service request");
-      throw new Error(
-        "API configuration missing. Ensure the SDK is properly initialized."
-      );
-    }
-  };
-
   async function initiate(
     params: InitiateCallParams
   ): Promise<CallsData["responses"]["PostSignalCallsInvite"]> {
-    ensureApiConfigured();
     const requestBody: NonNullable<
       CallsData["payloads"]["PostSignalCallsInvite"]["requestBody"]
     > = {
-      mode: params.mode || "AUDIO",
-      participants: params.invitees.map((userId) => ({ userId })),
+      participants: params.invitees.map((userId) => ({ userId: String(userId) })),
     };
+
     if (params.callId) {
       requestBody.callId = params.callId;
+    } else {
+        requestBody.mode = params.mode || "AUDIO";
     }
-    return CallsService.postSignalCallsInvite({
+
+    const response = await CallsService.postSignalCallsInvite({
+      appId,
+      requestBody,
+    });
+
+      rtcStore.getState().patch((state) => {
+      for (const participant of response.participants) {
+        if (participant.userId) {
+          state.outgoingInvites[participant.userId] = {
+            userId: participant.userId,
+            status: "sent",
+            participant: {
+              userId: participant.userId,
+              role: participant.role,
+              firstName: participant.firstName ?? "",
+              lastName: participant.lastName ?? "",
+              username: participant.username ?? "",
+              email: participant.email ?? "",
+              profilePhoto: participant.profilePhoto ?? "",
+            },
+          };
+        }
+      }
+
+      if (!params.callId) {
+          state.initiated = true;
+          state.session = {
+              id: response.callId,
+              status: response.status.toLowerCase() as any,
+              mode: "AUDIO",
+              role: "HOST"
+          }
+      }
+
+      if (response.joinInfo && state.session) {
+        state.session.livekitInfo = {
+          token: response.joinInfo.token,
+          roomName: state.session.id,
+          url: response.joinInfo.lkUrl,
+        };
+      }
+    });
+
+    return response;
+  }
+
+  async function accept(): Promise<
+    CallsData["responses"]["PostSignalCallsByCallIdAccept"]
+  > {
+    const currentState = rtcStore.getState();
+    if (!currentState.incomingInvite) {
+      throw new Error("No incoming invite to accept");
+    }
+
+    const { callId, inviteId } = currentState.incomingInvite;
+    rtcStore.getState().patch((state) => {
+      state.incomingInvite = null;
+    });
+
+    const response = await CallsService.postSignalCallsByCallIdAccept({
+      callId,
+      appId,
+      requestBody: {
+        inviteId,
+      },
+    });
+
+    rtcStore.getState().patch((state) => {
+      if (response.joinInfo && state.session) {
+        state.session.status = "ready";
+        state.session.livekitInfo = {
+          token: response.joinInfo.token,
+          roomName: state.session.id,
+          url: response.joinInfo.lkUrl,
+        };
+      }
+    });
+
+    return response;
+  }
+
+  async function decline(
+    reason?: string
+  ): Promise<CallsData["responses"]["PostSignalCallsByCallIdDecline"]> {
+    const currentState = rtcStore.getState();
+    if (!currentState.incomingInvite) {
+      throw new Error("No incoming invite to decline");
+    }
+
+    const { callId, inviteId } = currentState.incomingInvite;
+
+    const requestBody: NonNullable<
+      CallsData["payloads"]["PostSignalCallsByCallIdDecline"]["requestBody"]
+    > = {
+      inviteId,
+    };
+
+    if (reason) {
+      requestBody.reason = reason;
+    }
+
+    return CallsService.postSignalCallsByCallIdDecline({
+      callId,
       appId,
       requestBody,
     });
   }
 
-  async function accept(
-    callId: string
-  ): Promise<CallsData["responses"]["PostSignalCallsByCallIdAccept"]> {
-    ensureApiConfigured();
-
-    // Clear incoming invite immediately for instant UI feedback
-    rtcStore.setState((state) => {
-      state.incomingInvite = null;
-    });
-
-    return CallsService.postSignalCallsByCallIdAccept({
-      callId,
-      appId,
-    });
-  }
-
-  async function decline(
-    callId: string,
-    reason?: string
-  ): Promise<CallsData["responses"]["PostSignalCallsByCallIdDecline"]> {
-    ensureApiConfigured();
-    const payload: CallsData["payloads"]["PostSignalCallsByCallIdDecline"] = {
-      callId,
-      appId,
-    };
-    if (reason) {
-      payload.requestBody = { reason };
-    }
-    return CallsService.postSignalCallsByCallIdDecline(payload);
-  }
-
   async function cancel(
     callId: string
   ): Promise<CallsData["responses"]["PostSignalCallsByCallIdCancel"]> {
-    ensureApiConfigured();
     return CallsService.postSignalCallsByCallIdCancel({
       callId,
       appId,
@@ -92,7 +151,6 @@ export function createCallsService(config: CallsServiceConfig) {
   async function leave(
     callId: string
   ): Promise<CallsData["responses"]["PostSignalCallsByCallIdLeave"]> {
-    ensureApiConfigured();
     return CallsService.postSignalCallsByCallIdLeave({
       callId,
       appId,
@@ -102,7 +160,6 @@ export function createCallsService(config: CallsServiceConfig) {
   async function end(
     callId: string
   ): Promise<CallsData["responses"]["PostSignalCallsByCallIdEnd"]> {
-    ensureApiConfigured();
     return CallsService.postSignalCallsByCallIdEnd({
       callId,
       appId,
@@ -114,7 +171,6 @@ export function createCallsService(config: CallsServiceConfig) {
     targetParticipantId: string,
     reason?: string
   ): Promise<CallsData["responses"]["PostSignalCallsByCallIdTransfer"]> {
-    ensureApiConfigured();
     const requestBody: NonNullable<
       CallsData["payloads"]["PostSignalCallsByCallIdTransfer"]["requestBody"]
     > = {
@@ -135,7 +191,6 @@ export function createCallsService(config: CallsServiceConfig) {
     participantId: string,
     reason?: string
   ): Promise<CallsData["responses"]["PostSignalCallsByCallIdKick"]> {
-    ensureApiConfigured();
     const requestBody: NonNullable<
       CallsData["payloads"]["PostSignalCallsByCallIdKick"]["requestBody"]
     > = {
@@ -155,7 +210,6 @@ export function createCallsService(config: CallsServiceConfig) {
     callId: string,
     participantId: string
   ): Promise<CallsData["responses"]["PostSignalCallsByCallIdMute"]> {
-    ensureApiConfigured();
     return CallsService.postSignalCallsByCallIdMute({
       callId,
       appId,

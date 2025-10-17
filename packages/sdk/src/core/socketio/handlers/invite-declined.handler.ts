@@ -1,8 +1,8 @@
-import { SdkEventType, eventBus } from "../../events";
-import { pushStaleEventError } from "../../../state/errors";
-import { rtcStore } from "../../../state/store";
 import type { CallInviteDeclinedEvent } from "../../../generated/socket";
 import { callInviteDeclinedSchema } from "../../../generated/socket";
+import { pushStaleEventError } from "../../../state/errors";
+import { rtcStore } from "../../../state/store";
+import { SdkEventType, eventBus } from "../../events";
 import { BaseSocketHandler } from "./base.handler";
 
 /**
@@ -30,7 +30,9 @@ export class InviteDeclinedHandler extends BaseSocketHandler<CallInviteDeclinedE
         eventCallId: data.callId,
         sessionCallId: currentState.session?.id,
       });
-      this.logger.warn("Ignoring decline event for different call", { callId: data.callId });
+      this.logger.warn("Ignoring decline event for different call", {
+        callId: data.callId,
+      });
       return;
     }
 

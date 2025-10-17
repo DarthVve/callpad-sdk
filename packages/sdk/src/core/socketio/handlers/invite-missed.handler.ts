@@ -1,7 +1,7 @@
-import { pushStaleEventError } from "../../../state/errors";
-import { rtcStore } from "../../../state/store";
 import type { CallInviteMissedEvent } from "../../../generated/socket";
 import { callInviteMissedSchema } from "../../../generated/socket";
+import { pushStaleEventError } from "../../../state/errors";
+import { rtcStore } from "../../../state/store";
 import { BaseSocketHandler } from "./base.handler";
 
 /**
@@ -28,7 +28,9 @@ export class InviteMissedHandler extends BaseSocketHandler<CallInviteMissedEvent
         eventCallId: data.callId,
         sessionCallId: currentState.session?.id,
       });
-      this.logger.warn("Ignoring missed invite for different call", { callId: data.callId });
+      this.logger.warn("Ignoring missed invite for different call", {
+        callId: data.callId,
+      });
       return;
     }
 

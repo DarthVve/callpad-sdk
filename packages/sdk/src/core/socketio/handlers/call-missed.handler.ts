@@ -1,8 +1,8 @@
-import { SdkEventType, eventBus } from "../../events";
-import { pushStaleEventError } from "../../../state/errors";
-import { rtcStore } from "../../../state/store";
 import type { CallMissedEvent } from "../../../generated/socket";
 import { callMissedSchema } from "../../../generated/socket";
+import { pushStaleEventError } from "../../../state/errors";
+import { rtcStore } from "../../../state/store";
+import { SdkEventType, eventBus } from "../../events";
 import { BaseSocketHandler } from "./base.handler";
 
 /**
@@ -28,7 +28,9 @@ export class SessionMissedHandler extends BaseSocketHandler<CallMissedEvent> {
         eventCallId: data.callId,
         sessionCallId: currentState.session?.id,
       });
-      this.logger.warn("Ignoring missed call for different session", { callId: data.callId });
+      this.logger.warn("Ignoring missed call for different session", {
+        callId: data.callId,
+      });
       return;
     }
 
