@@ -1,6 +1,6 @@
-import { SdkEventType, eventBus } from "../../events";
 import type { CallInviteEvent } from "../../../generated/socket";
 import { callInviteSchema } from "../../../generated/socket";
+import { SdkEventType, eventBus } from "../../events";
 import { BaseSocketHandler } from "./base.handler";
 
 /**
@@ -20,17 +20,24 @@ export class InviteHandler extends BaseSocketHandler<CallInviteEvent> {
     });
 
     this.updateStore((state) => {
+      const now = new Date();
+      const expiresAt = new Date(now.getTime() + 30000); // 30 seconds from now
+
       state.incomingInvite = {
         callId: data.callId,
+        inviteId: data.inviteId,
         caller: {
           userId: data.caller.userId,
-          firstName: data.caller.firstName,
-          lastName: data.caller.lastName,
-          username: data.caller.username,
-          email: data.caller.email,
-          profilePhoto: data.caller.profilePhoto,
+          role: "HOST",
+          firstName: data.caller.firstName ?? "",
+          lastName: data.caller.lastName ?? "",
+          username: data.caller.username ?? "",
+          email: data.caller.email ?? "",
+          profilePhoto: data.caller.profilePhoto ?? "",
         },
         mode: data.mode,
+        expiresAt: expiresAt.toISOString(),
+        expiresInMs: 30000,
       };
 
       state.session = {

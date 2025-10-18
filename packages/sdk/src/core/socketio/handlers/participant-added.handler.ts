@@ -1,8 +1,8 @@
-import { SdkEventType, eventBus } from "../../events";
-import { pushStaleEventError } from "../../../state/errors";
-import { rtcStore } from "../../../state/store";
 import type { CallParticipantAddedEvent } from "../../../generated/socket";
 import { callParticipantAddedSchema } from "../../../generated/socket";
+import { pushStaleEventError } from "../../../state/errors";
+import { rtcStore } from "../../../state/store";
+import { SdkEventType, eventBus } from "../../events";
 import { BaseSocketHandler } from "./base.handler";
 
 /**
@@ -31,7 +31,9 @@ export class ParticipantAddedHandler extends BaseSocketHandler<CallParticipantAd
         eventCallId: data.callId,
         sessionCallId: currentState.session?.id,
       });
-      this.logger.warn("Ignoring participant added for different call", { callId: data.callId });
+      this.logger.warn("Ignoring participant added for different call", {
+        callId: data.callId,
+      });
       return;
     }
 

@@ -19,7 +19,7 @@ export type {
   CallResponse,
   CallActionResponse,
 } from "./core/signal/types";
-export  * from "./generated/socket/events";
+export * from "./generated/socket/events";
 export * from "./state/errors";
 export { apiConfig, type ApiConfig } from "./core/signal/api.config";
 export { eventBus } from "./core/events";

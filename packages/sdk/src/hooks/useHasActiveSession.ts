@@ -10,6 +10,8 @@ export function useHasActiveSession(): boolean {
     if (!state.session) {
       return false;
     }
-    return state.session.status === "pending" || state.session.status === "active";
+    return (
+      state.session.status === "pending" || state.session.status === "active"
+    );
   });
 }

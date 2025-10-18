@@ -68,7 +68,8 @@ requestBody
 		const {
                     
                     callId,
-appId
+appId,
+requestBody
                 } = data;
 		return __request(OpenAPI, {
 			method: 'POST',
@@ -79,6 +80,8 @@ appId
 			query: {
 				appId
 			},
+			body: requestBody,
+			mediaType: 'application/json',
 			errors: {
 				400: `Invalid request`,
 				401: `Authentication required`,

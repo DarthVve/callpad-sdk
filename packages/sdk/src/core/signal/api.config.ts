@@ -18,17 +18,17 @@ export class OpenApiConfigService {
       if (headers instanceof Headers) {
         authHeader = headers.get("Authorization") || null;
       } else if (headers && typeof headers === "object") {
-        authHeader = (headers as Record<string, string>)["Authorization"] || null;
+        authHeader = (headers as Record<string, string>).Authorization || null;
       }
 
       if (authHeader) {
         logger.debug("API Request with Authorization header", {
           hasAuth: true,
-          authPrefix: authHeader.substring(0, 20) + "..."
+          authPrefix: `${authHeader.substring(0, 20)}...`,
         });
       } else {
         logger.warn("API Request WITHOUT Authorization header", {
-          hasAuth: false
+          hasAuth: false,
         });
       }
 
@@ -58,7 +58,7 @@ export class OpenApiConfigService {
           logger.warn("Token provider returned empty token");
         } else {
           logger.debug("Token resolved successfully", {
-            tokenPrefix: token.substring(0, 10) + "..."
+            tokenPrefix: `${token.substring(0, 10)}...`,
           });
         }
 
@@ -78,7 +78,7 @@ export class OpenApiConfigService {
     this.configured = true;
     logger.info("API configuration completed", {
       baseUrl: config.baseUrl,
-      hasToken: !!config.token
+      hasToken: !!config.token,
     });
   }
 

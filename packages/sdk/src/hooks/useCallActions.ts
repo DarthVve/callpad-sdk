@@ -1,6 +1,6 @@
 import { useSdk } from "../provider/RtcProvider";
-import { useSessionId } from "./useSessionId";
 import { useIncomingInvite } from "./useIncomingInvite";
+import { useSessionId } from "./useSessionId";
 
 export function useCallActions() {
   const sdk = useSdk();
@@ -30,14 +30,14 @@ export function useCallActions() {
         throw new Error("No incoming invite to accept");
       }
 
-      return sdk.calls.accept(incomingInvite.callId);
+      return sdk.calls.accept();
     },
     decline: (reason?: string) => {
       if (!incomingInvite) {
         throw new Error("No incoming invite to decline");
       }
 
-      return sdk.calls.decline(incomingInvite.callId, reason);
+      return sdk.calls.decline(reason);
     },
     cancel: () => {
       if (!sessionId) {

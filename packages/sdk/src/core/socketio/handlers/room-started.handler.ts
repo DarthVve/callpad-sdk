@@ -1,6 +1,6 @@
-import { SdkEventType, eventBus } from "../../events";
 import type { CallRoomStartedEvent } from "../../../generated/socket";
 import { callRoomStartedSchema } from "../../../generated/socket";
+import { SdkEventType, eventBus } from "../../events";
 import { BaseSocketHandler } from "./base.handler";
 
 /**
@@ -17,7 +17,6 @@ export class RoomStartedHandler extends BaseSocketHandler<CallRoomStartedEvent> 
       callId: data.callId,
       roomName: data.roomName,
     });
-
 
     this.updateStore((state) => {
       if (state.session) {

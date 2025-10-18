@@ -24,6 +24,7 @@ export interface Session {
 
 export interface IncomingInvite {
   callId: string;
+  inviteId: string;
   caller: ParticipantMetadata;
   mode: "AUDIO" | "VIDEO";
   expiresAt: string;
