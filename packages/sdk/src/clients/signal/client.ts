@@ -1,5 +1,9 @@
 import { OpenAPI } from "../../generated/api";
-import { SignalCallsService, SignalHealthService, SignalPresenceService } from "./services";
+import {
+  SignalCallsService,
+  SignalHealthService,
+  SignalPresenceService,
+} from "./services";
 import type { SignalClientConfig } from "./types";
 
 export class SignalClient {

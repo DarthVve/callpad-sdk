@@ -3,23 +3,23 @@ type Nullable<T> = T | null;
 export type CallParticipantRole = "HOST" | "PARTICIPANT" | "GUEST";
 
 export interface ParticipantPermissions {
-    canMute: boolean;
-    canKick: boolean;
-    canTransfer: boolean;
-    canEnd: boolean;
-    canRecord: boolean;
-    canShareScreen: boolean;
+  canMute: boolean;
+  canKick: boolean;
+  canTransfer: boolean;
+  canEnd: boolean;
+  canRecord: boolean;
+  canShareScreen: boolean;
 }
 
 export interface ParticipantMetadata {
-    userId: string | number;
-    firstName: Nullable<string>;
-    lastName: Nullable<string>;
-    username: Nullable<string>;
-    email: Nullable<string>;
-    profilePhoto: Nullable<string>;
-    role: CallParticipantRole;
-    permissions: ParticipantPermissions;
+  userId: string | number;
+  firstName: Nullable<string>;
+  lastName: Nullable<string>;
+  username: Nullable<string>;
+  email: Nullable<string>;
+  profilePhoto: Nullable<string>;
+  role: CallParticipantRole;
+  permissions: ParticipantPermissions;
 }
 
 export interface LiveKitJoinInfo {
@@ -34,6 +34,8 @@ export interface Session {
   mode: "AUDIO" | "VIDEO";
   role: "HOST" | "PARTICIPANT" | "GUEST";
   livekitInfo?: LiveKitJoinInfo;
+  startedAt?: string;
+  ringTimeoutMs?: number;
 }
 
 export interface IncomingInvite {
@@ -43,6 +45,7 @@ export interface IncomingInvite {
   mode: "AUDIO" | "VIDEO";
   expiresAt: string;
   expiresInMs: number;
+  ringTimeoutMs: number;
 }
 
 export interface OutgoingInvite {

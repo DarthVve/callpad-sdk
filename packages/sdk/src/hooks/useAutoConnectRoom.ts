@@ -1,9 +1,14 @@
-import {ConnectionState, LocalTrack, Room, type RoomOptions} from "livekit-client";
+import {
+  ConnectionState,
+  LocalTrack,
+  Room,
+  type RoomOptions,
+} from "livekit-client";
+import { Track } from "livekit-client";
 import { useEffect, useState } from "react";
 import { createLogger } from "../utils/logger";
 import { useLivekitInfo } from "./useLivekitInfo";
 import { useRoomReady } from "./useRoomReady";
-import {Track} from "livekit-client";
 
 const logger = createLogger("useAutoConnectRoom");
 
@@ -18,11 +23,14 @@ export function useAutoConnectRoom(options?: RoomOptions): Room {
 
   useEffect(() => {
     if (isReady && livekitInfo) {
-      room.connect(livekitInfo.url, livekitInfo.token).catch((error) => {
-        logger.error("Failed to connect to LiveKit room", error);
-      }).then(() => {
-          room.localParticipant.setMicrophoneEnabled(true)
-      });
+      room
+        .connect(livekitInfo.url, livekitInfo.token)
+        .catch((error) => {
+          logger.error("Failed to connect to LiveKit room", error);
+        })
+        .then(() => {
+          room.localParticipant.setMicrophoneEnabled(true);
+        });
     } else if (room.state === ConnectionState.Connected) {
       room.disconnect();
     }

@@ -23,7 +23,10 @@ export class SignalCallsService {
   }
 
   async accept(
-    params: Omit<CallsData["payloads"]["PostSignalCallsByCallIdAccept"], "appId">
+    params: Omit<
+      CallsData["payloads"]["PostSignalCallsByCallIdAccept"],
+      "appId"
+    >
   ): Promise<CallsData["responses"]["PostSignalCallsByCallIdAccept"]> {
     return CallsService.postSignalCallsByCallIdAccept({
       ...params,
@@ -32,7 +35,10 @@ export class SignalCallsService {
   }
 
   async decline(
-    params: Omit<CallsData["payloads"]["PostSignalCallsByCallIdDecline"], "appId">
+    params: Omit<
+      CallsData["payloads"]["PostSignalCallsByCallIdDecline"],
+      "appId"
+    >
   ): Promise<CallsData["responses"]["PostSignalCallsByCallIdDecline"]> {
     return CallsService.postSignalCallsByCallIdDecline({
       ...params,
@@ -41,7 +47,10 @@ export class SignalCallsService {
   }
 
   async cancel(
-    params: Omit<CallsData["payloads"]["PostSignalCallsByCallIdCancel"], "appId">
+    params: Omit<
+      CallsData["payloads"]["PostSignalCallsByCallIdCancel"],
+      "appId"
+    >
   ): Promise<CallsData["responses"]["PostSignalCallsByCallIdCancel"]> {
     return CallsService.postSignalCallsByCallIdCancel({
       ...params,
@@ -50,7 +59,10 @@ export class SignalCallsService {
   }
 
   async transfer(
-    params: Omit<CallsData["payloads"]["PostSignalCallsByCallIdTransfer"], "appId">
+    params: Omit<
+      CallsData["payloads"]["PostSignalCallsByCallIdTransfer"],
+      "appId"
+    >
   ): Promise<CallsData["responses"]["PostSignalCallsByCallIdTransfer"]> {
     return CallsService.postSignalCallsByCallIdTransfer({
       ...params,

@@ -20,8 +20,9 @@ export class InviteHandler extends BaseSocketHandler<CallInviteEvent> {
     });
 
     this.updateStore((state) => {
+      const ringTimeoutMs = (data as any).ringTimeoutMs || 30000;
       const now = new Date();
-      const expiresAt = new Date(now.getTime() + 30000); // 30 seconds from now
+      const expiresAt = new Date(now.getTime() + ringTimeoutMs);
 
       state.incomingInvite = {
         callId: data.callId,
@@ -37,7 +38,8 @@ export class InviteHandler extends BaseSocketHandler<CallInviteEvent> {
         },
         mode: data.mode,
         expiresAt: expiresAt.toISOString(),
-        expiresInMs: 30000,
+        expiresInMs: ringTimeoutMs,
+        ringTimeoutMs,
       };
 
       state.session = {
@@ -45,6 +47,7 @@ export class InviteHandler extends BaseSocketHandler<CallInviteEvent> {
         status: "pending",
         mode: data.mode,
         role: "PARTICIPANT",
+        ringTimeoutMs,
       };
     });
 

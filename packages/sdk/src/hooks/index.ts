@@ -1,5 +1,6 @@
 export * from "./useCallState";
 export * from "./useCallActions";
+export * from "./useConnectionState";
 export * from "./useEvent";
 export * from "./useIncomingInvite";
 export * from "./useOutgoingInvites";
@@ -12,4 +13,6 @@ export * from "./useLivekitInfo";
 export * from "./useHasActiveSession";
 export * from "./useRoomReady";
 export * from "./useAutoConnectRoom";
-export * from "./useParticipantPermissions"
+export * from "./useParticipantPermissions";
+export * from "./useTimeout";
+export * from "./useRingTimeout";

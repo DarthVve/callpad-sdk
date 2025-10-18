@@ -63,8 +63,8 @@ export abstract class BaseSocketHandler<TPayload = any> {
     // }
 
     try {
-        // TODO fix validation
-        await this.handle(JSON.parse(JSON.stringify(rawData)));
+      // TODO fix validation
+      await this.handle(JSON.parse(JSON.stringify(rawData)));
       // await this.handle(result.data);
       this.logger.debug(`${this.eventName} handled successfully`);
     } catch (error) {

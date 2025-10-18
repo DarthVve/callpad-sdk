@@ -22,20 +22,22 @@ export function createCallsService(config: CallsServiceConfig) {
     const requestBody: NonNullable<
       CallsData["payloads"]["PostSignalCallsInvite"]["requestBody"]
     > = {
-      participants: params.invitees.map((userId) => ({ userId: String(userId) })),
+      participants: params.invitees.map((userId) => ({
+        userId: String(userId),
+      })),
     };
 
     if (params.callId) {
       requestBody.callId = params.callId;
     } else {
-        requestBody.mode = params.mode || "AUDIO";
+      requestBody.mode = params.mode || "AUDIO";
     }
 
     const response = await signalCalls.invite({
       requestBody,
     });
 
-      rtcStore.getState().patch((state) => {
+    rtcStore.getState().patch((state) => {
       for (const participant of response.participants) {
         if (participant.userId) {
           state.outgoingInvites[participant.userId] = {
@@ -55,13 +57,14 @@ export function createCallsService(config: CallsServiceConfig) {
       }
 
       if (!params.callId) {
-          state.initiated = true;
-          state.session = {
-              id: response.callId,
-              status: response.status.toLowerCase() as any,
-              mode: "AUDIO",
-              role: "HOST"
-          }
+        state.initiated = true;
+        state.session = {
+          id: response.callId,
+          status: response.status.toLowerCase() as any,
+          mode: "AUDIO",
+          role: "HOST",
+          ringTimeoutMs: response.ringTimeoutMs,
+        };
       }
 
       if (response.joinInfo && state.session) {
@@ -104,6 +107,14 @@ export function createCallsService(config: CallsServiceConfig) {
           roomName: state.session.id,
           url: response.joinInfo.lkUrl,
         };
+
+        if (response.call?.startedAt) {
+          state.session.startedAt = response.call.startedAt;
+        }
+
+        if (response.ringTimeoutMs) {
+          state.session.ringTimeoutMs = response.ringTimeoutMs;
+        }
       }
     });
 
@@ -151,7 +162,7 @@ export function createCallsService(config: CallsServiceConfig) {
       signalCalls.leave({
         callId,
       }),
-      Promise.resolve(rtcStore.getState().reset())
+      Promise.resolve(rtcStore.getState().reset()),
     ]);
 
     return apiResponse;

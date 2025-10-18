@@ -1,7 +1,7 @@
-import { AuthManager, SocketManager } from "../core";
+import { SignalClient } from "../clients/signal";
 import { apiConfig } from "../clients/signal/config";
 import type { ApiConfig } from "../clients/signal/types";
-import { SignalClient } from "../clients/signal";
+import { AuthManager, SocketManager } from "../core";
 import { rtcStore } from "../state/store";
 import { type LogLevel, setGlobalLoggerOptions } from "../utils/logger";
 import { type CallsServiceInstance, createCallsService } from "./calls.service";

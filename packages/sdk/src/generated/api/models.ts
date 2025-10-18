@@ -139,6 +139,15 @@ joinInfo: {
         token: string
 lkUrl: string
     } | null
+call: {
+        id: string
+state: string
+mode: string
+roomName: string
+createdAt: string
+startedAt: string
+    }
+ringTimeoutMs: number
     }
                 ,PostSignalCallsByCallIdAccept: {
         callId: string
@@ -146,6 +155,14 @@ joinInfo: {
         token: string
 lkUrl: string
     }
+call: {
+        id: string
+roomName: string
+state: string
+createdAt: string
+startedAt: string
+    }
+ringTimeoutMs: number
     }
                 ,PostSignalCallsByCallIdDecline: {
         callId: string

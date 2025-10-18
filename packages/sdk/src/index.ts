@@ -29,4 +29,4 @@ export type {
   EventHandler,
   EventSubscription,
 } from "./core/events/types";
-export * from "./clients/signal"
+export * from "./clients/signal";
