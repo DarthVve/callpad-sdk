@@ -18,10 +18,10 @@ export type {
   InitiateCallParams,
   CallResponse,
   CallActionResponse,
-} from "./core/signal/types";
+} from "./clients/signal/types";
 export * from "./generated/socket/events";
 export * from "./state/errors";
-export { apiConfig, type ApiConfig } from "./core/signal/api.config";
+export { apiConfig, type ApiConfig } from "./clients/signal/config";
 export { eventBus } from "./core/events";
 export { SdkEventType } from "./core/events/types";
 export type {
@@ -29,6 +29,4 @@ export type {
   EventHandler,
   EventSubscription,
 } from "./core/events/types";
-
-// Signal client exports
-export * from "./clients/signal";
+export * from "./clients/signal"

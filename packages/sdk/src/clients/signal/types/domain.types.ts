@@ -38,7 +38,7 @@ export interface IncomingCallEvent {
   participants?: string[];
 }
 
-export type CallState = "RINGING" | "ACTIVE" | "ON_HOLD" | "ENDED";
+export type CallStateType = "RINGING" | "ACTIVE" | "ON_HOLD" | "ENDED";
 export type CallMode = "AUDIO" | "VIDEO";
 export type EndReason = "ENDED" | "TIMEOUT" | "ERROR" | "CANCELLED";
 
@@ -46,14 +46,6 @@ export interface InitiateCallParams {
   invitees: string[];
   mode?: "AUDIO" | "VIDEO";
   metadata?: any;
-}
-
-export interface ApiConfig {
-  baseUrl: string;
-  token?: string | (() => Promise<string> | string);
-  credentials?: "include" | "omit" | "same-origin";
-  withCredentials?: boolean;
-  headers?: Record<string, string>;
 }
 
 // Backend API Response Types

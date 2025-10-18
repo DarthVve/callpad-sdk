@@ -4,7 +4,7 @@ import type { CallsData } from "../../../generated/api/models";
 export class SignalCallsService {
   constructor(private appId: string) {}
 
-  async getCall(
+  async get(
     params: Omit<CallsData["payloads"]["GetSignalCallsByCallId"], "appId">
   ): Promise<CallsData["responses"]["GetSignalCallsByCallId"]> {
     return CallsService.getSignalCallsByCallId({

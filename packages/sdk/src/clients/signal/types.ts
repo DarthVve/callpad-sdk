@@ -1,5 +1,3 @@
-import type { ApiConfig } from "../../core/signal/types";
-
 export interface SignalClientConfig {
   baseUrl: string;
   appId: string;
@@ -13,5 +11,5 @@ export interface SignalClientOptions {
   config: SignalClientConfig;
 }
 
-// Re-export API config type for convenience
-export type { ApiConfig };
+// Re-export all types from the types directory
+export * from "./types/index";

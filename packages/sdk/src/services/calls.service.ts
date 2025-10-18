@@ -1,4 +1,4 @@
-import { CallsService } from "../generated/api";
+import { SignalCallsService } from "../clients/signal";
 import type { CallsData } from "../generated/api/models";
 import { rtcStore } from "../state/store";
 
@@ -14,6 +14,7 @@ export interface InitiateCallParams {
 
 export function createCallsService(config: CallsServiceConfig) {
   const { appId } = config;
+  const signalCalls = new SignalCallsService(appId);
 
   async function initiate(
     params: InitiateCallParams
@@ -30,8 +31,7 @@ export function createCallsService(config: CallsServiceConfig) {
         requestBody.mode = params.mode || "AUDIO";
     }
 
-    const response = await CallsService.postSignalCallsInvite({
-      appId,
+    const response = await signalCalls.invite({
       requestBody,
     });
 
@@ -89,9 +89,8 @@ export function createCallsService(config: CallsServiceConfig) {
       state.incomingInvite = null;
     });
 
-    const response = await CallsService.postSignalCallsByCallIdAccept({
+    const response = await signalCalls.accept({
       callId,
-      appId,
       requestBody: {
         inviteId,
       },
@@ -131,9 +130,8 @@ export function createCallsService(config: CallsServiceConfig) {
       requestBody.reason = reason;
     }
 
-    return CallsService.postSignalCallsByCallIdDecline({
+    return signalCalls.decline({
       callId,
-      appId,
       requestBody,
     });
   }
@@ -141,9 +139,8 @@ export function createCallsService(config: CallsServiceConfig) {
   async function cancel(
     callId: string
   ): Promise<CallsData["responses"]["PostSignalCallsByCallIdCancel"]> {
-    return CallsService.postSignalCallsByCallIdCancel({
+    return signalCalls.cancel({
       callId,
-      appId,
     });
   }
 
@@ -151,9 +148,8 @@ export function createCallsService(config: CallsServiceConfig) {
     callId: string
   ): Promise<CallsData["responses"]["PostSignalCallsByCallIdLeave"]> {
     const [apiResponse] = await Promise.all([
-      CallsService.postSignalCallsByCallIdLeave({
+      signalCalls.leave({
         callId,
-        appId,
       }),
       Promise.resolve(rtcStore.getState().reset())
     ]);
@@ -174,9 +170,8 @@ export function createCallsService(config: CallsServiceConfig) {
     if (reason) {
       requestBody.reason = reason;
     }
-    return CallsService.postSignalCallsByCallIdTransfer({
+    return signalCalls.transfer({
       callId,
-      appId,
       requestBody,
     });
   }
@@ -194,9 +189,8 @@ export function createCallsService(config: CallsServiceConfig) {
     if (reason) {
       requestBody.reason = reason;
     }
-    return CallsService.postSignalCallsByCallIdKick({
+    return signalCalls.kick({
       callId,
-      appId,
       requestBody,
     });
   }
@@ -205,9 +199,8 @@ export function createCallsService(config: CallsServiceConfig) {
     callId: string,
     participantId: string
   ): Promise<CallsData["responses"]["PostSignalCallsByCallIdMute"]> {
-    return CallsService.postSignalCallsByCallIdMute({
+    return signalCalls.mute({
       callId,
-      appId,
       requestBody: {
         participantId,
       },
