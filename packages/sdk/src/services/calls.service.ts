@@ -1,7 +1,6 @@
 import { CallsService } from "../generated/api";
 import type { CallsData } from "../generated/api/models";
 import { rtcStore } from "../state/store";
-import {eventBus, SdkEventType} from "../core/events";
 
 export interface CallsServiceConfig {
   appId: string;
@@ -151,19 +150,15 @@ export function createCallsService(config: CallsServiceConfig) {
   async function leave(
     callId: string
   ): Promise<CallsData["responses"]["PostSignalCallsByCallIdLeave"]> {
-    return CallsService.postSignalCallsByCallIdLeave({
-      callId,
-      appId,
-    });
-  }
+    const [apiResponse] = await Promise.all([
+      CallsService.postSignalCallsByCallIdLeave({
+        callId,
+        appId,
+      }),
+      Promise.resolve(rtcStore.getState().reset())
+    ]);
 
-  async function end(
-    callId: string
-  ): Promise<CallsData["responses"]["PostSignalCallsByCallIdEnd"]> {
-    return CallsService.postSignalCallsByCallIdEnd({
-      callId,
-      appId,
-    });
+    return apiResponse;
   }
 
   async function transfer(
@@ -225,7 +220,6 @@ export function createCallsService(config: CallsServiceConfig) {
     decline,
     cancel,
     leave,
-    end,
     transfer,
     kick,
     mute,

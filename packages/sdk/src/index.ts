@@ -29,3 +29,6 @@ export type {
   EventHandler,
   EventSubscription,
 } from "./core/events/types";
+
+// Signal client exports
+export * from "./clients/signal";

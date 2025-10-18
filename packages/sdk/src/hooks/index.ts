@@ -12,3 +12,4 @@ export * from "./useLivekitInfo";
 export * from "./useHasActiveSession";
 export * from "./useRoomReady";
 export * from "./useAutoConnectRoom";
+export * from "./useParticipantPermissions"

@@ -16,6 +16,11 @@
       "types": "./dist/livekit/index.d.ts",
       "import": "./dist/livekit/index.mjs",
       "require": "./dist/livekit/index.cjs"
+    },
+    "./utils": {
+      "types": "./dist/utils/index.d.ts",
+      "import": "./dist/utils/index.mjs",
+      "require": "./dist/utils/index.cjs"
     }
   },
   "sideEffects": false,

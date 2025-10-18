@@ -9,6 +9,7 @@ export { InviteDeclinedHandler } from "./invite-declined.handler";
 export { InviteMissedHandler } from "./invite-missed.handler";
 export { InviteCancelledHandler } from "./invite-cancelled.handler";
 export { SessionCreatedHandler } from "./call-created.handler";
+export { CallEndHandler } from "./call-end.handler";
 export { SessionEndedHandler } from "./call-ended.handler";
 export { SessionCancelledHandler } from "./call-cancelled.handler";
 export { SessionMissedHandler } from "./call-missed.handler";

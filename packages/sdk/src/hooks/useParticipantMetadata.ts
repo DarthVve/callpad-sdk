@@ -1,26 +1,19 @@
-import type { Participant } from "livekit-client";
-import type { ParticipantMetadata } from "../state/types";
+import type {RemoteParticipant, LocalParticipant} from "livekit-client";
+import type {ParticipantMetadata} from "../state/types";
+import {useParticipantInfo} from "@livekit/components-react";
 
 export function useParticipantMetadata(
-  participant: Participant
+  participant: RemoteParticipant | LocalParticipant,
 ): ParticipantMetadata | null {
-    console.log(
-        "useParticipantMetadata",
-        participant.identity,
-        participant.isActive,
-    );
-  try {
-    const metadata = participant.metadata ? JSON.parse(participant.metadata) as ParticipantMetadata : {} as ParticipantMetadata;
+    if (!participant.metadata) {
+        return null;
+    }
 
-    return {
-      userId: metadata.userId,
-      role: metadata.role,
-      firstName: metadata.firstName || "",
-      lastName: metadata.lastName || "",
-      username: metadata.username || "",
-      email: metadata.email || "",
-      profilePhoto: metadata.profilePhoto || "",
-    };
+    const m = useParticipantInfo({ participant });
+    const info = participant;
+
+  try {
+      return info.metadata ? JSON.parse(info.metadata) as ParticipantMetadata : {} as ParticipantMetadata;
   } catch (error) {
     console.error("Failed to parse participant metadata:", error);
     return null;
