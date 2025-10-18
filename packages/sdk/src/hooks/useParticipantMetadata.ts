@@ -4,6 +4,11 @@ import type { ParticipantMetadata } from "../state/types";
 export function useParticipantMetadata(
   participant: Participant
 ): ParticipantMetadata | null {
+    console.log(
+        "useParticipantMetadata",
+        participant.identity,
+        participant.isActive,
+    );
   try {
     const metadata = participant.metadata ? JSON.parse(participant.metadata) as ParticipantMetadata : {} as ParticipantMetadata;
 

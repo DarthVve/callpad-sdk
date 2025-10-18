@@ -36,7 +36,8 @@ export class InviteAcceptedHandler extends BaseSocketHandler<CallInviteAcceptedE
 
     this.updateStore((state) => {
       // Sync session status from a backend event
-      if (state.session && data.status) {
+      if (state.session !== data.status) {
+          console.log("Setting session", state.session);
         state.session.status = data.status;
       }
       console.log("state.session.status", state.session.status, data.status);
