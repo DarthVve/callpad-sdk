@@ -1,4 +1,6 @@
-export type EnvelopeKind = "entry" | "edit" | "delete" | "reaction";
+import type { ParticipantMetadata } from "../../state/types";
+
+export type EnvelopeKind = "entry" | "edit" | "remove" | "reaction";
 
 export interface EnvelopeBase {
   v: 1;
@@ -8,7 +10,8 @@ export interface EnvelopeBase {
   ts: number;
   sender: {
     sid: string;
-    userId?: string | number;
+    identity: string;
+    info?: ParticipantMetadata;
   };
 }
 
@@ -22,10 +25,6 @@ export interface EditPayload {
   version: number;
 }
 
-export interface DeletePayload {
-  reason?: string;
-}
-
 export interface ReactionPayload {
   emoji: string;
   op: "add" | "remove";
@@ -34,7 +33,7 @@ export interface ReactionPayload {
 export type Envelope =
   | (EnvelopeBase & { kind: "entry"; payload: EntryPayload })
   | (EnvelopeBase & { kind: "edit"; payload: EditPayload })
-  | (EnvelopeBase & { kind: "delete"; payload: DeletePayload })
+  | (EnvelopeBase & { kind: "remove" })
   | (EnvelopeBase & { kind: "reaction"; payload: ReactionPayload });
 
 export type ChatEntryStatus = "sending" | "sent" | "failed";
@@ -44,11 +43,12 @@ export interface ChatEntry {
   content: string;
   sender: {
     sid: string;
-    userId?: string | number;
+    identity: string;
+    info?: ParticipantMetadata;
   };
   createdAt: number;
   editedAt?: number;
-  deletedAt?: number;
+  removedAt?: number;
   version: number;
   reactions: Record<string, Set<string>>;
   status: ChatEntryStatus;

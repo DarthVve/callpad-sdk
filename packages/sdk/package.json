@@ -21,6 +21,11 @@
       "types": "./dist/utils/index.d.ts",
       "import": "./dist/utils/index.mjs",
       "require": "./dist/utils/index.cjs"
+    },
+    "./channel": {
+      "types": "./dist/channel/index.d.ts",
+      "import": "./dist/channel/index.mjs",
+      "require": "./dist/channel/index.cjs"
     }
   },
   "sideEffects": false,
@@ -71,6 +76,7 @@
     "jwt-decode": "^4.0.0",
     "livekit-client": "^2.15.8",
     "mitt": "^3.0.1",
+    "nanoid": "^5.1.6",
     "zod": "^3.22.0",
     "zustand": "^4.5.0"
   },
