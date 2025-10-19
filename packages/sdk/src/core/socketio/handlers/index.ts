@@ -12,6 +12,7 @@ export { SessionCreatedHandler } from "./call-created.handler";
 export { CallEndHandler } from "./call-end.handler";
 export { SessionEndedHandler } from "./call-ended.handler";
 export { SessionCancelledHandler } from "./call-cancelled.handler";
+export { CallDeclinedHandler } from "./call-declined.handler";
 export { SessionMissedHandler } from "./call-missed.handler";
 export { JoinInfoHandler } from "./join-info.handler";
 export { ParticipantAddedHandler } from "./participant-added.handler";

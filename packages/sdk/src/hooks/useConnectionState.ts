@@ -1,5 +1,6 @@
-import { useMemo } from "react";
-import { useRtcStore } from "../state/store";
+import { useConnectionState as useLivekitConnectionState } from "@livekit/components-react";
+import {  ConnectionState as LivekitConnectionState } from "livekit-client"
+import {useCallState} from "./useCallState";
 
 export type ConnectionState =
   | "pending"
@@ -9,24 +10,24 @@ export type ConnectionState =
   | "ended";
 
 export function useConnectionState(): ConnectionState {
-  const sessionStatus = useRtcStore((state) => state.session?.status);
+    const { status } = useCallState()
+    const connectionState = useLivekitConnectionState()
 
-  return useMemo(() => {
-    if (!sessionStatus) {
-      return "idle";
+    if (connectionState === LivekitConnectionState.Connected) {
+        return "active"
     }
 
-    switch (sessionStatus) {
-      case "pending":
-        return "pending";
-      case "ready":
-        return "connecting";
-      case "active":
-        return "active";
-      case "ended":
-        return "ended";
-      default:
-        return "idle";
+    if (connectionState === LivekitConnectionState.Connecting || connectionState === LivekitConnectionState.Reconnecting) {
+        return "connecting"
     }
-  }, [sessionStatus]);
+
+    if (status === "pending") {
+        return "pending"
+    }
+
+    if (status === "ended") {
+        return "ended"
+    }
+
+    return "idle"
 }
