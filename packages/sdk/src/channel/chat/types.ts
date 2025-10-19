@@ -9,8 +9,7 @@ export interface EnvelopeBase {
   entryId: string;
   ts: number;
   sender: {
-    sid: string;
-    identity: string;
+    id: string;
     info?: ParticipantMetadata;
   };
 }
@@ -42,9 +41,7 @@ export interface ChatEntry {
   id: string;
   content: string;
   sender: {
-    sid: string;
-    identity: string;
-    info?: ParticipantMetadata;
+    id: string;
   };
   createdAt: number;
   editedAt?: number;
@@ -58,5 +55,6 @@ export interface ChatState {
   byId: Record<string, ChatEntry>;
   order: string[];
   pendingOps: Record<string, Envelope[]>;
+  participantCache: Record<string, ParticipantMetadata>;
   maxEntries: number;
 }

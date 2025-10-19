@@ -6,8 +6,8 @@ export function compareEntries(a: ChatEntry, b: ChatEntry): number {
     return a.createdAt - b.createdAt;
   }
   
-  if (a.sender.sid !== b.sender.sid) {
-    return a.sender.sid.localeCompare(b.sender.sid);
+  if (a.sender.id !== b.sender.id) {
+    return a.sender.id.localeCompare(b.sender.id);
   }
   
   return a.id.localeCompare(b.id);
@@ -49,7 +49,7 @@ export function isValidEnvelope(data: any): data is Envelope {
     return false;
   }
   
-  if (!data.sender || typeof data.sender.sid !== "string") {
+  if (!data.sender || typeof data.sender.id !== "string") {
     return false;
   }
   

@@ -3,6 +3,7 @@ import { immer } from "zustand/middleware/immer";
 import type { ChatEntry, ChatState, Envelope } from "./types";
 
 interface ChatActions {
+  patch: (fn: (draft: ChatState) => void) => void;
   applyIncoming: (envelope: Envelope) => void;
   addEntryOptimistic: (entry: ChatEntry) => void;
   markEntrySent: (entryId: string) => void;
@@ -25,6 +26,7 @@ const defaultChatState: ChatState = {
   byId: {},
   order: [],
   pendingOps: {},
+  participantCache: {},
   maxEntries: 1000,
 };
 
@@ -65,6 +67,11 @@ export const useChatStore = create<ChatState & ChatActions>()(
   immer((set) => ({
     ...defaultChatState,
 
+    patch: (fn) =>
+      set((state) => {
+        fn(state);
+      }),
+
     applyIncoming: (envelope) =>
       set((state) => {
         if (envelope.kind === "entry") {
@@ -72,10 +79,16 @@ export const useChatStore = create<ChatState & ChatActions>()(
             return;
           }
 
+          if (envelope.sender.info) {
+            state.participantCache[envelope.sender.id] = envelope.sender.info;
+          }
+
           const entry: ChatEntry = {
             id: envelope.entryId,
             content: envelope.payload.content,
-            sender: envelope.sender,
+            sender: {
+              id: envelope.sender.id,
+            },
             createdAt: envelope.ts,
             version: 1,
             reactions: {},
@@ -105,12 +118,16 @@ export const useChatStore = create<ChatState & ChatActions>()(
                   entry.removedAt = op.ts;
                 }
               } else if (op.kind === "reaction") {
+                if (op.sender.info) {
+                  state.participantCache[op.sender.id] = op.sender.info;
+                }
+
                 const entry = state.byId[op.entryId];
                 if (entry) {
                   applyReactionToEntry(
                     entry,
                     op.payload.emoji,
-                    op.sender.sid,
+                    op.sender.id,
                     op.payload.op
                   );
                 }
@@ -144,12 +161,16 @@ export const useChatStore = create<ChatState & ChatActions>()(
             state.pendingOps[envelope.entryId]?.push(envelope);
           }
         } else if (envelope.kind === "reaction") {
+          if (envelope.sender.info) {
+            state.participantCache[envelope.sender.id] = envelope.sender.info;
+          }
+
           const entry = state.byId[envelope.entryId];
           if (entry) {
             applyReactionToEntry(
               entry,
               envelope.payload.emoji,
-              envelope.sender.sid,
+              envelope.sender.id,
               envelope.payload.op
             );
           } else {
@@ -242,12 +263,16 @@ export const useChatStore = create<ChatState & ChatActions>()(
               entry.removedAt = envelope.ts;
             }
           } else if (envelope.kind === "reaction") {
+            if (envelope.sender.info) {
+              state.participantCache[envelope.sender.id] = envelope.sender.info;
+            }
+
             const entry = state.byId[envelope.entryId];
             if (entry) {
               applyReactionToEntry(
                 entry,
                 envelope.payload.emoji,
-                envelope.sender.sid,
+                envelope.sender.id,
                 envelope.payload.op
               );
             }

@@ -4,10 +4,14 @@ import { useFeatureService } from "../DataChannelContext";
 import { compareEntries } from "./utils";
 import type { ChatService } from "./service";
 import type { ChatEntry } from "./types";
+import type { ParticipantMetadata } from "../../state/types";
+
+type Nullable<T> = T | null;
 
 export interface UseChatReturn {
   entries: ChatEntry[];
   isReady: boolean;
+  getParticipantInfo: (id: string) => Nullable<ParticipantMetadata>;
   isOwnEntry: (entry: ChatEntry) => boolean;
   send: (content: string) => Promise<void>;
   edit: (id: string, content: string) => Promise<void>;
@@ -21,6 +25,7 @@ export function useChat(): UseChatReturn {
   
   const byId = useChatStore(state => state.byId);
   const order = useChatStore(state => state.order);
+  const participantCache = useChatStore(state => state.participantCache);
 
   const entries = useMemo(() => {
     return order
@@ -28,6 +33,13 @@ export function useChat(): UseChatReturn {
       .filter((entry): entry is ChatEntry => entry !== undefined)
       .sort(compareEntries);
   }, [byId, order]);
+
+  const getParticipantInfo = useCallback(
+    (id: string): Nullable<ParticipantMetadata> => {
+      return participantCache[id] || null;
+    },
+    [participantCache]
+  );
 
   const send = useCallback(
     async (content: string) => service.send(content),
@@ -55,13 +67,14 @@ export function useChat(): UseChatReturn {
   );
 
   const isOwnEntry = useCallback(
-    (entry: ChatEntry) => entry.sender.sid === service.getLocalParticipantSid(),
+    (entry: ChatEntry) => entry.sender.id === service.getLocalParticipantId(),
     [service]
   );
 
   return {
     entries,
     isReady: true,
+    getParticipantInfo,
     isOwnEntry,
     send,
     edit,

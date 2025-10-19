@@ -59,8 +59,8 @@ export class ChatService {
     this.isSubscribed = false;
   }
 
-  getLocalParticipantSid(): string {
-    return this.room.localParticipant.sid;
+  getLocalParticipantId(): string {
+    return this.room.localParticipant.identity;
   }
 
   async send(content: string): Promise<void> {
@@ -85,11 +85,20 @@ export class ChatService {
 
     const entryId = generateEntryId();
     const chatStore = useChatStore.getState();
+    const senderInfo = this.getSenderInfo();
+
+    if (senderInfo.info) {
+      chatStore.patch((state) => {
+        state.participantCache[senderInfo.id] = senderInfo.info!;
+      });
+    }
 
     const entry: ChatEntry = {
       id: entryId,
       content,
-      sender: this.getSenderInfo(),
+      sender: {
+        id: senderInfo.id,
+      },
       createdAt: getCurrentTimestamp(),
       version: 1,
       reactions: {},
@@ -104,7 +113,7 @@ export class ChatService {
         roomId: this.room.name,
         entryId,
         ts: entry.createdAt,
-        sender: entry.sender,
+        sender: senderInfo,
         payload: {
           content,
         },
@@ -159,7 +168,7 @@ export class ChatService {
     }
 
     const senderInfo = this.getSenderInfo();
-    if (entry.sender.sid !== senderInfo.sid) {
+    if (entry.sender.id !== senderInfo.id) {
       useRtcStore.getState().addError({
         code: "CHAT_UNAUTHORIZED",
         message: "You can only edit your own messages",
@@ -221,7 +230,7 @@ export class ChatService {
     }
 
     const senderInfo = this.getSenderInfo();
-    if (entry.sender.sid !== senderInfo.sid) {
+    if (entry.sender.id !== senderInfo.id) {
       useRtcStore.getState().addError({
         code: "CHAT_UNAUTHORIZED",
         message: "You can only remove your own messages",
@@ -273,7 +282,14 @@ export class ChatService {
     }
 
     const senderInfo = this.getSenderInfo();
-    chatStore.applyReaction(entryId, emoji, senderInfo.sid, "add");
+
+    if (senderInfo.info) {
+      chatStore.patch((state) => {
+        state.participantCache[senderInfo.id] = senderInfo.info!;
+      });
+    }
+
+    chatStore.applyReaction(entryId, emoji, senderInfo.id, "add");
 
     try {
       const envelope: Envelope = {
@@ -320,7 +336,14 @@ export class ChatService {
     }
 
     const senderInfo = this.getSenderInfo();
-    chatStore.applyReaction(entryId, emoji, senderInfo.sid, "remove");
+
+    if (senderInfo.info) {
+      chatStore.patch((state) => {
+        state.participantCache[senderInfo.id] = senderInfo.info!;
+      });
+    }
+
+    chatStore.applyReaction(entryId, emoji, senderInfo.id, "remove");
 
     try {
       const envelope: Envelope = {
@@ -365,11 +388,10 @@ export class ChatService {
     }
   }
 
-  private getSenderInfo(): { sid: string; identity: string; info?: ParticipantMetadata } {
+  private getSenderInfo(): { id: string; info?: ParticipantMetadata } {
     const localParticipant = this.room.localParticipant;
-    const sender: { sid: string; identity: string; info?: ParticipantMetadata } = {
-      sid: localParticipant.sid,
-      identity: localParticipant.identity,
+    const sender: { id: string; info?: ParticipantMetadata } = {
+      id: localParticipant.identity,
     };
 
     if (localParticipant.metadata) {
