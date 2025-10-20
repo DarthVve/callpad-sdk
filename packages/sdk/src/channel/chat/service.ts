@@ -51,7 +51,6 @@ export class ChatService {
         }
       }
     );
-
     this.isSubscribed = true;
   }
 
@@ -86,7 +85,6 @@ export class ChatService {
     const entryId = generateEntryId();
     const chatStore = useChatStore.getState();
     const senderInfo = this.getSenderInfo();
-
     if (senderInfo.info) {
       chatStore.patch((state) => {
         state.participantCache[senderInfo.id] = senderInfo.info!;
@@ -122,7 +120,6 @@ export class ChatService {
       await this.room.localParticipant.sendText(JSON.stringify(envelope), {
         topic: "chat:v1",
       });
-
       chatStore.markEntrySent(entryId);
     } catch (error) {
       chatStore.markEntryFailed(entryId);
@@ -276,13 +273,11 @@ export class ChatService {
 
     const chatStore = useChatStore.getState();
     const entry = chatStore.byId[entryId];
-
     if (!entry) {
       return;
     }
 
     const senderInfo = this.getSenderInfo();
-
     if (senderInfo.info) {
       chatStore.patch((state) => {
         state.participantCache[senderInfo.id] = senderInfo.info!;
@@ -290,7 +285,6 @@ export class ChatService {
     }
 
     chatStore.applyReaction(entryId, emoji, senderInfo.id, "add");
-
     try {
       const envelope: Envelope = {
         v: 1,
@@ -330,13 +324,11 @@ export class ChatService {
 
     const chatStore = useChatStore.getState();
     const entry = chatStore.byId[entryId];
-
     if (!entry) {
       return;
     }
 
     const senderInfo = this.getSenderInfo();
-
     if (senderInfo.info) {
       chatStore.patch((state) => {
         state.participantCache[senderInfo.id] = senderInfo.info!;
@@ -344,7 +336,6 @@ export class ChatService {
     }
 
     chatStore.applyReaction(entryId, emoji, senderInfo.id, "remove");
-
     try {
       const envelope: Envelope = {
         v: 1,
@@ -376,7 +367,6 @@ export class ChatService {
   private handleIncomingMessage(text: string): void {
     try {
       const parsed = JSON.parse(text);
-
       if (!isValidEnvelope(parsed)) {
         logger.warn("Invalid envelope received", parsed);
         return;
