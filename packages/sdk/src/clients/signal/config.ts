@@ -1,12 +1,11 @@
 import { OpenAPI } from "../../generated/api";
-import { createLogger } from "../../utils/logger";
+import { createLogger } from "../../utils";
 import type { ApiConfig } from "./types";
 
 const logger = createLogger("api-config");
 
 export class OpenApiConfigService {
   private static instance: OpenApiConfigService;
-  private configured = false;
 
   private constructor() {
     // Add request interceptor to log authorization headers
@@ -75,19 +74,10 @@ export class OpenApiConfigService {
       OpenAPI.HEADERS = config.headers;
     }
 
-    this.configured = true;
-    logger.info("API configuration completed", {
+    logger.info("Signal svc configuration completed", {
       baseUrl: config.baseUrl,
       hasToken: !!config.token,
     });
-  }
-
-  isConfigured(): boolean {
-    return this.configured;
-  }
-
-  setToken(token: string): void {
-    OpenAPI.TOKEN = token;
   }
 }
 
@@ -96,4 +86,4 @@ export const apiConfig = OpenApiConfigService.getInstance();
 export { OpenAPI };
 
 // Re-export ApiConfig type
-export type { ApiConfig } from "./types";
+export type { ApiConfig } from "./types/api.types";

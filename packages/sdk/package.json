@@ -16,6 +16,16 @@
       "types": "./dist/livekit/index.d.ts",
       "import": "./dist/livekit/index.mjs",
       "require": "./dist/livekit/index.cjs"
+    },
+    "./utils": {
+      "types": "./dist/utils/index.d.ts",
+      "import": "./dist/utils/index.mjs",
+      "require": "./dist/utils/index.cjs"
+    },
+    "./channel": {
+      "types": "./dist/channel/index.d.ts",
+      "import": "./dist/channel/index.mjs",
+      "require": "./dist/channel/index.cjs"
     }
   },
   "sideEffects": false,
@@ -60,11 +70,13 @@
   "dependencies": {
     "@livekit/components-react": "^2.9.15",
     "@livekit/components-styles": "^1.1.6",
+    "@types/node": "^24.8.1",
     "axios": "^1.6.0",
     "immer": "^10.0.0",
     "jwt-decode": "^4.0.0",
     "livekit-client": "^2.15.8",
     "mitt": "^3.0.1",
+    "nanoid": "^5.1.6",
     "zod": "^3.22.0",
     "zustand": "^4.5.0"
   },

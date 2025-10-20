@@ -34,6 +34,33 @@ export class HealthService {
 export class CallsService {
 
 	/**
+	 * @returns any Call details retrieved successfully
+	 * @throws ApiError
+	 */
+	public static getSignalCallsByCallId(data: CallsData['payloads']['GetSignalCallsByCallId']): CancelablePromise<CallsData['responses']['GetSignalCallsByCallId']> {
+		const {
+                    
+                    callId,
+appId
+                } = data;
+		return __request(OpenAPI, {
+			method: 'GET',
+			url: '/signal/calls/{callId}',
+			path: {
+				callId
+			},
+			query: {
+				appId
+			},
+			errors: {
+				400: `Invalid request`,
+				401: `Authentication required`,
+				404: `Call not found`,
+			},
+		});
+	}
+
+	/**
 	 * @returns any Invites sent successfully
 	 * @throws ApiError
 	 */
@@ -250,35 +277,7 @@ requestBody
 	}
 
 	/**
-	 * @returns any Call ended successfully
-	 * @throws ApiError
-	 */
-	public static postSignalCallsByCallIdEnd(data: CallsData['payloads']['PostSignalCallsByCallIdEnd']): CancelablePromise<CallsData['responses']['PostSignalCallsByCallIdEnd']> {
-		const {
-                    
-                    callId,
-appId
-                } = data;
-		return __request(OpenAPI, {
-			method: 'POST',
-			url: '/signal/calls/{callId}/end',
-			path: {
-				callId
-			},
-			query: {
-				appId
-			},
-			errors: {
-				400: `Invalid request`,
-				401: `Authentication required`,
-				403: `Only host can end call`,
-				404: `Call not found`,
-			},
-		});
-	}
-
-	/**
-	 * @returns any Left call successfully
+	 * @returns any Left call successfully. If leaving user is HOST, call ends for all participants. Includes full call and user context.
 	 * @throws ApiError
 	 */
 	public static postSignalCallsByCallIdLeave(data: CallsData['payloads']['PostSignalCallsByCallIdLeave']): CancelablePromise<CallsData['responses']['PostSignalCallsByCallIdLeave']> {

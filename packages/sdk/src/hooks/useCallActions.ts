@@ -46,19 +46,12 @@ export function useCallActions() {
 
       return sdk.calls.cancel(sessionId);
     },
-    leave: () => {
+    leave: async () => {
       if (!sessionId) {
         throw new Error("No active session to leave");
       }
 
-      return sdk.calls.leave(sessionId);
-    },
-    end: () => {
-      if (!sessionId) {
-        throw new Error("No active session to end");
-      }
-
-      return sdk.calls.end(sessionId);
+      return await sdk.calls.leave(sessionId);
     },
     transfer: (targetParticipantId: string, reason?: string) => {
       if (!sessionId) {

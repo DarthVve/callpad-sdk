@@ -35,12 +35,7 @@ export class SessionCancelledHandler extends BaseSocketHandler<CallCancelledEven
       return;
     }
 
-    this.updateStore((state) => {
-      state.initiated = false;
-      state.session = null;
-      state.outgoingInvites = {};
-      state.room.participants = {};
-    });
+    rtcStore.getState().reset();
 
     // Emit SDK event
     eventBus.emit(SdkEventType.CALL_CANCELED, {

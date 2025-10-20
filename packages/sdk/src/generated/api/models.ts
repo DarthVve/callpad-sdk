@@ -24,7 +24,12 @@ service: string
 export type CallsData = {
         
         payloads: {
-            PostSignalCallsInvite: {
+            GetSignalCallsByCallId: {
+                        appId: string
+callId: string
+                        
+                    };
+PostSignalCallsInvite: {
                         appId: string
 requestBody?: {
         participants: Array<{
@@ -83,11 +88,6 @@ requestBody?: {
     }
                         
                     };
-PostSignalCallsByCallIdEnd: {
-                        appId: string
-callId: string
-                        
-                    };
 PostSignalCallsByCallIdLeave: {
                         appId: string
 callId: string
@@ -97,7 +97,32 @@ callId: string
         
         
         responses: {
-            PostSignalCallsInvite: {
+            GetSignalCallsByCallId: {
+        call: {
+        id: string
+mode: string
+state: string
+roomName: string
+createdAt: string
+endedAt: string | null
+callerId: string
+    }
+participants: Array<{
+        id: string
+userId: string
+role: 'HOST' | 'PARTICIPANT' | 'GUEST'
+joinState: string
+user: {
+        firstName: string | null
+lastName: string | null
+username: string | null
+profilePhoto: string | null
+    }
+createdAt: string
+leftAt: string | null
+    }>
+    }
+                ,PostSignalCallsInvite: {
         callId: string
 status: string
 participants: Array<{
@@ -114,6 +139,15 @@ joinInfo: {
         token: string
 lkUrl: string
     } | null
+call: {
+        id: string
+state: string
+mode: string
+roomName: string
+createdAt: string
+startedAt: string
+    }
+ringTimeoutMs: number
     }
                 ,PostSignalCallsByCallIdAccept: {
         callId: string
@@ -121,6 +155,14 @@ joinInfo: {
         token: string
 lkUrl: string
     }
+call: {
+        id: string
+roomName: string
+state: string
+createdAt: string
+startedAt: string
+    }
+ringTimeoutMs: number
     }
                 ,PostSignalCallsByCallIdDecline: {
         callId: string
@@ -129,7 +171,7 @@ success: boolean
                 ,PostSignalCallsByCallIdCancel: {
         callId: string
 success: boolean
-action: 'call_initiated' | 'invite_sent' | 'accepted' | 'declined' | 'cancelled' | 'transfer_initiated' | 'participant_kicked' | 'participant_muted'
+action: 'call_initiated' | 'invite_sent' | 'accepted' | 'declined' | 'cancelled' | 'transfer_initiated' | 'participant_kicked' | 'participant_muted' | 'left' | 'ended'
 message: string
 invitedParticipants?: Array<{
         userId: string
@@ -141,11 +183,13 @@ username: string | null
 email: string | null
 profilePhoto: string | null
     }>
+autoEnded?: boolean
+endedForAll?: boolean
     }
                 ,PostSignalCallsByCallIdTransfer: {
         callId: string
 success: boolean
-action: 'call_initiated' | 'invite_sent' | 'accepted' | 'declined' | 'cancelled' | 'transfer_initiated' | 'participant_kicked' | 'participant_muted'
+action: 'call_initiated' | 'invite_sent' | 'accepted' | 'declined' | 'cancelled' | 'transfer_initiated' | 'participant_kicked' | 'participant_muted' | 'left' | 'ended'
 message: string
 invitedParticipants?: Array<{
         userId: string
@@ -157,11 +201,13 @@ username: string | null
 email: string | null
 profilePhoto: string | null
     }>
+autoEnded?: boolean
+endedForAll?: boolean
     }
                 ,PostSignalCallsByCallIdKick: {
         callId: string
 success: boolean
-action: 'call_initiated' | 'invite_sent' | 'accepted' | 'declined' | 'cancelled' | 'transfer_initiated' | 'participant_kicked' | 'participant_muted'
+action: 'call_initiated' | 'invite_sent' | 'accepted' | 'declined' | 'cancelled' | 'transfer_initiated' | 'participant_kicked' | 'participant_muted' | 'left' | 'ended'
 message: string
 invitedParticipants?: Array<{
         userId: string
@@ -173,11 +219,13 @@ username: string | null
 email: string | null
 profilePhoto: string | null
     }>
+autoEnded?: boolean
+endedForAll?: boolean
     }
                 ,PostSignalCallsByCallIdMute: {
         callId: string
 success: boolean
-action: 'call_initiated' | 'invite_sent' | 'accepted' | 'declined' | 'cancelled' | 'transfer_initiated' | 'participant_kicked' | 'participant_muted'
+action: 'call_initiated' | 'invite_sent' | 'accepted' | 'declined' | 'cancelled' | 'transfer_initiated' | 'participant_kicked' | 'participant_muted' | 'left' | 'ended'
 message: string
 invitedParticipants?: Array<{
         userId: string
@@ -189,38 +237,31 @@ username: string | null
 email: string | null
 profilePhoto: string | null
     }>
-    }
-                ,PostSignalCallsByCallIdEnd: {
-        callId: string
-success: boolean
-action: 'call_initiated' | 'invite_sent' | 'accepted' | 'declined' | 'cancelled' | 'transfer_initiated' | 'participant_kicked' | 'participant_muted'
-message: string
-invitedParticipants?: Array<{
-        userId: string
-status: 'invited'
-role: 'HOST' | 'PARTICIPANT'
-firstName: string | null
-lastName: string | null
-username: string | null
-email: string | null
-profilePhoto: string | null
-    }>
+autoEnded?: boolean
+endedForAll?: boolean
     }
                 ,PostSignalCallsByCallIdLeave: {
-        callId: string
-success: boolean
-action: 'call_initiated' | 'invite_sent' | 'accepted' | 'declined' | 'cancelled' | 'transfer_initiated' | 'participant_kicked' | 'participant_muted'
-message: string
-invitedParticipants?: Array<{
+        success: boolean
+autoEnded?: boolean
+call: {
+        id: string
+mode: string
+state: string
+roomName: string
+createdAt: string
+endedAt: string | null
+callerId: string
+    }
+user: {
         userId: string
-status: 'invited'
-role: 'HOST' | 'PARTICIPANT'
 firstName: string | null
 lastName: string | null
 username: string | null
 email: string | null
 profilePhoto: string | null
-    }>
+role: 'HOST' | 'PARTICIPANT' | 'GUEST'
+isOriginalHost: boolean
+    }
     }
                 
         }

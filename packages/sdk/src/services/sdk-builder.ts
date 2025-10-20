@@ -1,5 +1,7 @@
+import { SignalClient } from "../clients/signal";
+import { apiConfig } from "../clients/signal/config";
+import type { ApiConfig } from "../clients/signal/types";
 import { AuthManager, SocketManager } from "../core";
-import { type ApiConfig, apiConfig } from "../core/signal";
 import { rtcStore } from "../state/store";
 import { type LogLevel, setGlobalLoggerOptions } from "../utils/logger";
 import { type CallsServiceInstance, createCallsService } from "./calls.service";
@@ -22,6 +24,7 @@ export interface RtcSdk {
   auth: AuthManager;
   socket: SocketManager;
   calls: CallsServiceInstance;
+  signal: SignalClient;
   cleanup: () => void;
 
   configureApi: (config: ApiConfig) => void;
@@ -46,6 +49,16 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
   const socket = SocketManager.getInstance();
   const callsService = createCallsService({ appId: opts.appId });
 
+  // Initialize signal client with same configuration
+  const signalClient = new SignalClient({
+    baseUrl: opts.signalHost,
+    appId: opts.appId,
+    token: async () => {
+      const token = auth.getCurrentToken();
+      return token || "";
+    },
+  });
+
   // Configure API immediately with the signal host and auth provider
   // This ensures API is ready before any requests are made
   apiConfig.configure({
@@ -68,11 +81,29 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
     auth,
     socket,
     calls: callsService,
+    signal: signalClient,
     cleanup,
 
     // API configuration - can be called again to override if needed
     configureApi: (config: ApiConfig) => {
       apiConfig.configure(config);
+      // Also reconfigure signal client with only defined values
+      const signalConfig: Partial<ApiConfig> = {
+        baseUrl: config.baseUrl,
+      };
+      if (config.token !== undefined) {
+        signalConfig.token = config.token;
+      }
+      if (config.credentials !== undefined) {
+        signalConfig.credentials = config.credentials;
+      }
+      if (config.withCredentials !== undefined) {
+        signalConfig.withCredentials = config.withCredentials;
+      }
+      if (config.headers !== undefined) {
+        signalConfig.headers = config.headers;
+      }
+      signalClient.reconfigure(signalConfig);
     },
   };
 }

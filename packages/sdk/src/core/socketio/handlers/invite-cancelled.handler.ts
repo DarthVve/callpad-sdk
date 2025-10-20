@@ -31,10 +31,7 @@ export class InviteCancelledHandler extends BaseSocketHandler<CallInviteCancelle
       return;
     }
 
-    this.updateStore((state) => {
-      state.incomingInvite = null;
-      state.session = null;
-    });
+    rtcStore.getState().reset();
 
     // Emit SDK event
     eventBus.emit(SdkEventType.CALL_CANCELED, {

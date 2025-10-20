@@ -4,6 +4,8 @@ export default defineConfig({
   entry: {
     index: "src/index.ts",
     "livekit/index": "src/livekit/index.ts",
+    "utils/index": "src/utils/index.ts",
+    "channel/index": "src/channel/index.ts",
   },
   format: ["cjs", "esm"],
   sourcemap: true,

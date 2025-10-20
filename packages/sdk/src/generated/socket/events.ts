@@ -40,6 +40,26 @@ export const callCreatedSchema = z.object({
 
 export type CallCreatedEvent = z.infer<typeof callCreatedSchema>;
 
+// Event: call:declined
+// Event: call:declined
+export const callDeclinedSchema = z.object({
+  callId: z.string(),
+  status: z.literal("declined"),
+  declinedAt: z.string(),
+  reason: z.string().optional(),
+}).strict();
+
+export type CallDeclinedEvent = z.infer<typeof callDeclinedSchema>;
+
+// Event: call:end
+// Event: call:end
+export const callEndSchema = z.object({
+  callId: z.string(),
+  endedByUserId: z.string(),
+}).strict();
+
+export type CallEndEvent = z.infer<typeof callEndSchema>;
+
 // Event: call:ended
 // Event: call:ended
 export const callEndedSchema = z.object({

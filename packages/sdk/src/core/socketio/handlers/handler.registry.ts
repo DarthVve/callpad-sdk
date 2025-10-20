@@ -3,6 +3,8 @@ import { createLogger } from "../../../utils/logger";
 import type { SocketHandlerOptions } from "./base.handler";
 import { SessionCancelledHandler } from "./call-cancelled.handler";
 import { SessionCreatedHandler } from "./call-created.handler";
+import { CallDeclinedHandler } from "./call-declined.handler";
+import { CallEndHandler } from "./call-end.handler";
 import { SessionEndedHandler } from "./call-ended.handler";
 import { SessionMissedHandler } from "./call-missed.handler";
 import { InviteAcceptedHandler } from "./invite-accepted.handler";
@@ -33,6 +35,7 @@ export class SocketHandlerRegistry {
       // Phase 1: Core flow handlers
       new InviteHandler(this.options),
       new JoinInfoHandler(this.options),
+      new CallEndHandler(this.options),
       new SessionEndedHandler(this.options),
       new SessionCreatedHandler(this.options),
 
@@ -45,6 +48,7 @@ export class SocketHandlerRegistry {
       // Phase 3: Edge case handlers
       new InviteMissedHandler(this.options),
       new SessionCancelledHandler(this.options),
+      new CallDeclinedHandler(this.options),
       new SessionMissedHandler(this.options),
       new ParticipantAddedHandler(this.options),
 

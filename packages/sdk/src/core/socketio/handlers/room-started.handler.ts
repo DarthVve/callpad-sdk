@@ -21,6 +21,7 @@ export class RoomStartedHandler extends BaseSocketHandler<CallRoomStartedEvent> 
     this.updateStore((state) => {
       if (state.session) {
         state.session.status = data.status;
+        state.session.startedAt = data.startedAt;
       }
     });
 
