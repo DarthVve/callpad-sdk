@@ -24,9 +24,12 @@ service: string
 export type CallsData = {
         
         payloads: {
-            GetSignalCallsByCallId: {
+            PostSignalCallsInitiate: {
                         appId: string
-callId: string
+requestBody?: {
+        inviteeIds: Array<string>
+mode: 'AUDIO' | 'VIDEO'
+    }
                         
                     };
 PostSignalCallsInvite: {
@@ -88,7 +91,7 @@ requestBody?: {
     }
                         
                     };
-PostSignalCallsByCallIdLeave: {
+PostSignalCallsByCallIdEnd: {
                         appId: string
 callId: string
                         
@@ -97,33 +100,32 @@ callId: string
         
         
         responses: {
-            GetSignalCallsByCallId: {
-        call: {
+            PostSignalCallsInitiate: {
+        callId: string
+currentUserId: string
+call: {
         id: string
-mode: string
 state: string
+mode: string
 roomName: string
 createdAt: string
-endedAt: string | null
-callerId: string
     }
 participants: Array<{
-        id: string
-userId: string
-role: 'HOST' | 'PARTICIPANT' | 'GUEST'
-joinState: string
-user: {
-        firstName: string | null
-lastName: string | null
+        userId: string
 username: string | null
+firstName: string | null
+lastName: string | null
 profilePhoto: string | null
-    }
-createdAt: string
-leftAt: string | null
     }>
+joinInfo: {
+        token: string
+lkUrl: string
+    }
+ringTimeoutMs: number
     }
                 ,PostSignalCallsInvite: {
         callId: string
+currentUserId: string
 status: string
 participants: Array<{
         userId: string
@@ -145,7 +147,6 @@ state: string
 mode: string
 roomName: string
 createdAt: string
-startedAt: string
     }
 ringTimeoutMs: number
     }
@@ -160,7 +161,7 @@ call: {
 roomName: string
 state: string
 createdAt: string
-startedAt: string
+startedAt: string | null
     }
 ringTimeoutMs: number
     }
@@ -240,29 +241,7 @@ profilePhoto: string | null
 autoEnded?: boolean
 endedForAll?: boolean
     }
-                ,PostSignalCallsByCallIdLeave: {
-        success: boolean
-autoEnded?: boolean
-call: {
-        id: string
-mode: string
-state: string
-roomName: string
-createdAt: string
-endedAt: string | null
-callerId: string
-    }
-user: {
-        userId: string
-firstName: string | null
-lastName: string | null
-username: string | null
-email: string | null
-profilePhoto: string | null
-role: 'HOST' | 'PARTICIPANT' | 'GUEST'
-isOriginalHost: boolean
-    }
-    }
+                ,PostSignalCallsByCallIdEnd: void
                 
         }
         

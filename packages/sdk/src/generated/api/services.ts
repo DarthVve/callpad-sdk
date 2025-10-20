@@ -34,28 +34,26 @@ export class HealthService {
 export class CallsService {
 
 	/**
-	 * @returns any Call details retrieved successfully
+	 * @returns any Call initiated successfully
 	 * @throws ApiError
 	 */
-	public static getSignalCallsByCallId(data: CallsData['payloads']['GetSignalCallsByCallId']): CancelablePromise<CallsData['responses']['GetSignalCallsByCallId']> {
+	public static postSignalCallsInitiate(data: CallsData['payloads']['PostSignalCallsInitiate']): CancelablePromise<CallsData['responses']['PostSignalCallsInitiate']> {
 		const {
                     
-                    callId,
-appId
+                    appId,
+requestBody
                 } = data;
 		return __request(OpenAPI, {
-			method: 'GET',
-			url: '/signal/calls/{callId}',
-			path: {
-				callId
-			},
+			method: 'POST',
+			url: '/signal/calls/initiate',
 			query: {
 				appId
 			},
+			body: requestBody,
+			mediaType: 'application/json',
 			errors: {
 				400: `Invalid request`,
 				401: `Authentication required`,
-				404: `Call not found`,
 			},
 		});
 	}
@@ -277,10 +275,10 @@ requestBody
 	}
 
 	/**
-	 * @returns any Left call successfully. If leaving user is HOST, call ends for all participants. Includes full call and user context.
+	 * @returns void Call ended successfully. Room deleted from LiveKit.
 	 * @throws ApiError
 	 */
-	public static postSignalCallsByCallIdLeave(data: CallsData['payloads']['PostSignalCallsByCallIdLeave']): CancelablePromise<CallsData['responses']['PostSignalCallsByCallIdLeave']> {
+	public static postSignalCallsByCallIdEnd(data: CallsData['payloads']['PostSignalCallsByCallIdEnd']): CancelablePromise<CallsData['responses']['PostSignalCallsByCallIdEnd']> {
 		const {
                     
                     callId,
@@ -288,7 +286,7 @@ appId
                 } = data;
 		return __request(OpenAPI, {
 			method: 'POST',
-			url: '/signal/calls/{callId}/leave',
+			url: '/signal/calls/{callId}/end',
 			path: {
 				callId
 			},
@@ -298,6 +296,7 @@ appId
 			errors: {
 				400: `Invalid request`,
 				401: `Authentication required`,
+				403: `Only host can end the call`,
 				404: `Call not found`,
 			},
 		});

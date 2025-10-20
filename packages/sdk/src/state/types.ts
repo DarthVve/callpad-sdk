@@ -2,6 +2,14 @@ type Nullable<T> = T | null;
 
 export type CallParticipantRole = "HOST" | "PARTICIPANT" | "GUEST";
 
+export interface Profile {
+  userId: string;
+  username: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  profilePhoto: string | null;
+}
+
 export interface ParticipantPermissions {
   canMute: boolean;
   canKick: boolean;
@@ -51,7 +59,7 @@ export interface IncomingInvite {
 export interface OutgoingInvite {
   userId: string;
   status: "sent" | "accepted" | "declined" | "missed";
-  participant: Omit<ParticipantMetadata, "permissions">;
+  participant?: Omit<ParticipantMetadata, "permissions">;
 }
 
 export interface RtcError {

@@ -3,70 +3,12 @@
 
 import { z } from "zod";
 
-// Event: call:cancelled
-// Event: call:cancelled
-export const callCancelledSchema = z.object({
-  callId: z.string(),
-  status: z.literal("cancelled"),
-  cancelledAt: z.string(),
-}).strict();
-
-export type CallCancelledEvent = z.infer<typeof callCancelledSchema>;
-
-// Event: call:created
-// Event: call:created
-export const callCreatedSchema = z.object({
-  callId: z.string(),
-  status: z.literal("pending"),
-  roomName: z.string(),
-  createdAt: z.string(),
-  host: z.object({
-    firstName: z.string().nullable(),
-    lastName: z.string().nullable(),
-    username: z.string().nullable(),
-    email: z.string().nullable(),
-    profilePhoto: z.string().nullable(),
-    userId: z.union([z.string(), z.number()]),
-  }).strict(),
-  participants: z.array(z.object({
-    firstName: z.string().nullable(),
-    lastName: z.string().nullable(),
-    username: z.string().nullable(),
-    email: z.string().nullable(),
-    profilePhoto: z.string().nullable(),
-    userId: z.union([z.string(), z.number()]),
-  }).strict()),
-}).strict();
-
-export type CallCreatedEvent = z.infer<typeof callCreatedSchema>;
-
-// Event: call:declined
-// Event: call:declined
-export const callDeclinedSchema = z.object({
-  callId: z.string(),
-  status: z.literal("declined"),
-  declinedAt: z.string(),
-  reason: z.string().optional(),
-}).strict();
-
-export type CallDeclinedEvent = z.infer<typeof callDeclinedSchema>;
-
-// Event: call:end
-// Event: call:end
-export const callEndSchema = z.object({
-  callId: z.string(),
-  endedByUserId: z.string(),
-}).strict();
-
-export type CallEndEvent = z.infer<typeof callEndSchema>;
-
 // Event: call:ended
 // Event: call:ended
 export const callEndedSchema = z.object({
   callId: z.string(),
   endedAt: z.string(),
   endedByUserId: z.string().optional(),
-  reason: z.string().optional(),
 }).strict();
 
 export type CallEndedEvent = z.infer<typeof callEndedSchema>;
@@ -75,17 +17,10 @@ export type CallEndedEvent = z.infer<typeof callEndedSchema>;
 // Event: call:invite
 export const callInviteSchema = z.object({
   callId: z.string(),
-  inviteId: z.string(),
-  status: z.enum(["pending", "ready", "active", "ended"]),
-  caller: z.object({
-    firstName: z.string().nullable(),
-    lastName: z.string().nullable(),
-    username: z.string().nullable(),
-    email: z.string().nullable(),
-    profilePhoto: z.string().nullable(),
-    userId: z.union([z.string(), z.number()]),
-  }).strict(),
+  userId: z.string(),
+  callerId: z.string(),
   mode: z.enum(["VIDEO", "AUDIO"]),
+  invitedAt: z.string(),
 }).strict();
 
 export type CallInviteEvent = z.infer<typeof callInviteSchema>;
@@ -94,15 +29,7 @@ export type CallInviteEvent = z.infer<typeof callInviteSchema>;
 // Event: call:inviteAccepted
 export const callInviteAcceptedSchema = z.object({
   callId: z.string(),
-  status: z.enum(["pending", "ready", "active", "ended"]),
-  participant: z.object({
-    firstName: z.string().nullable(),
-    lastName: z.string().nullable(),
-    username: z.string().nullable(),
-    email: z.string().nullable(),
-    profilePhoto: z.string().nullable(),
-    userId: z.union([z.string(), z.number()]),
-  }).strict(),
+  userId: z.string(),
   acceptedAt: z.string(),
 }).strict();
 
@@ -112,7 +39,6 @@ export type CallInviteAcceptedEvent = z.infer<typeof callInviteAcceptedSchema>;
 // Event: call:inviteCancelled
 export const callInviteCancelledSchema = z.object({
   callId: z.string(),
-  status: z.enum(["pending", "ready", "active", "ended"]),
   cancelledByUserId: z.string(),
   cancelledAt: z.string(),
   reason: z.string(),
@@ -124,126 +50,63 @@ export type CallInviteCancelledEvent = z.infer<typeof callInviteCancelledSchema>
 // Event: call:inviteDeclined
 export const callInviteDeclinedSchema = z.object({
   callId: z.string(),
-  status: z.enum(["pending", "ready", "active", "ended"]),
-  participant: z.object({
-    firstName: z.string().nullable(),
-    lastName: z.string().nullable(),
-    username: z.string().nullable(),
-    email: z.string().nullable(),
-    profilePhoto: z.string().nullable(),
-    userId: z.union([z.string(), z.number()]),
-  }).strict(),
+  userId: z.string(),
   reason: z.string().optional(),
   declinedAt: z.string(),
 }).strict();
 
 export type CallInviteDeclinedEvent = z.infer<typeof callInviteDeclinedSchema>;
 
-// Event: call:inviteMissed
-// Event: call:inviteMissed
-export const callInviteMissedSchema = z.object({
-  callId: z.string(),
-  status: z.enum(["pending", "ready", "active", "ended"]),
-  participant: z.object({
-    firstName: z.string().nullable(),
-    lastName: z.string().nullable(),
-    username: z.string().nullable(),
-    email: z.string().nullable(),
-    profilePhoto: z.string().nullable(),
-    userId: z.union([z.string(), z.number()]),
-  }).strict(),
-  missedAt: z.string(),
-}).strict();
-
-export type CallInviteMissedEvent = z.infer<typeof callInviteMissedSchema>;
-
-// Event: call:inviteSent
-// Event: call:inviteSent
-export const callInviteSentSchema = z.object({
-  callId: z.string(),
-  invitee: z.object({
-    firstName: z.string().nullable(),
-    lastName: z.string().nullable(),
-    username: z.string().nullable(),
-    email: z.string().nullable(),
-    profilePhoto: z.string().nullable(),
-    userId: z.union([z.string(), z.number()]),
-  }).strict(),
-  status: z.literal("sent"),
-}).strict();
-
-export type CallInviteSentEvent = z.infer<typeof callInviteSentSchema>;
-
-// Event: call:joinInfo
-// Event: call:joinInfo
-export const callJoinInfoSchema = z.object({
-  callId: z.string(),
-  token: z.string(),
-  roomName: z.string(),
-  lkUrl: z.string(),
-  role: z.enum(["HOST", "PARTICIPANT", "GUEST"]),
-  participantId: z.string().optional(),
-}).strict();
-
-export type CallJoinInfoEvent = z.infer<typeof callJoinInfoSchema>;
-
-// Event: call:missed
-// Event: call:missed
-export const callMissedSchema = z.object({
-  callId: z.string(),
-  endedAt: z.string(),
-}).strict();
-
-export type CallMissedEvent = z.infer<typeof callMissedSchema>;
-
 // Event: call:participantAdded
 // Event: call:participantAdded
 export const callParticipantAddedSchema = z.object({
   callId: z.string(),
-  status: z.enum(["pending", "ready", "active", "ended"]),
-  participant: z.object({
-    participantId: z.string(),
-    userId: z.string(),
-    firstName: z.string().optional(),
-    lastName: z.string().optional(),
-    username: z.string().optional(),
-    email: z.string().optional(),
-    profilePhoto: z.string().optional(),
-    role: z.enum(["HOST", "PARTICIPANT", "GUEST"]),
-    joinState: z.enum(["not_joined", "joined"]),
-  }).strict(),
+  userId: z.string(),
+  participantId: z.string(),
 }).strict();
 
 export type CallParticipantAddedEvent = z.infer<typeof callParticipantAddedSchema>;
+
+// Event: call:participantKicked
+// Event: call:participantKicked
+export const callParticipantKickedSchema = z.object({
+  callId: z.string(),
+  participantId: z.string(),
+  reason: z.string().optional(),
+}).strict();
+
+export type CallParticipantKickedEvent = z.infer<typeof callParticipantKickedSchema>;
 
 // Event: call:ready
 // Event: call:ready
 export const callReadySchema = z.object({
   callId: z.string(),
-  status: z.literal("ready"),
-  participant: z.object({
-    firstName: z.string().nullable(),
-    lastName: z.string().nullable(),
-    username: z.string().nullable(),
-    email: z.string().nullable(),
-    profilePhoto: z.string().nullable(),
-    userId: z.union([z.string(), z.number()]),
-  }).strict(),
-  joinInfo: z.object({
-    token: z.string(),
-    lkUrl: z.string(),
-  }).strict(),
+  participantId: z.string().optional(),
+  userId: z.string(),
+  message: z.string(),
 }).strict();
 
 export type CallReadyEvent = z.infer<typeof callReadySchema>;
 
-// Event: call:roomStarted
-// Event: call:roomStarted
-export const callRoomStartedSchema = z.object({
+// Event: call:started
+// Event: call:started
+export const callStartedSchema = z.object({
   callId: z.string(),
-  roomName: z.string(),
   startedAt: z.string(),
-  status: z.literal("active"),
 }).strict();
 
-export type CallRoomStartedEvent = z.infer<typeof callRoomStartedSchema>;
+export type CallStartedEvent = z.infer<typeof callStartedSchema>;
+
+// Event: participant:profiles
+// Event: participant:profiles
+export const participantProfilesSchema = z.object({
+  profiles: z.array(z.object({
+    userId: z.string(),
+    username: z.string().nullable(),
+    firstName: z.string().nullable(),
+    lastName: z.string().nullable(),
+    profilePhoto: z.string().nullable(),
+  }).strict()),
+}).strict();
+
+export type ParticipantProfilesEvent = z.infer<typeof participantProfilesSchema>;
