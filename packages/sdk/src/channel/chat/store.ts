@@ -13,7 +13,7 @@ interface ChatActions {
   applyReaction: (
     entryId: string,
     emoji: string,
-    participantSid: string,
+    participantId: string,
     op: "add" | "remove"
   ) => void;
   queuePendingOp: (entryId: string, envelope: Envelope) => void;
@@ -33,7 +33,7 @@ const defaultChatState: ChatState = {
 function applyReactionToEntry(
   entry: ChatEntry,
   emoji: string,
-  participantSid: string,
+  participantId: string,
   op: "add" | "remove"
 ) {
   const emojiSet = entry.reactions[emoji];
@@ -41,9 +41,9 @@ function applyReactionToEntry(
     entry.reactions[emoji] = new Set();
   }
   if (op === "add") {
-    entry.reactions[emoji]?.add(participantSid);
+    entry.reactions[emoji]?.add(participantId);
   } else {
-    entry.reactions[emoji]?.delete(participantSid);
+    entry.reactions[emoji]?.delete(participantId);
     if (entry.reactions[emoji]?.size === 0) {
       delete entry.reactions[emoji];
     }
@@ -224,11 +224,11 @@ export const useChatStore = create<ChatState & ChatActions>()(
         }
       }),
 
-    applyReaction: (entryId, emoji, participantSid, op) =>
+    applyReaction: (entryId, emoji, participantId, op) =>
       set((state) => {
         const entry = state.byId[entryId];
         if (entry) {
-          applyReactionToEntry(entry, emoji, participantSid, op);
+          applyReactionToEntry(entry, emoji, participantId, op);
         }
       }),
 

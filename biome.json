@@ -19,7 +19,8 @@
     "rules": {
       "recommended": true,
       "style": {
-        "noUnusedTemplateLiteral": "error"
+        "noUnusedTemplateLiteral": "error",
+        "noNonNullAssertion": "off"
       },
       "correctness": {
         "useExhaustiveDependencies": "warn"
