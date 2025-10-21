@@ -16,14 +16,7 @@ export function useCallActions() {
         throw new Error("No active session to invite participants to");
       }
 
-      const session = sdk.store.getState().session;
-      const mode = session?.mode || "VIDEO";
-
-      return sdk.calls.initiate({
-        invitees: participants,
-        mode,
-        callId: sessionId,
-      });
+      return sdk.calls.invite(sessionId, participants);
     },
     accept: () => {
       if (!incomingInvite) {
@@ -51,7 +44,7 @@ export function useCallActions() {
         throw new Error("No active session to leave");
       }
 
-      return await sdk.calls.leave(sessionId);
+      return await sdk.calls.leave();
     },
     transfer: (targetParticipantId: string, reason?: string) => {
       if (!sessionId) {

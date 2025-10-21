@@ -1,7 +1,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { HealthData, CallsData } from './models';
+import type { HealthData, CallsData, LiveKitData, UsersData } from './models';
 
 export class HealthService {
 
@@ -32,6 +32,57 @@ export class HealthService {
 }
 
 export class CallsService {
+
+	/**
+	 * @returns any Call retrieved successfully
+	 * @throws ApiError
+	 */
+	public static getSignalCallsByCallId(data: CallsData['payloads']['GetSignalCallsByCallId']): CancelablePromise<CallsData['responses']['GetSignalCallsByCallId']> {
+		const {
+                    
+                    callId
+                } = data;
+		return __request(OpenAPI, {
+			method: 'GET',
+			url: '/signal/calls/{callId}',
+			path: {
+				callId
+			},
+			errors: {
+				400: `Invalid request`,
+				401: `Authentication required`,
+				404: `Call not found`,
+			},
+		});
+	}
+
+	/**
+	 * @returns any Left call successfully
+	 * @throws ApiError
+	 */
+	public static postSignalCallsByCallIdLeave(data: CallsData['payloads']['PostSignalCallsByCallIdLeave']): CancelablePromise<CallsData['responses']['PostSignalCallsByCallIdLeave']> {
+		const {
+                    
+                    callId,
+appId
+                } = data;
+		return __request(OpenAPI, {
+			method: 'POST',
+			url: '/signal/calls/{callId}/leave',
+			path: {
+				callId
+			},
+			query: {
+				appId
+			},
+			errors: {
+				400: `Invalid request`,
+				401: `Authentication required`,
+				403: `User is not a participant`,
+				404: `Call not found`,
+			},
+		});
+	}
 
 	/**
 	 * @returns any Call initiated successfully
@@ -298,6 +349,62 @@ appId
 				401: `Authentication required`,
 				403: `Only host can end the call`,
 				404: `Call not found`,
+			},
+		});
+	}
+
+}
+
+export class LiveKitService {
+
+	/**
+	 * @returns any Webhook processed successfully
+	 * @throws ApiError
+	 */
+	public static postSignalLivekitWebhook(data: LiveKitData['payloads']['PostSignalLivekitWebhook'] = {}): CancelablePromise<LiveKitData['responses']['PostSignalLivekitWebhook']> {
+		const {
+                    
+                    authorization,
+requestBody
+                } = data;
+		return __request(OpenAPI, {
+			method: 'POST',
+			url: '/signal/livekit/webhook',
+			headers: {
+				authorization
+			},
+			body: requestBody,
+			mediaType: 'text/plain',
+			errors: {
+				400: `Invalid webhook`,
+				500: `Failed to process webhook`,
+			},
+		});
+	}
+
+}
+
+export class UsersService {
+
+	/**
+	 * @returns any User profile retrieved successfully
+	 * @throws ApiError
+	 */
+	public static getSignalUsersById(data: UsersData['payloads']['GetSignalUsersById']): CancelablePromise<UsersData['responses']['GetSignalUsersById']> {
+		const {
+                    
+                    id
+                } = data;
+		return __request(OpenAPI, {
+			method: 'GET',
+			url: '/signal/users/{id}',
+			path: {
+				id
+			},
+			errors: {
+				400: `Invalid request`,
+				401: `Authentication required`,
+				404: `User not found`,
 			},
 		});
 	}

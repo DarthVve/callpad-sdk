@@ -4,10 +4,10 @@ import type { CallsData } from "../../../generated/api/models";
 export class SignalCallsService {
   constructor(private appId: string) {}
 
-  async get(
-    params: Omit<CallsData["payloads"]["GetSignalCallsByCallId"], "appId">
-  ): Promise<CallsData["responses"]["GetSignalCallsByCallId"]> {
-    return CallsService.getSignalCallsByCallId({
+  async initiate(
+    params: Omit<CallsData["payloads"]["PostSignalCallsInitiate"], "appId">
+  ): Promise<CallsData["responses"]["PostSignalCallsInitiate"]> {
+    return CallsService.postSignalCallsInitiate({
       ...params,
       appId: this.appId,
     });
@@ -88,10 +88,10 @@ export class SignalCallsService {
     });
   }
 
-  async leave(
-    params: Omit<CallsData["payloads"]["PostSignalCallsByCallIdLeave"], "appId">
-  ): Promise<CallsData["responses"]["PostSignalCallsByCallIdLeave"]> {
-    return CallsService.postSignalCallsByCallIdLeave({
+  async end(
+    params: Omit<CallsData["payloads"]["PostSignalCallsByCallIdEnd"], "appId">
+  ): Promise<CallsData["responses"]["PostSignalCallsByCallIdEnd"]> {
+    return CallsService.postSignalCallsByCallIdEnd({
       ...params,
       appId: this.appId,
     });

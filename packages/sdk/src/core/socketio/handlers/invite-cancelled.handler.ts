@@ -33,7 +33,15 @@ export class InviteCancelledHandler extends BaseSocketHandler<CallInviteCancelle
 
     rtcStore.getState().reset();
 
-    // Emit SDK event
+    if (data.reason) {
+      rtcStore.getState().addError({
+        code: "CALL_CANCELLED",
+        message: data.reason,
+        timestamp: Date.now(),
+        context: { callId: data.callId, cancelledBy: data.cancelledByUserId },
+      });
+    }
+
     eventBus.emit(SdkEventType.CALL_CANCELED, {
       callId: data.callId,
       reason: data.reason,

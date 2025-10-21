@@ -1,8 +1,6 @@
-import {
-  Room,
-  type RoomOptions,
-} from "livekit-client";
+import { Room, type RoomOptions } from "livekit-client";
 import { useCallback, useEffect, useMemo } from "react";
+import { useSdk } from "../provider/RtcProvider";
 import { createLogger } from "../utils";
 import { useLivekitInfo } from "./useLivekitInfo";
 import { useRoomReady } from "./useRoomReady";
@@ -14,6 +12,7 @@ let sharedRoom: Room | null = null;
 export function useAutoConnectRoom(options?: RoomOptions): Room {
   const isReady = useRoomReady();
   const livekitInfo = useLivekitInfo();
+  const sdk = useSdk();
 
   const room = useMemo(() => {
     if (!sharedRoom) {
@@ -27,7 +26,7 @@ export function useAutoConnectRoom(options?: RoomOptions): Room {
 
   const handleConnection = useCallback(async () => {
     if (!room || !isReady || !livekitInfo) {
-        return;
+      return;
     }
 
     if (room.state === "connected" || room.state === "connecting") {
@@ -43,13 +42,16 @@ export function useAutoConnectRoom(options?: RoomOptions): Room {
       await room.connect(livekitInfo.url, livekitInfo.token);
       logger.debug("Successfully connected to LiveKit room");
       await room.localParticipant.setMicrophoneEnabled(true);
+
+      sdk.livekit.attach(room);
+      logger.debug("Attached LiveKit room manager");
     } catch (error) {
       logger.error("Failed to connect to LiveKit room", error);
     }
-  }, [room, isReady, livekitInfo]);
+  }, [room, isReady, livekitInfo, sdk]);
 
   useEffect(() => {
-    handleConnection().then(r => {});
+    handleConnection().then((r) => {});
   }, [handleConnection]);
 
   return room;

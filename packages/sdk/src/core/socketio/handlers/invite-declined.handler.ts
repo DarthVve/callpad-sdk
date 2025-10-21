@@ -20,11 +20,10 @@ export class InviteDeclinedHandler extends BaseSocketHandler<CallInviteDeclinedE
 
     this.logger.info("Participant declined invitation", {
       callId: data.callId,
-      participant: data.participant.userId,
+      userId: data.userId,
       reason: data.reason,
     });
 
-    // Verify this matches our current session
     if (currentState.session?.id !== data.callId) {
       pushStaleEventError("call:inviteDeclined", "callId mismatch", {
         eventCallId: data.callId,
@@ -37,36 +36,29 @@ export class InviteDeclinedHandler extends BaseSocketHandler<CallInviteDeclinedE
     }
 
     this.updateStore((state) => {
-      const userId = data.participant.userId;
-
-      if (state.outgoingInvites[userId]) {
-        state.outgoingInvites[userId].status = "declined";
+      if (state.outgoingInvites[data.userId]) {
+        state.outgoingInvites[data.userId].status = "declined";
       } else {
-        state.outgoingInvites[userId] = {
-          userId,
+        state.outgoingInvites[data.userId] = {
+          userId: data.userId,
           status: "declined",
-          participant: {
-            userId: data.participant.userId,
-            firstName: data.participant.firstName,
-            lastName: data.participant.lastName,
-            username: data.participant.username,
-            email: data.participant.email,
-            profilePhoto: data.participant.profilePhoto,
-          },
         };
       }
     });
 
-    // Emit SDK event
     eventBus.emit(SdkEventType.CALL_DECLINED, {
       callId: data.callId,
-      participantId: data.participant.userId,
+      participantId: data.userId,
       reason: data.reason,
       timestamp: Date.now(),
     });
 
+    if (data.reason) {
+      this.logger.info("Decline reason provided", { reason: data.reason });
+    }
+
     this.logger.debug("Outgoing invite marked as declined", {
-      userId: data.participant.userId,
+      userId: data.userId,
     });
   }
 }

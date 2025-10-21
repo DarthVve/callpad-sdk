@@ -24,7 +24,16 @@ service: string
 export type CallsData = {
         
         payloads: {
-            PostSignalCallsInitiate: {
+            GetSignalCallsByCallId: {
+                        callId: string
+                        
+                    };
+PostSignalCallsByCallIdLeave: {
+                        appId: string
+callId: string
+                        
+                    };
+PostSignalCallsInitiate: {
                         appId: string
 requestBody?: {
         inviteeIds: Array<string>
@@ -100,7 +109,45 @@ callId: string
         
         
         responses: {
-            PostSignalCallsInitiate: {
+            GetSignalCallsByCallId: {
+        call: {
+        id: string
+mode: string
+state: string
+roomName: string
+createdAt: string
+endedAt: string | null
+callerId: string
+    }
+participants: Array<{
+        id: string
+userId: string
+role: 'HOST' | 'PARTICIPANT' | 'GUEST'
+joinState: string
+user: {
+        firstName: string | null
+lastName: string | null
+username: string | null
+profilePhoto: string | null
+    }
+createdAt: string
+leftAt: string | null
+    }>
+    }
+                ,PostSignalCallsByCallIdLeave: {
+        success: boolean
+autoEnded?: boolean
+call: {
+        id: string
+mode: string
+state: string
+roomName: string
+createdAt: string
+endedAt: string | null
+callerId: string
+    }
+    }
+                ,PostSignalCallsInitiate: {
         callId: string
 currentUserId: string
 call: {
@@ -117,6 +164,7 @@ firstName: string | null
 lastName: string | null
 profilePhoto: string | null
     }>
+inviteeIds: Array<string>
 joinInfo: {
         token: string
 lkUrl: string
@@ -137,6 +185,7 @@ username: string | null
 email: string | null
 profilePhoto: string | null
     }>
+inviteeIds: Array<string>
 joinInfo: {
         token: string
 lkUrl: string
@@ -242,6 +291,49 @@ autoEnded?: boolean
 endedForAll?: boolean
     }
                 ,PostSignalCallsByCallIdEnd: void
+                
+        }
+        
+    }
+
+export type LiveKitData = {
+        
+        payloads: {
+            PostSignalLivekitWebhook: {
+                        authorization?: string
+requestBody?: string
+                        
+                    };
+        }
+        
+        
+        responses: {
+            PostSignalLivekitWebhook: {
+        success: boolean
+    }
+                
+        }
+        
+    }
+
+export type UsersData = {
+        
+        payloads: {
+            GetSignalUsersById: {
+                        id: string
+                        
+                    };
+        }
+        
+        
+        responses: {
+            GetSignalUsersById: {
+        userId: string
+username: string | null
+firstName: string | null
+lastName: string | null
+profilePhoto: string | null
+    }
                 
         }
         

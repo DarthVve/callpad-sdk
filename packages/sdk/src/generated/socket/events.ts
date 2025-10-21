@@ -16,6 +16,7 @@ export type CallEndedEvent = z.infer<typeof callEndedSchema>;
 // Event: call:invite
 // Event: call:invite
 export const callInviteSchema = z.object({
+  inviteId: z.string(),
   callId: z.string(),
   userId: z.string(),
   callerId: z.string(),
