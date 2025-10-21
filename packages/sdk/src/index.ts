@@ -13,7 +13,9 @@ export type {
   OutgoingInvite,
   RtcError,
   RtcState,
+  Profile,
 } from "./state/types";
+export { useProfileCache, profileCache } from "./state/profileCache";
 export type {
   InitiateCallParams,
   CallResponse,

@@ -16,3 +16,4 @@ export * from "./useAutoConnectRoom";
 export * from "./useParticipantPermissions";
 export * from "./useTimeout";
 export * from "./useRingTimeout";
+export * from "./useParticipantProfile";

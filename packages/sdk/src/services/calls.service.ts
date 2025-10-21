@@ -1,5 +1,6 @@
 import { SignalCallsService } from "../clients/signal";
 import type { CallsData } from "../generated/api/models";
+import { profileCache } from "../state/profileCache";
 import { rtcStore } from "../state/store";
 
 export interface CallsServiceConfig {
@@ -12,71 +13,164 @@ export interface InitiateCallParams {
   callId?: string;
 }
 
-export function createCallsService(config: CallsServiceConfig) {
+export interface CallsServiceDependencies {
+  livekitManager?: { disconnect: () => Promise<void> };
+}
+
+export function createCallsService(
+  config: CallsServiceConfig,
+  deps?: CallsServiceDependencies
+) {
   const { appId } = config;
   const signalCalls = new SignalCallsService(appId);
 
+  profileCache.getState().configure(appId);
+
   async function initiate(
     params: InitiateCallParams
-  ): Promise<CallsData["responses"]["PostSignalCallsInvite"]> {
-    const requestBody: NonNullable<
-      CallsData["payloads"]["PostSignalCallsInvite"]["requestBody"]
-    > = {
-      participants: params.invitees.map((userId) => ({
-        userId: String(userId),
-      })),
-    };
+  ): Promise<
+    | CallsData["responses"]["PostSignalCallsInitiate"]
+    | CallsData["responses"]["PostSignalCallsInvite"]
+  > {
+    try {
+        console.log(params, 'params')
+      if (!params.callId) {
+        // Set optimistic state immediately
+        rtcStore.getState().patch((state) => {
+          state.session = {
+            id: "temp",
+            status: "initializing",
+            mode: params.mode || "AUDIO",
+            role: "HOST",
+          };
+          state.initiated = true;
+        });
+        console.log('state: ', rtcStore.getState())
 
-    if (params.callId) {
-      requestBody.callId = params.callId;
-    } else {
-      requestBody.mode = params.mode || "AUDIO";
-    }
+        const response = await signalCalls.initiate({
+          requestBody: {
+            inviteeIds: params.invitees,
+            mode: params.mode || "AUDIO",
+          },
+        });
 
-    const response = await signalCalls.invite({
-      requestBody,
-    });
+        if (response.participants && response.participants.length > 0) {
+          profileCache.getState().addMany(
+            response.participants.map((p) => ({
+              userId: p.userId,
+              username: p.username,
+              firstName: p.firstName,
+              lastName: p.lastName,
+              profilePhoto: p.profilePhoto,
+            }))
+          );
+        }
 
-    rtcStore.getState().patch((state) => {
-      for (const participant of response.participants) {
-        if (participant.userId) {
-          state.outgoingInvites[participant.userId] = {
-            userId: participant.userId,
+        rtcStore.getState().patch((state) => {
+          state.initiated = true;
+          state.session = {
+            id: response.callId,
+            status: "pending",
+            mode: params.mode || "AUDIO",
+            role: "HOST",
+            ringTimeoutMs: response.ringTimeoutMs,
+          };
+
+          for (const userId of response.inviteeIds) {
+            const profile = profileCache.getState().get(userId);
+            state.outgoingInvites[userId] = {
+              userId,
+              status: "sent",
+              participant: profile
+                ? {
+                    userId: profile.userId,
+                    role: "PARTICIPANT",
+                    firstName: profile.firstName,
+                    lastName: profile.lastName,
+                    username: profile.username,
+                    email: "",
+                    profilePhoto: profile.profilePhoto,
+                  }
+                : undefined,
+            };
+          }
+
+          if (response.joinInfo) {
+            state.session.livekitInfo = {
+              token: response.joinInfo.token,
+              roomName: response.callId,
+              url: response.joinInfo.lkUrl,
+            };
+          }
+        });
+
+        return response;
+      }
+      const response = await signalCalls.invite({
+        requestBody: {
+          callId: params.callId,
+          participants: params.invitees.map((userId) => ({
+            userId: String(userId),
+          })),
+        },
+      });
+
+      if (response.participants && response.participants.length > 0) {
+        profileCache.getState().addMany(
+          response.participants.map((p) => ({
+            userId: p.userId,
+            username: p.username,
+            firstName: p.firstName,
+            lastName: p.lastName,
+            profilePhoto: p.profilePhoto,
+          }))
+        );
+      }
+
+      rtcStore.getState().patch((state) => {
+        for (const userId of response.inviteeIds) {
+          const profile = profileCache.getState().get(userId);
+          state.outgoingInvites[userId] = {
+            userId,
             status: "sent",
-            participant: {
-              userId: participant.userId,
-              role: participant.role,
-              firstName: participant.firstName ?? "",
-              lastName: participant.lastName ?? "",
-              username: participant.username ?? "",
-              email: participant.email ?? "",
-              profilePhoto: participant.profilePhoto ?? "",
-            },
+            participant: profile
+              ? {
+                  userId: profile.userId,
+                  role: "PARTICIPANT",
+                  firstName: profile.firstName,
+                  lastName: profile.lastName,
+                  username: profile.username,
+                  email: "",
+                  profilePhoto: profile.profilePhoto,
+                }
+              : undefined,
           };
         }
-      }
 
-      if (!params.callId) {
-        state.initiated = true;
-        state.session = {
-          id: response.callId,
-          status: response.status.toLowerCase() as any,
-          mode: "AUDIO",
-          role: "HOST",
-          ringTimeoutMs: response.ringTimeoutMs,
-        };
-      }
+        if (response.joinInfo && state.session) {
+          state.session.livekitInfo = {
+            token: response.joinInfo.token,
+            roomName: state.session.id,
+            url: response.joinInfo.lkUrl,
+          };
+        }
+      });
 
-      if (response.joinInfo && state.session) {
-        state.session.livekitInfo = {
-          token: response.joinInfo.token,
-          roomName: state.session.id,
-          url: response.joinInfo.lkUrl,
-        };
-      }
-    });
-
-    return response;
+      return response;
+    } catch (error: any) {
+      // Clear optimistic state on error
+      rtcStore.getState().patch((state) => {
+        state.session = null;
+        state.initiated = false;
+      });
+      rtcStore.getState().addError({
+        code: "INITIATE_FAILED",
+        message: error.message || "Failed to initiate call",
+        timestamp: Date.now(),
+        context: error,
+      });
+      throw error;
+    }
   }
 
   async function accept(): Promise<
@@ -87,85 +181,137 @@ export function createCallsService(config: CallsServiceConfig) {
       throw new Error("No incoming invite to accept");
     }
 
-    const { callId, inviteId } = currentState.incomingInvite;
+    const { callId, inviteId, mode } = currentState.incomingInvite;
+    
+    // Set optimistic state immediately
     rtcStore.getState().patch((state) => {
+      state.session = {
+        id: callId,
+        status: "initializing",
+        mode: mode,
+        role: "PARTICIPANT",
+      };
       state.incomingInvite = null;
     });
 
-    const response = await signalCalls.accept({
-      callId,
-      requestBody: {
-        inviteId,
-      },
-    });
+    try {
+      const response = await signalCalls.accept({
+        callId,
+        requestBody: {
+          inviteId,
+        },
+      });
 
-    rtcStore.getState().patch((state) => {
-      if (response.joinInfo && state.session) {
-        state.session.status = "ready";
-        state.session.livekitInfo = {
-          token: response.joinInfo.token,
-          roomName: state.session.id,
-          url: response.joinInfo.lkUrl,
-        };
+      rtcStore.getState().patch((state) => {
+        // Update the existing optimistic session
+        if (state.session && state.session.id === callId) {
+          state.session.status = "ready";
+          
+          if (response.joinInfo) {
+            state.session.livekitInfo = {
+              token: response.joinInfo.token,
+              roomName: state.session.id,
+              url: response.joinInfo.lkUrl,
+            };
 
-        if (response.call?.startedAt) {
-          state.session.startedAt = response.call.startedAt;
+            if (response.call?.startedAt) {
+              state.session.startedAt = response.call.startedAt;
+            }
+
+            if (response.ringTimeoutMs) {
+              state.session.ringTimeoutMs = response.ringTimeoutMs;
+            }
+          }
         }
+      });
 
-        if (response.ringTimeoutMs) {
-          state.session.ringTimeoutMs = response.ringTimeoutMs;
-        }
-      }
-    });
-
-    return response;
+      return response;
+    } catch (error: any) {
+      // Rollback optimistic state on error
+      rtcStore.getState().patch((state) => {
+        state.session = null;
+        state.incomingInvite = currentState.incomingInvite;
+      });
+      rtcStore.getState().addError({
+        code: "ACCEPT_FAILED",
+        message: error.message || "Failed to accept call",
+        timestamp: Date.now(),
+        context: error,
+      });
+      throw error;
+    }
   }
 
   async function decline(
     reason?: string
   ): Promise<CallsData["responses"]["PostSignalCallsByCallIdDecline"]> {
-    const currentState = rtcStore.getState();
-    if (!currentState.incomingInvite) {
-      throw new Error("No incoming invite to decline");
+    try {
+      const currentState = rtcStore.getState();
+      if (!currentState.incomingInvite) {
+        throw new Error("No incoming invite to decline");
+      }
+
+      const { callId, inviteId } = currentState.incomingInvite;
+      const requestBody: NonNullable<
+        CallsData["payloads"]["PostSignalCallsByCallIdDecline"]["requestBody"]
+      > = {
+        inviteId,
+      };
+
+      if (reason) {
+        requestBody.reason = reason;
+      }
+
+      return signalCalls.decline({
+        callId,
+        requestBody,
+      });
+    } catch (error: any) {
+      rtcStore.getState().addError({
+        code: "DECLINE_FAILED",
+        message: error.message || "Failed to decline call",
+        timestamp: Date.now(),
+        context: error,
+      });
+      throw error;
     }
-
-    const { callId, inviteId } = currentState.incomingInvite;
-
-    const requestBody: NonNullable<
-      CallsData["payloads"]["PostSignalCallsByCallIdDecline"]["requestBody"]
-    > = {
-      inviteId,
-    };
-
-    if (reason) {
-      requestBody.reason = reason;
-    }
-
-    return signalCalls.decline({
-      callId,
-      requestBody,
-    });
   }
 
   async function cancel(
     callId: string
   ): Promise<CallsData["responses"]["PostSignalCallsByCallIdCancel"]> {
-    return signalCalls.cancel({
-      callId,
-    });
+    try {
+      return signalCalls.cancel({
+        callId,
+      });
+    } catch (error: any) {
+      rtcStore.getState().addError({
+        code: "CANCEL_FAILED",
+        message: error.message || "Failed to cancel call",
+        timestamp: Date.now(),
+        context: error,
+      });
+      throw error;
+    }
   }
 
-  async function leave(
-    callId: string
-  ): Promise<CallsData["responses"]["PostSignalCallsByCallIdLeave"]> {
-    const [apiResponse] = await Promise.all([
-      signalCalls.leave({
-        callId,
-      }),
-      Promise.resolve(rtcStore.getState().reset()),
-    ]);
-
-    return apiResponse;
+  async function leave(): Promise<void> {
+    try {
+      if (deps?.livekitManager) {
+        await deps.livekitManager.disconnect();
+      } else {
+        rtcStore.getState().reset();
+        profileCache.getState().clear();
+      }
+    } catch (error: any) {
+      rtcStore.getState().addError({
+        code: "LEAVE_FAILED",
+        message: error.message || "Failed to leave call",
+        timestamp: Date.now(),
+        context: error,
+      });
+      throw error;
+    }
   }
 
   async function transfer(
@@ -173,18 +319,28 @@ export function createCallsService(config: CallsServiceConfig) {
     targetParticipantId: string,
     reason?: string
   ): Promise<CallsData["responses"]["PostSignalCallsByCallIdTransfer"]> {
-    const requestBody: NonNullable<
-      CallsData["payloads"]["PostSignalCallsByCallIdTransfer"]["requestBody"]
-    > = {
-      targetParticipantId,
-    };
-    if (reason) {
-      requestBody.reason = reason;
+    try {
+      const requestBody: NonNullable<
+        CallsData["payloads"]["PostSignalCallsByCallIdTransfer"]["requestBody"]
+      > = {
+        targetParticipantId,
+      };
+      if (reason) {
+        requestBody.reason = reason;
+      }
+      return signalCalls.transfer({
+        callId,
+        requestBody,
+      });
+    } catch (error: any) {
+      rtcStore.getState().addError({
+        code: "TRANSFER_FAILED",
+        message: error.message || "Failed to transfer call",
+        timestamp: Date.now(),
+        context: error,
+      });
+      throw error;
     }
-    return signalCalls.transfer({
-      callId,
-      requestBody,
-    });
   }
 
   async function kick(
@@ -192,38 +348,148 @@ export function createCallsService(config: CallsServiceConfig) {
     participantId: string,
     reason?: string
   ): Promise<CallsData["responses"]["PostSignalCallsByCallIdKick"]> {
-    const requestBody: NonNullable<
-      CallsData["payloads"]["PostSignalCallsByCallIdKick"]["requestBody"]
-    > = {
-      participantId,
-    };
-    if (reason) {
-      requestBody.reason = reason;
+    try {
+      const requestBody: NonNullable<
+        CallsData["payloads"]["PostSignalCallsByCallIdKick"]["requestBody"]
+      > = {
+        participantId,
+      };
+      if (reason) {
+        requestBody.reason = reason;
+      }
+      return signalCalls.kick({
+        callId,
+        requestBody,
+      });
+    } catch (error: any) {
+      rtcStore.getState().addError({
+        code: "KICK_FAILED",
+        message: error.message || "Failed to kick participant",
+        timestamp: Date.now(),
+        context: error,
+      });
+      throw error;
     }
-    return signalCalls.kick({
-      callId,
-      requestBody,
-    });
   }
 
   async function mute(
     callId: string,
     participantId: string
   ): Promise<CallsData["responses"]["PostSignalCallsByCallIdMute"]> {
-    return signalCalls.mute({
-      callId,
-      requestBody: {
-        participantId,
-      },
-    });
+    try {
+      return signalCalls.mute({
+        callId,
+        requestBody: {
+          participantId,
+        },
+      });
+    } catch (error: any) {
+      rtcStore.getState().addError({
+        code: "MUTE_FAILED",
+        message: error.message || "Failed to mute participant",
+        timestamp: Date.now(),
+        context: error,
+      });
+      throw error;
+    }
+  }
+
+  async function end(
+    callId: string
+  ): Promise<CallsData["responses"]["PostSignalCallsByCallIdEnd"]> {
+    try {
+      const response = await signalCalls.end({
+        callId,
+      });
+
+      rtcStore.getState().reset();
+      profileCache.getState().clear();
+
+      return response;
+    } catch (error: any) {
+      rtcStore.getState().addError({
+        code: "END_CALL_FAILED",
+        message: error.message || "Failed to end call",
+        timestamp: Date.now(),
+        context: error,
+      });
+      throw error;
+    }
+  }
+
+  async function invite(
+    callId: string,
+    invitees: string[]
+  ): Promise<CallsData["responses"]["PostSignalCallsInvite"]> {
+    try {
+      const response = await signalCalls.invite({
+        requestBody: {
+          callId,
+          participants: invitees.map((userId) => ({ userId: String(userId) })),
+        },
+      });
+
+      if (response.participants && response.participants.length > 0) {
+        profileCache.getState().addMany(
+          response.participants.map((p) => ({
+            userId: p.userId,
+            username: p.username,
+            firstName: p.firstName,
+            lastName: p.lastName,
+            profilePhoto: p.profilePhoto,
+          }))
+        );
+      }
+
+      rtcStore.getState().patch((state) => {
+        for (const userId of response.inviteeIds) {
+          const profile = profileCache.getState().get(userId);
+          state.outgoingInvites[userId] = {
+            userId,
+            status: "sent",
+            participant: profile
+              ? {
+                  userId: profile.userId,
+                  role: "PARTICIPANT",
+                  firstName: profile.firstName,
+                  lastName: profile.lastName,
+                  username: profile.username,
+                  email: "",
+                  profilePhoto: profile.profilePhoto,
+                }
+              : undefined,
+          };
+        }
+
+        if (response.joinInfo && state.session) {
+          state.session.livekitInfo = {
+            token: response.joinInfo.token,
+            roomName: state.session.id,
+            url: response.joinInfo.lkUrl,
+          };
+        }
+      });
+
+      return response;
+    } catch (error: any) {
+      rtcStore.getState().addError({
+        code: "INVITE_FAILED",
+        message: error.message || "Failed to send invites",
+        timestamp: Date.now(),
+        context: error,
+      });
+      throw error;
+    }
   }
 
   return {
     initiate,
+    invite,
     accept,
     decline,
     cancel,
     leave,
+    end,
     transfer,
     kick,
     mute,

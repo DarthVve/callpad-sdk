@@ -1,8 +1,11 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Room } from "livekit-client";
-import { DataChannelContext, type DataChannelContextValue } from "./DataChannelContext";
-import { FEATURES, DEFAULT_FEATURES } from "./registry";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { createLogger } from "../utils";
+import {
+  DataChannelContext,
+  type DataChannelContextValue,
+} from "./DataChannelContext";
+import { DEFAULT_FEATURES, FEATURES } from "./registry";
 
 const logger = createLogger("channels:provider");
 
@@ -29,7 +32,7 @@ export function DataChannelProvider({
     logger.debug("Initializing features", { features });
     for (const featureName of features) {
       const feature = FEATURES[featureName];
-      
+
       if (!feature) {
         logger.warn(`Feature "${featureName}" not found in registry`);
         continue;
@@ -41,7 +44,7 @@ export function DataChannelProvider({
 
         service.subscribe();
         services.current.set(featureName, service);
-        
+
         logger.info(`Feature "${featureName}" initialized`);
       } catch (error) {
         logger.error(`Failed to initialize feature "${featureName}"`, error);

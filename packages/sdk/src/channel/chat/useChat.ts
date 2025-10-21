@@ -1,10 +1,10 @@
-import { useMemo, useCallback } from "react";
-import { useChatStore } from "./store";
-import { useFeatureService } from "../DataChannelContext";
-import { compareEntries } from "./utils";
-import type { ChatService } from "./service";
-import type { ChatEntry } from "./types";
+import { useCallback, useMemo } from "react";
 import type { ParticipantMetadata } from "../../state/types";
+import { useFeatureService } from "../DataChannelContext";
+import type { ChatService } from "./service";
+import { useChatStore } from "./store";
+import type { ChatEntry } from "./types";
+import { compareEntries } from "./utils";
 
 type Nullable<T> = T | null;
 
@@ -22,14 +22,14 @@ export interface UseChatReturn {
 
 export function useChat(): UseChatReturn {
   const service = useFeatureService<ChatService>("chat");
-  
-  const byId = useChatStore(state => state.byId);
-  const order = useChatStore(state => state.order);
-  const participantCache = useChatStore(state => state.participantCache);
+
+  const byId = useChatStore((state) => state.byId);
+  const order = useChatStore((state) => state.order);
+  const participantCache = useChatStore((state) => state.participantCache);
 
   const entries = useMemo(() => {
     return order
-      .map(id => byId[id])
+      .map((id) => byId[id])
       .filter((entry): entry is ChatEntry => entry !== undefined)
       .sort(compareEntries);
   }, [byId, order]);

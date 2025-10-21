@@ -25,8 +25,20 @@ export type CallsData = {
         
         payloads: {
             GetSignalCallsByCallId: {
+                        callId: string
+                        
+                    };
+PostSignalCallsByCallIdLeave: {
                         appId: string
 callId: string
+                        
+                    };
+PostSignalCallsInitiate: {
+                        appId: string
+requestBody?: {
+        inviteeIds: Array<string>
+mode: 'AUDIO' | 'VIDEO'
+    }
                         
                     };
 PostSignalCallsInvite: {
@@ -88,7 +100,7 @@ requestBody?: {
     }
                         
                     };
-PostSignalCallsByCallIdLeave: {
+PostSignalCallsByCallIdEnd: {
                         appId: string
 callId: string
                         
@@ -122,8 +134,46 @@ createdAt: string
 leftAt: string | null
     }>
     }
+                ,PostSignalCallsByCallIdLeave: {
+        success: boolean
+autoEnded?: boolean
+call: {
+        id: string
+mode: string
+state: string
+roomName: string
+createdAt: string
+endedAt: string | null
+callerId: string
+    }
+    }
+                ,PostSignalCallsInitiate: {
+        callId: string
+currentUserId: string
+call: {
+        id: string
+state: string
+mode: string
+roomName: string
+createdAt: string
+    }
+participants: Array<{
+        userId: string
+username: string | null
+firstName: string | null
+lastName: string | null
+profilePhoto: string | null
+    }>
+inviteeIds: Array<string>
+joinInfo: {
+        token: string
+lkUrl: string
+    }
+ringTimeoutMs: number
+    }
                 ,PostSignalCallsInvite: {
         callId: string
+currentUserId: string
 status: string
 participants: Array<{
         userId: string
@@ -135,6 +185,7 @@ username: string | null
 email: string | null
 profilePhoto: string | null
     }>
+inviteeIds: Array<string>
 joinInfo: {
         token: string
 lkUrl: string
@@ -145,7 +196,6 @@ state: string
 mode: string
 roomName: string
 createdAt: string
-startedAt: string
     }
 ringTimeoutMs: number
     }
@@ -160,7 +210,7 @@ call: {
 roomName: string
 state: string
 createdAt: string
-startedAt: string
+startedAt: string | null
     }
 ringTimeoutMs: number
     }
@@ -240,28 +290,49 @@ profilePhoto: string | null
 autoEnded?: boolean
 endedForAll?: boolean
     }
-                ,PostSignalCallsByCallIdLeave: {
-        success: boolean
-autoEnded?: boolean
-call: {
-        id: string
-mode: string
-state: string
-roomName: string
-createdAt: string
-endedAt: string | null
-callerId: string
+                ,PostSignalCallsByCallIdEnd: void
+                
+        }
+        
     }
-user: {
+
+export type LiveKitData = {
+        
+        payloads: {
+            PostSignalLivekitWebhook: {
+                        authorization?: string
+requestBody?: string
+                        
+                    };
+        }
+        
+        
+        responses: {
+            PostSignalLivekitWebhook: {
+        success: boolean
+    }
+                
+        }
+        
+    }
+
+export type UsersData = {
+        
+        payloads: {
+            GetSignalUsersById: {
+                        id: string
+                        
+                    };
+        }
+        
+        
+        responses: {
+            GetSignalUsersById: {
         userId: string
+username: string | null
 firstName: string | null
 lastName: string | null
-username: string | null
-email: string | null
 profilePhoto: string | null
-role: 'HOST' | 'PARTICIPANT' | 'GUEST'
-isOriginalHost: boolean
-    }
     }
                 
         }

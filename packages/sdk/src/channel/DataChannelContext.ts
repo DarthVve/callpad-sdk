@@ -5,12 +5,16 @@ export interface DataChannelContextValue {
   isReady: boolean;
 }
 
-export const DataChannelContext = createContext<DataChannelContextValue | null>(null);
+export const DataChannelContext = createContext<DataChannelContextValue | null>(
+  null
+);
 
 export function useDataChannelContext(): DataChannelContextValue {
   const context = useContext(DataChannelContext);
   if (!context) {
-    throw new Error("useDataChannelContext must be used within DataChannelProvider");
+    throw new Error(
+      "useDataChannelContext must be used within DataChannelProvider"
+    );
   }
   return context;
 }
@@ -23,6 +27,6 @@ export function useFeatureService<T = any>(featureName: string): T {
       `Feature service "${featureName}" not found. Make sure it's enabled in DataChannelProvider.`
     );
   }
-  
+
   return service;
 }

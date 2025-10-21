@@ -1,5 +1,6 @@
 import type { CallInviteEvent } from "../../../generated/socket";
 import { callInviteSchema } from "../../../generated/socket";
+import { profileCache } from "../../../state/profileCache";
 import { SdkEventType, eventBus } from "../../events";
 import { BaseSocketHandler } from "./base.handler";
 
@@ -7,17 +8,22 @@ import { BaseSocketHandler } from "./base.handler";
  * Handles incoming call invitation (call:invite)
  *
  * Sets incomingInvite state to show incoming call UI
+ * Marks caller profile as pending for hydration
  */
 export class InviteHandler extends BaseSocketHandler<CallInviteEvent> {
   protected readonly eventName = "call:invite";
   protected readonly schema = callInviteSchema;
 
-  protected handle(data: CallInviteEvent): void {
+  protected async handle(data: CallInviteEvent): Promise<void> {
     this.logger.info("Incoming call invitation", {
       callId: data.callId,
-      caller: data.caller.userId,
+      callerId: data.callerId,
       mode: data.mode,
     });
+
+    const callerProfile = await profileCache
+      .getState()
+      .getOrFetch(data.callerId);
 
     this.updateStore((state) => {
       const ringTimeoutMs = (data as any).ringTimeoutMs || 30000;
@@ -28,13 +34,13 @@ export class InviteHandler extends BaseSocketHandler<CallInviteEvent> {
         callId: data.callId,
         inviteId: data.inviteId,
         caller: {
-          userId: data.caller.userId,
+          userId: data.callerId,
           role: "HOST",
-          firstName: data.caller.firstName ?? "",
-          lastName: data.caller.lastName ?? "",
-          username: data.caller.username ?? "",
-          email: data.caller.email ?? "",
-          profilePhoto: data.caller.profilePhoto ?? "",
+          firstName: callerProfile?.firstName ?? "",
+          lastName: callerProfile?.lastName ?? "",
+          username: callerProfile?.username ?? "",
+          email: "",
+          profilePhoto: callerProfile?.profilePhoto ?? "",
         },
         mode: data.mode,
         expiresAt: expiresAt.toISOString(),
@@ -51,15 +57,9 @@ export class InviteHandler extends BaseSocketHandler<CallInviteEvent> {
       };
     });
 
-    // Emit SDK event for the application layer
     eventBus.emit(SdkEventType.CALL_INCOMING, {
       callId: data.callId,
-      caller: {
-        id: data.caller.userId,
-        firstName: data.caller.firstName,
-        lastName: data.caller.lastName,
-        avatarUrl: data.caller.profilePhoto,
-      },
+      callerId: data.callerId,
       type: data.mode,
       timestamp: Date.now(),
     });

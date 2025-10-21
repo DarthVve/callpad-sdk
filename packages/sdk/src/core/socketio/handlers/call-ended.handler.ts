@@ -1,6 +1,7 @@
 import type { CallEndedEvent } from "../../../generated/socket";
 import { callEndedSchema } from "../../../generated/socket";
 import { pushStaleEventError } from "../../../state/errors";
+import { profileCache } from "../../../state/profileCache";
 import { rtcStore } from "../../../state/store";
 import { SdkEventType, eventBus } from "../../events";
 import { BaseSocketHandler } from "./base.handler";
@@ -8,7 +9,7 @@ import { BaseSocketHandler } from "./base.handler";
 /**
  * Handles call session ended (call:ended)
  *
- * Clears session state and disconnects from LiveKit
+ * Clears session state, profile cache, and disconnects from LiveKit
  */
 export class SessionEndedHandler extends BaseSocketHandler<CallEndedEvent> {
   protected readonly eventName = "call:ended";
@@ -19,11 +20,10 @@ export class SessionEndedHandler extends BaseSocketHandler<CallEndedEvent> {
 
     this.logger.info("Call session ended", {
       callId: data.callId,
+      endedAt: data.endedAt,
       endedBy: data.endedByUserId,
-      reason: data.reason,
     });
 
-    // Verify this matches our current session
     if (currentState.session?.id !== data.callId) {
       pushStaleEventError("call:ended", "callId mismatch", {
         eventCallId: data.callId,
@@ -36,24 +36,24 @@ export class SessionEndedHandler extends BaseSocketHandler<CallEndedEvent> {
     }
 
     this.updateStore((state) => {
-      state.initiated = false;
-      state.session = null;
-      state.outgoingInvites = {};
-      state.room.participants = {};
+      if (state.session) {
+        state.session.status = "ended";
+      }
     });
 
-    // Disconnect from LiveKit if connected
+    rtcStore.getState().reset();
+    profileCache.getState().clear();
+
     if (this.livekit) {
       this.livekit.disconnect().catch((error: any) => {
         this.logger.error("Error disconnecting from LiveKit", { error });
       });
     }
 
-    // Emit SDK event
     eventBus.emit(SdkEventType.CALL_ENDED, {
       callId: data.callId,
+      endedAt: data.endedAt,
       endedBy: data.endedByUserId,
-      reason: "user",
       timestamp: Date.now(),
     });
 

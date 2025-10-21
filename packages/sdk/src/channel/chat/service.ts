@@ -1,10 +1,15 @@
-import {ConnectionState, type Room} from "livekit-client";
-import type {ChatEntry, Envelope} from "./types";
-import type {ParticipantMetadata} from "../../state/types";
-import {useChatStore} from "./store";
-import {useRtcStore} from "../../state/store";
-import {generateEntryId, getCurrentTimestamp, isValidEnvelope, validateContent,} from "./utils";
-import {createLogger} from "../../utils";
+import { ConnectionState, type Room } from "livekit-client";
+import { useRtcStore } from "../../state/store";
+import type { ParticipantMetadata } from "../../state/types";
+import { createLogger } from "../../utils";
+import { useChatStore } from "./store";
+import type { ChatEntry, Envelope } from "./types";
+import {
+  generateEntryId,
+  getCurrentTimestamp,
+  isValidEnvelope,
+  validateContent,
+} from "./utils";
 
 const logger = createLogger("chat");
 
@@ -125,7 +130,8 @@ export class ChatService {
       chatStore.markEntryFailed(entryId);
       useRtcStore.getState().addError({
         code: "CHAT_SEND_FAILED",
-        message: error instanceof Error ? error.message : "Failed to send message",
+        message:
+          error instanceof Error ? error.message : "Failed to send message",
         timestamp: Date.now(),
         context: { entryId },
       });
@@ -197,7 +203,8 @@ export class ChatService {
     } catch (error) {
       useRtcStore.getState().addError({
         code: "CHAT_EDIT_FAILED",
-        message: error instanceof Error ? error.message : "Failed to edit message",
+        message:
+          error instanceof Error ? error.message : "Failed to edit message",
         timestamp: Date.now(),
         context: { entryId },
       });
@@ -254,7 +261,8 @@ export class ChatService {
     } catch (error) {
       useRtcStore.getState().addError({
         code: "CHAT_REMOVE_FAILED",
-        message: error instanceof Error ? error.message : "Failed to remove message",
+        message:
+          error instanceof Error ? error.message : "Failed to remove message",
         timestamp: Date.now(),
         context: { entryId },
       });
@@ -305,7 +313,8 @@ export class ChatService {
     } catch (error) {
       useRtcStore.getState().addError({
         code: "CHAT_REACTION_FAILED",
-        message: error instanceof Error ? error.message : "Failed to add reaction",
+        message:
+          error instanceof Error ? error.message : "Failed to add reaction",
         timestamp: Date.now(),
         context: { entryId, emoji },
       });
@@ -386,7 +395,9 @@ export class ChatService {
 
     if (localParticipant.metadata) {
       try {
-          sender.info = JSON.parse(localParticipant.metadata) as ParticipantMetadata;
+        sender.info = JSON.parse(
+          localParticipant.metadata
+        ) as ParticipantMetadata;
       } catch {
         // Ignore metadata parsing errors
       }

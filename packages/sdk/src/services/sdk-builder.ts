@@ -5,6 +5,7 @@ import { AuthManager, SocketManager } from "../core";
 import { rtcStore } from "../state/store";
 import { type LogLevel, setGlobalLoggerOptions } from "../utils/logger";
 import { type CallsServiceInstance, createCallsService } from "./calls.service";
+import { LiveKitRoomManager } from "./livekitRoomManager";
 
 export interface SdkBuildOptions {
   appId: string;
@@ -25,6 +26,7 @@ export interface RtcSdk {
   socket: SocketManager;
   calls: CallsServiceInstance;
   signal: SignalClient;
+  livekit: LiveKitRoomManager;
   cleanup: () => void;
 
   configureApi: (config: ApiConfig) => void;
@@ -47,7 +49,11 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
   // Initialize core managers
   const auth = new AuthManager(opts.authProvider);
   const socket = SocketManager.getInstance();
-  const callsService = createCallsService({ appId: opts.appId });
+  const livekitManager = new LiveKitRoomManager();
+  const callsService = createCallsService(
+    { appId: opts.appId },
+    { livekitManager }
+  );
 
   // Initialize signal client with same configuration
   const signalClient = new SignalClient({
@@ -72,6 +78,7 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
   // Socket now handles events directly - no event bridge needed
 
   const cleanup = () => {
+    livekitManager.detach();
     socket.destroy();
     rtcStore.getState().reset();
   };
@@ -82,6 +89,7 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
     socket,
     calls: callsService,
     signal: signalClient,
+    livekit: livekitManager,
     cleanup,
 
     // API configuration - can be called again to override if needed

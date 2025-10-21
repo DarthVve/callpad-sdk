@@ -1,21 +1,16 @@
 import type { Socket } from "socket.io-client";
 import { createLogger } from "../../../utils/logger";
 import type { SocketHandlerOptions } from "./base.handler";
-import { SessionCancelledHandler } from "./call-cancelled.handler";
-import { SessionCreatedHandler } from "./call-created.handler";
-import { CallDeclinedHandler } from "./call-declined.handler";
-import { CallEndHandler } from "./call-end.handler";
 import { SessionEndedHandler } from "./call-ended.handler";
-import { SessionMissedHandler } from "./call-missed.handler";
+import { CallParticipantKickedHandler } from "./call-participant-kicked.handler";
+import { CallReadyHandler } from "./call-ready.handler";
+import { CallStartedHandler } from "./call-started.handler";
 import { InviteAcceptedHandler } from "./invite-accepted.handler";
 import { InviteCancelledHandler } from "./invite-cancelled.handler";
 import { InviteDeclinedHandler } from "./invite-declined.handler";
-import { InviteMissedHandler } from "./invite-missed.handler";
-import { InviteSentHandler } from "./invite-sent.handler";
 import { InviteHandler } from "./invite.handler";
-import { JoinInfoHandler } from "./join-info.handler";
 import { ParticipantAddedHandler } from "./participant-added.handler";
-import { RoomStartedHandler } from "./room-started.handler";
+import { ParticipantProfilesHandler } from "./participant-profiles.handler";
 
 const logger = createLogger("socketio:registry");
 
@@ -32,28 +27,23 @@ export class SocketHandlerRegistry {
 
   private initializeHandlers(): void {
     const handlers = [
-      // Phase 1: Core flow handlers
+      // Core call flow
       new InviteHandler(this.options),
-      new JoinInfoHandler(this.options),
-      new CallEndHandler(this.options),
+      new CallReadyHandler(this.options),
+      new CallStartedHandler(this.options),
       new SessionEndedHandler(this.options),
-      new SessionCreatedHandler(this.options),
 
-      // Phase 2: Invite management handlers
+      // Invite lifecycle
       new InviteAcceptedHandler(this.options),
       new InviteDeclinedHandler(this.options),
       new InviteCancelledHandler(this.options),
-      new InviteSentHandler(this.options),
 
-      // Phase 3: Edge case handlers
-      new InviteMissedHandler(this.options),
-      new SessionCancelledHandler(this.options),
-      new CallDeclinedHandler(this.options),
-      new SessionMissedHandler(this.options),
+      // Participant management
       new ParticipantAddedHandler(this.options),
+      new CallParticipantKickedHandler(this.options),
 
-      // Phase 4: LiveKit room events
-      new RoomStartedHandler(this.options),
+      // Profile hydration
+      new ParticipantProfilesHandler(this.options),
     ];
 
     for (const handler of handlers) {

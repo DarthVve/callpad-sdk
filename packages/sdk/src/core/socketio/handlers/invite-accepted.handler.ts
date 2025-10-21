@@ -19,10 +19,9 @@ export class InviteAcceptedHandler extends BaseSocketHandler<CallInviteAcceptedE
 
     this.logger.info("Participant accepted invitation", {
       callId: data.callId,
-      participant: data.participant.userId,
+      userId: data.userId,
     });
 
-    // Verify this matches our current session
     if (currentState.session?.id !== data.callId) {
       pushStaleEventError("call:inviteAccepted", "callId mismatch", {
         eventCallId: data.callId,
@@ -35,32 +34,18 @@ export class InviteAcceptedHandler extends BaseSocketHandler<CallInviteAcceptedE
     }
 
     this.updateStore((state) => {
-      // Sync session status from a backend event
-      if (state.session !== data.status) {
-        state.session.status = data.status;
-      }
-
-      const userId = data.participant.userId;
-      if (state.outgoingInvites[userId]) {
-        state.outgoingInvites[userId].status = "accepted";
+      if (state.outgoingInvites[data.userId]) {
+        state.outgoingInvites[data.userId].status = "accepted";
       } else {
-        state.outgoingInvites[userId] = {
-          userId,
+        state.outgoingInvites[data.userId] = {
+          userId: data.userId,
           status: "accepted",
-          participant: {
-            userId: data.participant.userId,
-            firstName: data.participant.firstName,
-            lastName: data.participant.lastName,
-            username: data.participant.username,
-            email: data.participant.email,
-            profilePhoto: data.participant.profilePhoto,
-          },
         };
       }
     });
 
     this.logger.debug("Outgoing invite marked as accepted", {
-      userId: data.participant.userId,
+      userId: data.userId,
     });
   }
 }
