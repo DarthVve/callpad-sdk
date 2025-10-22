@@ -5,3 +5,4 @@ export type { DataChannelContextValue } from "./DataChannelContext";
 export * from "./types";
 
 export * from "./chat";
+export * from "./reactions";

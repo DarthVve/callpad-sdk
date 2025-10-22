@@ -16,6 +16,7 @@ export {
   RoomEvent,
   TrackEvent,
   DataPacket_Kind,
+  VideoPresets,
 } from "livekit-client";
 export type { RoomOptions } from "livekit-client";
 

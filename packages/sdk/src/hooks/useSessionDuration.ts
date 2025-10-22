@@ -1,6 +1,6 @@
 import { useEffect, useReducer } from "react";
 import { useRtcStore } from "../state/store";
-import { type DurationResult, computeDuration } from "../utils/duration";
+import { type DurationResult, computeDuration } from "../utils";
 
 export function useSessionDuration(): DurationResult {
   const [, forceUpdate] = useReducer((x) => x + 1, 0);

@@ -81,6 +81,159 @@ import { LiveKitProvider, useTrack } from 'vg-x07df/livekit';
 const track = useTrack();
 ```
 
+## Video Call Features
+
+### Video Initialization
+
+The SDK automatically initializes camera capability but keeps it disabled by default for privacy:
+
+- Camera permissions are requested when the room connects
+- Video starts disabled (privacy-first approach)
+- Users must explicitly enable video via UI controls
+- Room is optimized with adaptive streaming and dynacast for performance
+
+### Using Video Controls
+
+```tsx
+import { useTrackToggle, Track } from "vg-x07df/livekit";
+
+function VideoControls() {
+  // Toggle video on/off
+  const { toggle: toggleVideo, enabled: isVideoEnabled } = useTrackToggle({
+    source: Track.Source.Camera
+  });
+
+  return (
+    <button onClick={toggleVideo}>
+      {isVideoEnabled ? "Turn Off Video" : "Turn On Video"}
+    </button>
+  );
+}
+```
+
+### Displaying Video
+
+```tsx
+import { VideoTrack, useParticipantTracks, Track } from "vg-x07df/livekit";
+import { hasVideoTrack } from "vg-x07df/utils";
+
+function ParticipantVideo({ participant }) {
+  const tracks = useParticipantTracks(participant, Track.Source.Camera);
+  
+  return (
+    <div className="participant-container">
+      {hasVideoTrack(participant) ? (
+        <VideoTrack 
+          participant={participant} 
+          source={Track.Source.Camera}
+          className="video-element"
+        />
+      ) : (
+        <div className="avatar-fallback">
+          {participant.identity}
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+### Video Utilities
+
+The SDK provides utility functions for common video operations:
+
+```tsx
+import { hasVideoTrack, getVideoTrack, hasVideoCapability } from "vg-x07df/utils";
+
+// Check if participant has active video (enabled and published)
+const hasActiveVideo = hasVideoTrack(participant);
+
+// Get video track publication
+const videoTrack = getVideoTrack(participant);
+
+// Check if video capability exists (track exists, may be muted)
+const canHaveVideo = hasVideoCapability(participant);
+```
+
+### Complete Video Implementation Example
+
+```tsx
+import { 
+  VideoTrack, 
+  useTrackToggle, 
+  useParticipantTracks, 
+  Track,
+  useParticipants 
+} from "vg-x07df/livekit";
+import { hasVideoTrack } from "vg-x07df/utils";
+
+function VideoCallInterface() {
+  const participants = useParticipants();
+  const { toggle: toggleVideo, enabled: isVideoEnabled } = useTrackToggle({ 
+    source: Track.Source.Camera 
+  });
+
+  return (
+    <div className="video-call-container">
+      {/* Video Controls */}
+      <div className="controls">
+        <button onClick={toggleVideo}>
+          {isVideoEnabled ? "Turn Off Video" : "Turn On Video"}
+        </button>
+      </div>
+
+      {/* Participant Videos */}
+      <div className="participants-grid">
+        {participants.map((participant) => (
+          <div key={participant.identity} className="participant-tile">
+            {hasVideoTrack(participant) ? (
+              <VideoTrack 
+                participant={participant} 
+                source={Track.Source.Camera}
+                className="video-element"
+              />
+            ) : (
+              <div className="avatar-placeholder">
+                {participant.identity.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <span className="participant-name">
+              {participant.identity}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+```
+
+### Video Troubleshooting
+
+**Camera permissions denied:**
+- The SDK handles permissions gracefully
+- Users will see a browser permission prompt on first video toggle
+- If permissions are denied, the call continues as audio-only
+- Check browser settings if video toggle doesn't work
+
+**Video not appearing:**
+- Verify `hasVideoTrack(participant)` returns `true`
+- Check that `useTrackToggle` shows `enabled: true`
+- Ensure the `VideoTrack` component has the correct `participant` prop
+- Confirm the participant has published their video track
+
+**Performance issues with multiple videos:**
+- The SDK uses optimized settings (720p, adaptive streaming, dynacast)
+- Video quality automatically adjusts based on available bandwidth
+- Multiple video streams are handled efficiently with simulcast
+- Consider reducing video quality for low-bandwidth scenarios
+
+**Audio works but video doesn't:**
+- Check if camera is being used by another application
+- Verify camera permissions in browser settings
+- Try refreshing the page to reinitialize camera access
+- Check browser console for camera-related errors
+
 ## Requirements
 
 - React ≥18.0.0

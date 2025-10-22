@@ -1,5 +1,6 @@
 import type { Room } from "livekit-client";
 import { ChatService, useChatStore } from "./chat";
+import { ReactionsService, useReactionsStore } from "./reactions";
 import type { RealtimeFeature } from "./types";
 
 export const FEATURES: Record<string, RealtimeFeature> = {
@@ -8,6 +9,11 @@ export const FEATURES: Record<string, RealtimeFeature> = {
     createService: (room: Room) => new ChatService(room),
     cleanupStore: () => useChatStore.getState().clearChat(),
   },
+  reactions: {
+    name: "reactions",
+    createService: (room: Room) => new ReactionsService(room),
+    cleanupStore: () => useReactionsStore.getState().clear(),
+  },
 };
 
-export const DEFAULT_FEATURES = ["chat"];
+export const DEFAULT_FEATURES = ["chat", "reactions"];

@@ -23,6 +23,7 @@ export class CallReadyHandler extends BaseSocketHandler<CallReadyEvent> {
       if (state.session && state.session.id === data.callId) {
         if (state.session.status === "pending") {
           state.session.status = "ready";
+          state.session.startedAt = new Date().toISOString();
         }
       }
     });

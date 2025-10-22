@@ -207,16 +207,19 @@ export function createCallsService(
         if (state.session && state.session.id === callId) {
           state.session.status = "ready";
           
+          // Set startedAt - use backend value if available, otherwise generate locally
+          if (response.call?.startedAt) {
+            state.session.startedAt = response.call.startedAt;
+          } else {
+            state.session.startedAt = new Date().toISOString();
+          }
+          
           if (response.joinInfo) {
             state.session.livekitInfo = {
               token: response.joinInfo.token,
               roomName: state.session.id,
               url: response.joinInfo.lkUrl,
             };
-
-            if (response.call?.startedAt) {
-              state.session.startedAt = response.call.startedAt;
-            }
 
             if (response.ringTimeoutMs) {
               state.session.ringTimeoutMs = response.ringTimeoutMs;
