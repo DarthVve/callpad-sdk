@@ -1,6 +1,6 @@
 {
   "name": "vg-x07df",
-  "version": "1.6.3",
+  "version": "1.7.0",
   "description": "Headless SDK for dubadav audio/video",
   "type": "module",
   "main": "./dist/index.cjs",
