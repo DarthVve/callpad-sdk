@@ -16,7 +16,6 @@ export class LiveKitRoomManager {
 
     this.detach();
     this.room = room;
-
     logger.info("Attaching to LiveKit room");
     room.on(
       RoomEvent.ParticipantDisconnected,
@@ -79,6 +78,8 @@ export class LiveKitRoomManager {
 
   private handleRoomDisconnected = () => {
     logger.info("Room disconnected");
-    this.detach();
+    this.disconnect().catch((error) => {
+      logger.error("Error disconnecting from LiveKit room", error);
+    });
   };
 }

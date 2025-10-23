@@ -2,7 +2,10 @@ import { createLogger } from "../../utils";
 
 export const logger = createLogger("reactions");
 
-export function validateEmoji(emoji: string): { valid: boolean; error?: string } {
+export function validateEmoji(emoji: string): {
+  valid: boolean;
+  error?: string;
+} {
   if (!emoji || typeof emoji !== "string") {
     return { valid: false, error: "empty" };
   }

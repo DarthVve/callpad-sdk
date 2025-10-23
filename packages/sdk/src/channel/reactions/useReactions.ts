@@ -32,8 +32,7 @@ export function useReactions(): UseReactionsReturn {
   );
 
   const getParticipantInfo = useCallback(
-    (id: string): Nullable<ParticipantMetadata> =>
-      participantCache[id] || null,
+    (id: string): Nullable<ParticipantMetadata> => participantCache[id] || null,
     [participantCache]
   );
 
@@ -48,12 +47,9 @@ export function useReactions(): UseReactionsReturn {
     [service]
   );
 
-  const clearReaction = useCallback(
-    (participantId: string) => {
-      useReactionsStore.getState().clearReaction(participantId);
-    },
-    []
-  );
+  const clearReaction = useCallback((participantId: string) => {
+    useReactionsStore.getState().clearReaction(participantId);
+  }, []);
 
   return {
     sendReaction,

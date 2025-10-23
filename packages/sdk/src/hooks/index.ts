@@ -17,3 +17,4 @@ export * from "./useParticipantPermissions";
 export * from "./useTimeout";
 export * from "./useRingTimeout";
 export * from "./useParticipantProfile";
+export * from "./useTerminate";

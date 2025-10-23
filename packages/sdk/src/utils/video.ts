@@ -1,4 +1,4 @@
-import { Participant, Track } from "livekit-client";
+import { type Participant, Track } from "livekit-client";
 
 /**
  * Check if a participant has video enabled and published
@@ -9,7 +9,7 @@ export function hasVideoTrack(participant: Participant): boolean {
 }
 
 /**
- * Get video track from participant 
+ * Get video track from participant
  */
 export function getVideoTrack(participant: Participant) {
   return participant.getTrackPublication(Track.Source.Camera);

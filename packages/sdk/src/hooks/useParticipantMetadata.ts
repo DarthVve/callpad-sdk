@@ -3,18 +3,16 @@ import type { LocalParticipant, RemoteParticipant } from "livekit-client";
 import type { ParticipantMetadata } from "../state/types";
 
 export function useParticipantMetadata(
-  participant: RemoteParticipant | LocalParticipant
+  participant: RemoteParticipant | LocalParticipant | null | undefined
 ): ParticipantMetadata | null {
-  if (!participant.metadata) {
+  // Don't use LiveKit hook for null participants - just access metadata directly
+  if (!participant || !participant.metadata) {
     return null;
   }
 
-  const m = useParticipantInfo({ participant });
-  const info = participant;
-
   try {
-    return info.metadata
-      ? (JSON.parse(info.metadata) as ParticipantMetadata)
+    return participant.metadata
+      ? (JSON.parse(participant.metadata) as ParticipantMetadata)
       : ({} as ParticipantMetadata);
   } catch (error) {
     console.error("Failed to parse participant metadata:", error);

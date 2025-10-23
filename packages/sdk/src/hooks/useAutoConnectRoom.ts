@@ -49,7 +49,7 @@ export function useAutoConnectRoom(options?: RoomOptions): Room {
 
       await room.connect(livekitInfo.url, livekitInfo.token);
       logger.debug("Successfully connected to LiveKit room");
-      
+
       // Initialize both audio and video tracks but keep them disabled
       // Users must explicitly enable them via UI controls
       await room.localParticipant.setMicrophoneEnabled(false);

@@ -48,9 +48,12 @@ export class ChatService {
     this.room.registerTextStreamHandler(
       "chat:v1",
       async (reader, participantInfo) => {
+          console.log("Got here: chat:v1", participantInfo.identity)
         try {
           const text = await reader.readAll();
+            console.log("Got here: chat:v1", text)
           this.handleIncomingMessage(text);
+
         } catch (error) {
           logger.error("Error reading text stream", error);
         }
