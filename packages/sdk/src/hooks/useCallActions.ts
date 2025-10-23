@@ -67,5 +67,12 @@ export function useCallActions() {
 
       return sdk.calls.mute(sessionId, participantId);
     },
+    end: () => {
+      if (!sessionId) {
+        throw new Error("No active session to end");
+      }
+
+      return sdk.calls.end(sessionId);
+    },
   };
 }

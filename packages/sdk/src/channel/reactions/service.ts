@@ -157,7 +157,8 @@ export class ReactionsService {
         return;
       }
 
-      const lastTs = this.lastRemoteTs.get(parsed.sender.id) ?? Number.NEGATIVE_INFINITY;
+      const lastTs =
+        this.lastRemoteTs.get(parsed.sender.id) ?? Number.NEGATIVE_INFINITY;
       if (parsed.ts < lastTs) {
         logger.debug("Ignoring out-of-order reaction", {
           sender: parsed.sender.id,

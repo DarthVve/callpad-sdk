@@ -1,7 +1,11 @@
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import type { ParticipantMetadata } from "../../state/types";
-import type { ParticipantReaction, ReactionEnvelope, ReactionsState } from "./types";
+import type {
+  ParticipantReaction,
+  ReactionEnvelope,
+  ReactionsState,
+} from "./types";
 
 interface ReactionsActions {
   setReaction: (participantId: string, reaction: ParticipantReaction) => void;

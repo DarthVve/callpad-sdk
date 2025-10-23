@@ -96,4 +96,12 @@ export class SignalCallsService {
       appId: this.appId,
     });
   }
+
+  async get(
+    params: Omit<CallsData["payloads"]["GetSignalCallsByCallId"], "appId">
+  ): Promise<CallsData["responses"]["GetSignalCallsByCallId"]> {
+    return CallsService.getSignalCallsByCallId({
+      ...params,
+    });
+  }
 }

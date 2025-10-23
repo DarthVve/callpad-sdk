@@ -33,7 +33,7 @@ export function createCallsService(
     | CallsData["responses"]["PostSignalCallsInvite"]
   > {
     try {
-        console.log(params, 'params')
+      console.log(params, "params");
       if (!params.callId) {
         // Set optimistic state immediately
         rtcStore.getState().patch((state) => {
@@ -45,7 +45,7 @@ export function createCallsService(
           };
           state.initiated = true;
         });
-        console.log('state: ', rtcStore.getState())
+        console.log("state: ", rtcStore.getState());
 
         const response = await signalCalls.initiate({
           requestBody: {
@@ -182,7 +182,7 @@ export function createCallsService(
     }
 
     const { callId, inviteId, mode } = currentState.incomingInvite;
-    
+
     // Set optimistic state immediately
     rtcStore.getState().patch((state) => {
       state.session = {
@@ -206,14 +206,14 @@ export function createCallsService(
         // Update the existing optimistic session
         if (state.session && state.session.id === callId) {
           state.session.status = "ready";
-          
+
           // Set startedAt - use backend value if available, otherwise generate locally
           if (response.call?.startedAt) {
             state.session.startedAt = response.call.startedAt;
           } else {
             state.session.startedAt = new Date().toISOString();
           }
-          
+
           if (response.joinInfo) {
             state.session.livekitInfo = {
               token: response.joinInfo.token,
@@ -284,6 +284,7 @@ export function createCallsService(
     callId: string
   ): Promise<CallsData["responses"]["PostSignalCallsByCallIdCancel"]> {
     try {
+      rtcStore.getState().reset();
       return signalCalls.cancel({
         callId,
       });
@@ -485,6 +486,13 @@ export function createCallsService(
     }
   }
 
+  async function get(
+    callId: string
+  ): Promise<CallsData["responses"]["GetSignalCallsByCallId"]> {
+    return signalCalls.get({
+      callId,
+    });
+  }
   return {
     initiate,
     invite,
