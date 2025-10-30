@@ -5,6 +5,7 @@ import type { ChatEntry, ChatState, Envelope } from "./types";
 interface ChatActions {
   patch: (fn: (draft: ChatState) => void) => void;
   applyIncoming: (envelope: Envelope) => void;
+  addFile: (file: File, filename: string) => void
   addEntryOptimistic: (entry: ChatEntry) => void;
   markEntrySent: (entryId: string) => void;
   markEntryFailed: (entryId: string) => void;
@@ -93,6 +94,7 @@ export const useChatStore = create<ChatState & ChatActions>()(
             version: 1,
             reactions: {},
             status: "sent",
+            filename: envelope.payload?.meta?.filename
           };
 
           state.byId[envelope.entryId] = entry;
@@ -180,6 +182,15 @@ export const useChatStore = create<ChatState & ChatActions>()(
             state.pendingOps[envelope.entryId]?.push(envelope);
           }
         }
+      }),
+    
+    addFile: (file, filename) =>
+      set((state) => {
+        const values = Object.values(state.byId)
+        const entryArr = values.filter(val => val.filename === filename)
+        const entry = entryArr[0];
+        entry!.file = file
+        state.byId[entry!.id] = entry!;
       }),
 
     addEntryOptimistic: (entry) =>

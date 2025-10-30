@@ -49,6 +49,8 @@ export interface ChatEntry {
   version: number;
   reactions: Record<string, Set<string>>;
   status: ChatEntryStatus;
+  filename?: string;
+  file?: File;
 }
 
 export interface ChatState {
