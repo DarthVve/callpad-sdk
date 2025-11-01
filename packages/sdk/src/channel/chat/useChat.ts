@@ -13,7 +13,7 @@ export interface UseChatReturn {
   isReady: boolean;
   getParticipantInfo: (id: string) => Nullable<ParticipantMetadata>;
   isOwnEntry: (entry: ChatEntry) => boolean;
-  send: (content: string) => Promise<void>;
+  send: (content: string, file?: File) => Promise<void>;
   edit: (id: string, content: string) => Promise<void>;
   remove: (id: string) => Promise<void>;
   react: (id: string, emoji: string) => Promise<void>;
@@ -42,7 +42,7 @@ export function useChat(): UseChatReturn {
   );
 
   const send = useCallback(
-    async (content: string) => service.send(content),
+    async (content: string, file?: File) => service.send(content, file),
     [service]
   );
 

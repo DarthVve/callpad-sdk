@@ -157,16 +157,16 @@ export class ChatService {
         sender: senderInfo,
         payload: {
           content,
-          meta: {filename: file!.name}
+          meta: {filename: file?.name}
         },
       };
 
       await this.room.localParticipant.sendText(JSON.stringify(envelope), {
         topic: "chat:v1",
       });
+      console.log('Sent message', entry, envelope)
       if (file) {
         await this.room.localParticipant.sendFile(file, {
-          destinationIdentities: [entryId],
           mimeType: file.type,
           topic: 'chat:v1'
         });
