@@ -44,7 +44,7 @@ export class ChatService {
     if (this.isSubscribed) {
       return;
     }
-
+    // Handles incoming text streams
     this.room.registerTextStreamHandler(
       "chat:v1",
       async (reader, participantInfo) => {
@@ -59,6 +59,35 @@ export class ChatService {
         }
       }
     );
+
+    // Handles incoming file streams
+    this.room.registerByteStreamHandler('chat:v1', async (reader, participantInfo) => {
+      try {
+        const info = reader.info;
+        const filename = info.name
+
+        // Confirm reciept of file
+        reader.onProgress = (progress) => {
+          console.log(`${progress ? (progress * 100).toFixed(0) : 'undefined'}% of ${filename} downloaded`);
+        };
+
+        // Ensure BlobParts are backed by ArrayBuffer (not SharedArrayBuffer) by copying with slice().
+        const parts = (await reader.readAll()).map((chunk) => chunk.slice());
+        const fileBlob = new Blob(parts, { type: info.mimeType });
+
+        this.handleIncomingFile(fileBlob, filename, info.mimeType)
+
+        console.log(
+          `File "${info.name}" received from ${participantInfo.identity}\n` +
+          `  Topic: ${info.topic}\n` +
+          `  Timestamp: ${info.timestamp}\n` +
+          `  ID: ${info.id}\n` +
+          `  Size: ${info.size}`
+        );
+      } catch (error) {
+        logger.error("Error reading file stream", error);
+      }
+    });
     this.isSubscribed = true;
   }
 
@@ -70,7 +99,7 @@ export class ChatService {
     return this.room.localParticipant.identity;
   }
 
-  async send(content: string): Promise<void> {
+  async send(content: string, file?: File): Promise<void> {
     if (!this.isRoomReady()) {
       useRtcStore.getState().addError({
         code: "CHAT_ROOM_NOT_READY",
@@ -78,6 +107,11 @@ export class ChatService {
         timestamp: Date.now(),
       });
       return;
+    }
+
+    if (content.length === 0 && typeof file !== "undefined") {
+      console.log("file present", typeof file)
+      content = file.name
     }
 
     const validation = validateContent(content);
@@ -109,6 +143,7 @@ export class ChatService {
       version: 1,
       reactions: {},
       status: "sending",
+      file: file!
     };
 
     chatStore.addEntryOptimistic(entry);
@@ -122,12 +157,20 @@ export class ChatService {
         sender: senderInfo,
         payload: {
           content,
+          meta: {filename: file?.name}
         },
       };
 
       await this.room.localParticipant.sendText(JSON.stringify(envelope), {
         topic: "chat:v1",
       });
+      console.log('Sent message', entry, envelope)
+      if (file) {
+        await this.room.localParticipant.sendFile(file, {
+          mimeType: file.type,
+          topic: 'chat:v1'
+        });
+      }
       chatStore.markEntrySent(entryId);
     } catch (error) {
       chatStore.markEntryFailed(entryId);
@@ -387,6 +430,16 @@ export class ChatService {
       useChatStore.getState().applyIncoming(parsed);
     } catch (error) {
       logger.error("Error parsing incoming message", error);
+    }
+  }
+
+  private handleIncomingFile(blob: Blob, filename: string, mimeType: string): void {
+    try {
+      const file = new File([blob], filename, { type: mimeType || blob.type });
+
+      useChatStore.getState().addFile(file, filename);
+    } catch (error) {
+      logger.error("Error parsing incoming file", error);
     }
   }
 
