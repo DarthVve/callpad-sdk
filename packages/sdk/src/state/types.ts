@@ -92,3 +92,28 @@ export const defaultState: RtcState = {
   outgoingInvites: {},
   errors: [],
 };
+
+import type { Participant } from "livekit-client";
+
+export interface ParticipantListOptions {
+  pageSize?: number;
+  includeLocalParticipant?: boolean;
+  sortBy?: "speaking" | "name";
+}
+
+export interface ParticipantListReturn {
+  participants: Participant[];
+  pinnedParticipants: Participant[];
+  currentPage: number;
+  totalPages: number;
+  pageSize: number;
+  totalParticipants: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+  nextPage: () => void;
+  prevPage: () => void;
+  setPageSize: (size: number) => void;
+  togglePin: (participantId: string) => void;
+  clearPinned: () => void;
+  isPinned: (participantId: string) => boolean;
+}
