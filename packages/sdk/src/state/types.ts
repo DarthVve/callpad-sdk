@@ -98,7 +98,7 @@ import type { Participant } from "livekit-client";
 export interface ParticipantListOptions {
   pageSize?: number;
   includeLocalParticipant?: boolean;
-  sortBy?: "speaking" | "name";
+  sortBy?: "speaking" | "name" | "raised-hand";
 }
 
 export interface ParticipantListReturn {
