@@ -48,10 +48,9 @@ export class ChatService {
     this.room.registerTextStreamHandler(
       "chat:v1",
       async (reader, participantInfo) => {
-        console.log("Got here: chat:v1", participantInfo.identity);
         try {
           const text = await reader.readAll();
-          console.log("Got here: chat:v1", text);
+          console.log("Got here: chat:v1", text, participantInfo.identity);
           this.handleIncomingMessage(text);
         } catch (error) {
           logger.error("Error reading text stream", error);
@@ -67,26 +66,11 @@ export class ChatService {
           const info = reader.info;
           const filename = info.name;
 
-          // Confirm reciept of file
-          reader.onProgress = (progress) => {
-            console.log(
-              `${progress ? (progress * 100).toFixed(0) : "undefined"}% of ${filename} downloaded`
-            );
-          };
-
           // Ensure BlobParts are backed by ArrayBuffer (not SharedArrayBuffer) by copying with slice().
           const parts = (await reader.readAll()).map((chunk) => chunk.slice());
           const fileBlob = new Blob(parts, { type: info.mimeType });
 
           this.handleIncomingFile(fileBlob, filename, info.mimeType);
-
-          console.log(
-            `File "${info.name}" received from ${participantInfo.identity}\n` +
-              `  Topic: ${info.topic}\n` +
-              `  Timestamp: ${info.timestamp}\n` +
-              `  ID: ${info.id}\n` +
-              `  Size: ${info.size}`
-          );
         } catch (error) {
           logger.error("Error reading file stream", error);
         }
@@ -114,7 +98,6 @@ export class ChatService {
     }
 
     if (content.length === 0 && typeof file !== "undefined") {
-      console.log("file present", typeof file);
       content = file.name;
     }
 
@@ -168,7 +151,6 @@ export class ChatService {
       await this.room.localParticipant.sendText(JSON.stringify(envelope), {
         topic: "chat:v1",
       });
-      console.log("Sent message", entry, envelope);
       if (file) {
         await this.room.localParticipant.sendFile(file, {
           mimeType: file.type,
