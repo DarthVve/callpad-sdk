@@ -35,6 +35,10 @@ export const useRaiseHandStore = create<RaiseHandState & RaiseHandActions>()(
     lowerHand: (participantId) =>
       set((state) => {
         state.raisedHands.delete(participantId);
+        // Reset order counter when all hands are lowered
+        if (state.raisedHands.size === 0) {
+          state.nextOrder = 1;
+        }
       }),
 
     lowerAllHands: () =>

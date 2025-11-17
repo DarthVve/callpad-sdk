@@ -70,6 +70,7 @@ export {
   StartAudio,
   StartMediaButton,
   VideoTrack,
+  useMediaDeviceSelect
 } from "@livekit/components-react";
 
 export * from "./custom";
