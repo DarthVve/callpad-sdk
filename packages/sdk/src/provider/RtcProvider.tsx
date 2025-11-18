@@ -30,7 +30,7 @@ export function RtcProvider({
         },
         undefined
       )
-      .catch((error) => {
+      .catch((error: any) => {
         options.log?.("error", "Failed to initialize socket connection", error);
 
         rtcStore.getState().addError({

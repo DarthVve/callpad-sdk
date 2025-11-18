@@ -1,7 +1,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { HealthData, CallsData, LiveKitData, UsersData } from './models';
+import type { HealthData, LiveKitData, CallsData, UsersData, InitData } from './models';
 
 export class HealthService {
 
@@ -17,15 +17,57 @@ export class HealthService {
 		});
 	}
 
+}
+
+export class LiveKitService {
+
 	/**
-	 * @returns any Service is healthy
+	 * @returns any Webhook processed successfully
 	 * @throws ApiError
 	 */
-	public static getSignalHealth(): CancelablePromise<HealthData['responses']['GetSignalHealth']> {
-		
+	public static postLivekitWebhook(data: LiveKitData['payloads']['PostLivekitWebhook'] = {}): CancelablePromise<LiveKitData['responses']['PostLivekitWebhook']> {
+		const {
+                    
+                    authorization,
+requestBody
+                } = data;
 		return __request(OpenAPI, {
-			method: 'GET',
-			url: '/signal/health',
+			method: 'POST',
+			url: '/livekit/webhook',
+			headers: {
+				authorization
+			},
+			body: requestBody,
+			mediaType: 'text/plain',
+			errors: {
+				400: `Invalid webhook`,
+				500: `Failed to process webhook`,
+			},
+		});
+	}
+
+	/**
+	 * @returns any Webhook processed successfully
+	 * @throws ApiError
+	 */
+	public static postSignalLivekitWebhook(data: LiveKitData['payloads']['PostSignalLivekitWebhook'] = {}): CancelablePromise<LiveKitData['responses']['PostSignalLivekitWebhook']> {
+		const {
+                    
+                    authorization,
+requestBody
+                } = data;
+		return __request(OpenAPI, {
+			method: 'POST',
+			url: '/signal/livekit/webhook',
+			headers: {
+				authorization
+			},
+			body: requestBody,
+			mediaType: 'text/plain',
+			errors: {
+				400: `Invalid webhook`,
+				500: `Failed to process webhook`,
+			},
 		});
 	}
 
@@ -355,35 +397,6 @@ appId
 
 }
 
-export class LiveKitService {
-
-	/**
-	 * @returns any Webhook processed successfully
-	 * @throws ApiError
-	 */
-	public static postSignalLivekitWebhook(data: LiveKitData['payloads']['PostSignalLivekitWebhook'] = {}): CancelablePromise<LiveKitData['responses']['PostSignalLivekitWebhook']> {
-		const {
-                    
-                    authorization,
-requestBody
-                } = data;
-		return __request(OpenAPI, {
-			method: 'POST',
-			url: '/signal/livekit/webhook',
-			headers: {
-				authorization
-			},
-			body: requestBody,
-			mediaType: 'text/plain',
-			errors: {
-				400: `Invalid webhook`,
-				500: `Failed to process webhook`,
-			},
-		});
-	}
-
-}
-
 export class UsersService {
 
 	/**
@@ -405,6 +418,32 @@ export class UsersService {
 				400: `Invalid request`,
 				401: `Authentication required`,
 				404: `User not found`,
+			},
+		});
+	}
+
+}
+
+export class InitService {
+
+	/**
+	 * @returns any Initialized
+	 * @throws ApiError
+	 */
+	public static getSignalInit(data: InitData['payloads']['GetSignalInit']): CancelablePromise<InitData['responses']['GetSignalInit']> {
+		const {
+                    
+                    appId
+                } = data;
+		return __request(OpenAPI, {
+			method: 'GET',
+			url: '/signal/init',
+			query: {
+				appId
+			},
+			errors: {
+				401: `Authentication required`,
+				500: `Internal server error`,
 			},
 		});
 	}

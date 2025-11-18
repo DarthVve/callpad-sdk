@@ -38,9 +38,9 @@ export class SocketManager {
     }
 
     this.updateConnectionState("CONNECTING");
-    const token = authManager.getCurrentToken();
+    const token = await authManager.getSessionToken();
     if (!token) {
-      throw new Error("No authentication token available");
+      throw new Error("No session token available");
     }
 
     try {
@@ -85,11 +85,11 @@ export class SocketManager {
       this.logger.error("Connection error", { error: error.message });
     });
 
-    this.socket.io.on("reconnect_attempt", () => {
+    this.socket.io.on("reconnect_attempt", async () => {
       this.updateConnectionState("RECONNECTING");
-      const freshToken = authManager.getCurrentToken();
+      const freshToken = await authManager.getSessionToken();
       if (freshToken && this.socket) {
-        this.logger.debug("Refreshing auth token for reconnection");
+        this.logger.debug("Refreshing session token for reconnection");
         this.socket.auth = { token: freshToken };
       }
     });

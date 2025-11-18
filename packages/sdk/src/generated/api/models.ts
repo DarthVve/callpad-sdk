@@ -10,11 +10,33 @@ timestamp: string
 uptime: number
 service: string
     }
-                ,GetSignalHealth: {
-        status: string
-timestamp: string
-uptime: number
-service: string
+                
+        }
+        
+    }
+
+export type LiveKitData = {
+        
+        payloads: {
+            PostLivekitWebhook: {
+                        authorization?: string
+requestBody?: string
+                        
+                    };
+PostSignalLivekitWebhook: {
+                        authorization?: string
+requestBody?: string
+                        
+                    };
+        }
+        
+        
+        responses: {
+            PostLivekitWebhook: {
+        success: boolean
+    }
+                ,PostSignalLivekitWebhook: {
+        success: boolean
     }
                 
         }
@@ -296,26 +318,6 @@ endedForAll?: boolean
         
     }
 
-export type LiveKitData = {
-        
-        payloads: {
-            PostSignalLivekitWebhook: {
-                        authorization?: string
-requestBody?: string
-                        
-                    };
-        }
-        
-        
-        responses: {
-            PostSignalLivekitWebhook: {
-        success: boolean
-    }
-                
-        }
-        
-    }
-
 export type UsersData = {
         
         payloads: {
@@ -333,6 +335,29 @@ username: string | null
 firstName: string | null
 lastName: string | null
 profilePhoto: string | null
+    }
+                
+        }
+        
+    }
+
+export type InitData = {
+        
+        payloads: {
+            GetSignalInit: {
+                        appId: string
+                        
+                    };
+        }
+        
+        
+        responses: {
+            GetSignalInit: {
+        sessionToken: string
+sessionId: string
+userId: string
+deviceId: string
+expiresAt: string
     }
                 
         }

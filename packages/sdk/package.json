@@ -1,7 +1,7 @@
 {
   "name": "vg-x07df",
-  "version": "1.8.3",
-  "description": "Headless SDK for dubadav audio/video",
+  "version": "1.9.0",
+  "description": "Headless SDK for callpad audio/video",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",

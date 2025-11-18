@@ -6,4 +6,12 @@ export interface TokenInfo {
   expiresAt?: number | undefined;
 }
 
+export interface SessionInfo {
+  sessionToken: string;
+  sessionId: string;
+  userId: string;
+  deviceId: string;
+  expiresAt: string;
+}
+
 export type Nullable<T> = T | null;
