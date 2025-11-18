@@ -47,7 +47,8 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
   setGlobalLoggerOptions(loggerOptions);
 
   // Initialize core managers
-  const auth = new AuthManager(opts.authProvider);
+  const auth = new AuthManager(opts.authProvider, opts.appId);
+
   const socket = SocketManager.getInstance();
   const livekitManager = new LiveKitRoomManager();
   const callsService = createCallsService(
@@ -55,22 +56,22 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
     { livekitManager }
   );
 
-  // Initialize signal client with same configuration
+  // Initialize signal client with session token configuration
   const signalClient = new SignalClient({
     baseUrl: opts.signalHost,
     appId: opts.appId,
     token: async () => {
-      const token = auth.getCurrentToken();
+      const token = await auth.getSessionToken();
       return token || "";
     },
   });
 
-  // Configure API immediately with the signal host and auth provider
-  // This ensures API is ready before any requests are made
+  // Configure API with base URL and session token provider
+  // This ensures all API calls use session tokens consistently
   apiConfig.configure({
     baseUrl: opts.signalHost,
     token: async () => {
-      const token = auth.getCurrentToken();
+      const token = await auth.getSessionToken();
       return token || "";
     },
   });

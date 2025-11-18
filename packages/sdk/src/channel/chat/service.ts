@@ -97,11 +97,10 @@ export class ChatService {
       return;
     }
 
-    if (content.length === 0 && typeof file !== "undefined") {
-      content = file.name;
-    }
+    const messageContent =
+      content.length === 0 && typeof file !== "undefined" ? file.name : content;
 
-    const validation = validateContent(content);
+    const validation = validateContent(messageContent);
     if (!validation.valid) {
       useRtcStore.getState().addError({
         code: "CHAT_INVALID_CONTENT",
@@ -122,7 +121,7 @@ export class ChatService {
 
     const entry: ChatEntry = {
       id: entryId,
-      content,
+      content: messageContent,
       sender: {
         id: senderInfo.id,
       },
