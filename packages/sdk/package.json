@@ -51,7 +51,7 @@
   "author": "Voyatek Group",
   "repository": {
     "type": "git",
-    "directory": "web-sdk/packages/sdk"
+    "directory": "/packages/sdk"
   },
   "peerDependencies": {
     "livekit-client": "^2.8.0",

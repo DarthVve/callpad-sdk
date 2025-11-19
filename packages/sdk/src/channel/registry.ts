@@ -2,6 +2,7 @@ import type { Room } from "livekit-client";
 import { ChatService, useChatStore } from "./chat";
 import { RaiseHandService, useRaiseHandStore } from "./raiseHand";
 import { ReactionsService, useReactionsStore } from "./reactions";
+import { SpotlightService, useSpotlightStore } from "./spotlight";
 import type { RealtimeFeature } from "./types";
 
 export const FEATURES: Record<string, RealtimeFeature> = {
@@ -20,6 +21,11 @@ export const FEATURES: Record<string, RealtimeFeature> = {
     createService: (room: Room) => new RaiseHandService(room),
     cleanupStore: () => useRaiseHandStore.getState().clear(),
   },
+  spotlight: {
+    name: "spotlight",
+    createService: (room: Room) => new SpotlightService(room),
+    cleanupStore: () => useSpotlightStore.getState().clear(),
+  },
 };
 
-export const DEFAULT_FEATURES = ["chat", "reactions", "raise-hand"];
+export const DEFAULT_FEATURES = ["chat", "reactions", "raise-hand", "spotlight"];
