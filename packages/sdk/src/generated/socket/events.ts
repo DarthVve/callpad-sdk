@@ -111,3 +111,24 @@ export const participantProfilesSchema = z.object({
 }).strict();
 
 export type ParticipantProfilesEvent = z.infer<typeof participantProfilesSchema>;
+
+// Event: call:recordingStarted
+export const callRecordingStartedSchema = z.object({
+  callId: z.string(),
+  recordingId: z.string(),
+  egressId: z.string(),
+  state: z.string(),
+  startedAt: z.string(),
+}).strict();
+
+export type CallRecordingStartedEvent = z.infer<typeof callRecordingStartedSchema>;
+
+// Event: call:recordingStopped
+export const callRecordingStoppedSchema = z.object({
+  callId: z.string(),
+  recordingId: z.string(),
+  egressId: z.string(),
+  state: z.string(),
+}).strict();
+
+export type CallRecordingStoppedEvent = z.infer<typeof callRecordingStoppedSchema>;

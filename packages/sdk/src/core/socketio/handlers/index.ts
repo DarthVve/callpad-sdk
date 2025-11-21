@@ -12,3 +12,5 @@ export { CallParticipantKickedHandler } from "./call-participant-kicked.handler"
 export { CallReadyHandler } from "./call-ready.handler";
 export { CallStartedHandler } from "./call-started.handler";
 export { ParticipantProfilesHandler } from "./participant-profiles.handler";
+export { RecordingStartedHandler } from "./recording-started.handler";
+export { RecordingStoppedHandler } from "./recording-stopped.handler";

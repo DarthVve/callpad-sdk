@@ -395,6 +395,64 @@ appId
 		});
 	}
 
+	/**
+	 * @returns any Recording started successfully
+	 * @throws ApiError
+	 */
+	public static postSignalCallsByCallIdRecordingsStart(data: CallsData['payloads']['PostSignalCallsByCallIdRecordingsStart']): CancelablePromise<CallsData['responses']['PostSignalCallsByCallIdRecordingsStart']> {
+		const {
+                    
+                    callId,
+appId
+                } = data;
+		return __request(OpenAPI, {
+			method: 'POST',
+			url: '/signal/calls/{callId}/recordings/start',
+			path: {
+				callId
+			},
+			query: {
+				appId
+			},
+			errors: {
+				400: `Invalid request`,
+				401: `Authentication required`,
+				403: `Only host can start recording`,
+				404: `Call not found`,
+				409: `A recording is already active`,
+			},
+		});
+	}
+
+	/**
+	 * @returns any Recording stopped successfully
+	 * @throws ApiError
+	 */
+	public static postSignalCallsByCallIdRecordingsByRecordingIdStop(data: CallsData['payloads']['PostSignalCallsByCallIdRecordingsByRecordingIdStop']): CancelablePromise<CallsData['responses']['PostSignalCallsByCallIdRecordingsByRecordingIdStop']> {
+		const {
+                    
+                    callId,
+recordingId,
+appId
+                } = data;
+		return __request(OpenAPI, {
+			method: 'POST',
+			url: '/signal/calls/{callId}/recordings/{recordingId}/stop',
+			path: {
+				callId, recordingId
+			},
+			query: {
+				appId
+			},
+			errors: {
+				400: `Invalid request`,
+				401: `Authentication required`,
+				403: `Only host can stop recording`,
+				404: `Call or recording not found`,
+			},
+		});
+	}
+
 }
 
 export class UsersService {

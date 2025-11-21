@@ -493,6 +493,71 @@ export function createCallsService(
       callId,
     });
   }
+
+  async function startRecording(
+    callId: string
+  ): Promise<CallsData["responses"]["PostSignalCallsByCallIdRecordingsStart"]> {
+    try {
+      const response = await signalCalls.startRecording({
+        callId,
+      });
+
+      // Store recording info in session state
+      rtcStore.getState().patch((state) => {
+        if (state.session && state.session.id === callId) {
+          const info = response.message.split(" ");
+          state.session.recording = {
+            recordingId: info[1]!,
+            egressId: info[4]!,
+            state: "RECORDING",
+            startedAt: new Date().toISOString(),
+          };
+        }
+      });
+
+      return response;
+    } catch (error: any) {
+      rtcStore.getState().addError({
+        code: "START_RECORDING_FAILED",
+        message: error.message || "Failed to start recording",
+        timestamp: Date.now(),
+        context: error,
+      });
+      throw error;
+    }
+  }
+
+  async function stopRecording(
+    callId: string,
+    recordingId: string
+  ): Promise<
+    CallsData["responses"]["PostSignalCallsByCallIdRecordingsByRecordingIdStop"]
+  > {
+    try {
+      const response = await signalCalls.stopRecording({
+        callId,
+        recordingId,
+      });
+
+      // Clear recording info from session state
+      rtcStore.getState().patch((state) => {
+        if (state.session && state.session.id === callId) {
+          state.session.recording = null;
+        }
+      });
+
+      return response;
+    } catch (error: any) {
+      rtcStore.getState().addError({
+        code: "STOP_RECORDING_FAILED",
+        message: error.message || "Failed to stop recording",
+        timestamp: Date.now(),
+        context: error,
+      });
+      throw error;
+    }
+  }
+
   return {
     initiate,
     invite,
@@ -504,6 +569,8 @@ export function createCallsService(
     transfer,
     kick,
     mute,
+    startRecording,
+    stopRecording,
   };
 }
 

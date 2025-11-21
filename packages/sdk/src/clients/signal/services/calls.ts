@@ -104,4 +104,30 @@ export class SignalCallsService {
       ...params,
     });
   }
+
+  async startRecording(
+    params: Omit<
+      CallsData["payloads"]["PostSignalCallsByCallIdRecordingsStart"],
+      "appId"
+    >
+  ): Promise<CallsData["responses"]["PostSignalCallsByCallIdRecordingsStart"]> {
+    return CallsService.postSignalCallsByCallIdRecordingsStart({
+      ...params,
+      appId: this.appId,
+    });
+  }
+
+  async stopRecording(
+    params: Omit<
+      CallsData["payloads"]["PostSignalCallsByCallIdRecordingsByRecordingIdStop"],
+      "appId"
+    >
+  ): Promise<
+    CallsData["responses"]["PostSignalCallsByCallIdRecordingsByRecordingIdStop"]
+  > {
+    return CallsService.postSignalCallsByCallIdRecordingsByRecordingIdStop({
+      ...params,
+      appId: this.appId,
+    });
+  }
 }

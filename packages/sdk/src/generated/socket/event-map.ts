@@ -11,6 +11,8 @@ import type {
   CallParticipantKickedEvent,
   CallReadyEvent,
   CallStartedEvent,
+  CallRecordingStartedEvent,
+  CallRecordingStoppedEvent,
   ParticipantProfilesEvent,
 } from "./events";
 
@@ -28,6 +30,8 @@ export interface SocketEventMap {
   "call:participantKicked": CallParticipantKickedEvent;
   "call:ready": CallReadyEvent;
   "call:started": CallStartedEvent;
+  "call:recordingStarted": CallRecordingStartedEvent;
+  "call:recordingStopped": CallRecordingStoppedEvent;
   "participant:profiles": ParticipantProfilesEvent;
 }
 

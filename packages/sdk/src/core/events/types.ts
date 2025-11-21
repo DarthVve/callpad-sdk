@@ -30,6 +30,10 @@ export enum SdkEventType {
   // Participant events
   PARTICIPANT_UPDATED = "participant:updated",
   PARTICIPANT_INVITED = "participant:invited",
+
+  // Recording events
+  RECORDING_STARTED = "recording:started",
+  RECORDING_STOPPED = "recording:stopped",
 }
 
 /**

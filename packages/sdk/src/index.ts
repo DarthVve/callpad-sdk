@@ -14,6 +14,7 @@ export type {
   RtcError,
   RtcState,
   Profile,
+  RecordingInfo,
 } from "./state/types";
 export { useProfileCache, profileCache } from "./state/profileCache";
 export type {
