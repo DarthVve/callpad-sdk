@@ -127,6 +127,17 @@ PostSignalCallsByCallIdEnd: {
 callId: string
                         
                     };
+PostSignalCallsByCallIdRecordingsStart: {
+                        appId: string
+callId: string
+                        
+                    };
+PostSignalCallsByCallIdRecordingsByRecordingIdStop: {
+                        appId: string
+callId: string
+recordingId: string
+                        
+                    };
         }
         
         
@@ -313,6 +324,14 @@ autoEnded?: boolean
 endedForAll?: boolean
     }
                 ,PostSignalCallsByCallIdEnd: void
+                ,PostSignalCallsByCallIdRecordingsStart: {
+        status: boolean
+message: string
+    }
+                ,PostSignalCallsByCallIdRecordingsByRecordingIdStop: {
+        status: boolean
+message: string
+    }
                 
         }
         

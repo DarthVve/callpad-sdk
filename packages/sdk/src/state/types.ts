@@ -36,6 +36,13 @@ export interface LiveKitJoinInfo {
   url: string;
 }
 
+export interface RecordingInfo {
+  recordingId: string;
+  egressId: string;
+  state: string;
+  startedAt: string;
+}
+
 export interface Session {
   id: string;
   status: "initializing" | "pending" | "ready" | "active" | "ended";
@@ -44,6 +51,7 @@ export interface Session {
   livekitInfo?: LiveKitJoinInfo;
   startedAt?: string;
   ringTimeoutMs?: number;
+  recording?: RecordingInfo | null;
 }
 
 export interface IncomingInvite {

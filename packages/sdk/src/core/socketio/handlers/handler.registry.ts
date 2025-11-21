@@ -11,6 +11,8 @@ import { InviteDeclinedHandler } from "./invite-declined.handler";
 import { InviteHandler } from "./invite.handler";
 import { ParticipantAddedHandler } from "./participant-added.handler";
 import { ParticipantProfilesHandler } from "./participant-profiles.handler";
+import { RecordingStartedHandler } from "./recording-started.handler";
+import { RecordingStoppedHandler } from "./recording-stopped.handler";
 
 const logger = createLogger("socketio:registry");
 
@@ -44,6 +46,10 @@ export class SocketHandlerRegistry {
 
       // Profile hydration
       new ParticipantProfilesHandler(this.options),
+
+      // Recording
+      new RecordingStartedHandler(this.options),
+      new RecordingStoppedHandler(this.options),
     ];
 
     for (const handler of handlers) {

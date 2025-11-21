@@ -1,4 +1,5 @@
 import { useSdk } from "../provider/RtcProvider";
+import { rtcStore } from "../state/store";
 import { useIncomingInvite } from "./useIncomingInvite";
 import { useSessionId } from "./useSessionId";
 
@@ -73,6 +74,25 @@ export function useCallActions() {
       }
 
       return sdk.calls.end(sessionId);
+    },
+    startRecording: () => {
+      if (!sessionId) {
+        throw new Error("No active session to start recording");
+      }
+
+      return sdk.calls.startRecording(sessionId);
+    },
+    stopRecording: () => {
+      if (!sessionId) {
+        throw new Error("No active session to stop recording");
+      }
+
+      const session = rtcStore.getState().session;
+      if (!session?.recording?.recordingId) {
+        throw new Error("No active recording to stop");
+      }
+
+      return sdk.calls.stopRecording(sessionId, session.recording.recordingId);
     },
   };
 }

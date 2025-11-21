@@ -1,7 +1,7 @@
 {
   "name": "vg-x07df",
-  "version": "1.8.2",
-  "description": "Headless SDK for VG audio/video",
+  "version": "1.9.1",
+  "description": "Headless SDK for callpad audio/video",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
@@ -51,7 +51,7 @@
   "author": "Voyatek Group",
   "repository": {
     "type": "git",
-    "directory": "web-sdk/packages/sdk"
+    "directory": "/packages/sdk"
   },
   "peerDependencies": {
     "livekit-client": "^2.8.0",

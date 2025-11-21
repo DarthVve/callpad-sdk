@@ -19,9 +19,10 @@ export const computeDuration = (
     throw new Error("Invalid end time provided");
   }
 
-  const durationMs = endTimestamp - startTimestamp;
+  let durationMs = endTimestamp - startTimestamp;
   if (durationMs < 0) {
-    throw new Error("End time cannot be before start time");
+    durationMs = 0;
+    // throw new Error("End time cannot be before start time");
   }
 
   const totalSeconds = Math.round(durationMs / 1000);
