@@ -11,7 +11,7 @@ const logger = createLogger("spotlight:hook");
 type Nullable<T> = T | null;
 
 export interface IUseSpotlight {
-  spotlight: (targetId: string) => Promise<void>;
+  spotlight: (targetId: string, info?: ParticipantMetadata) => Promise<void>;
   unspotlight: () => Promise<void>;
   getSpotlightedUser: () => Nullable<SpotlightedUser>;
   isSpotlighted: boolean;
