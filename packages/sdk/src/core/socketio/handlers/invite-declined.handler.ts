@@ -44,6 +44,23 @@ export class InviteDeclinedHandler extends BaseSocketHandler<CallInviteDeclinedE
           status: "declined",
         };
       }
+
+      const inviteStatuses = Object.values(state.outgoingInvites).map(
+        (inv: any) => inv.status
+      );
+      const allDeclinedOrMissed = inviteStatuses.every(
+        (status: string) => status === "declined" || status === "missed"
+      );
+
+      if (
+        inviteStatuses.length > 0 &&
+        allDeclinedOrMissed &&
+        state.session?.status === "pending"
+      ) {
+        state.session = null;
+        state.outgoingInvites = {};
+        state.initiated = false;
+      }
     });
 
     eventBus.emit(SdkEventType.CALL_DECLINED, {

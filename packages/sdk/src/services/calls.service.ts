@@ -266,10 +266,18 @@ export function createCallsService(
         requestBody.reason = reason;
       }
 
-      return signalCalls.decline({
+      const response = await signalCalls.decline({
         callId,
         requestBody,
       });
+
+      // Clear local state after successful decline
+      rtcStore.getState().patch((state) => {
+        state.incomingInvite = null;
+        state.session = null;
+      });
+
+      return response;
     } catch (error: any) {
       rtcStore.getState().addError({
         code: "DECLINE_FAILED",
