@@ -32,7 +32,7 @@ export function useSpotlight(): IUseSpotlight {
         logger.error("Cannot spotlight: service not ready");
         return;
       }
-      return service.spotlight(targetId);
+      return service.spotlight(targetId, info!);
     },
     [service]
   );
