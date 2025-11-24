@@ -62,12 +62,21 @@ export class SocketHandlerRegistry {
   registerEventListeners(socket: Socket): void {
     for (const [eventName, handler] of this.handlers) {
       socket.on(eventName, (rawData: any) => {
+        logger.debug(`Socket event received: ${eventName}`, {
+          eventName,
+          socketId: socket.id,
+          connected: socket.connected,
+          hasData: !!rawData,
+        });
         handler.handleRaw(rawData).catch((error: Error) => {
           logger.error(`Handler error for ${eventName}:`, error);
         });
       });
     }
-    logger.debug("Event listeners registered on socket");
+    logger.debug("Event listeners registered on socket", {
+      registeredEvents: Array.from(this.handlers.keys()),
+      socketId: socket.id,
+    });
   }
 
   removeEventListeners(socket: Socket): void {

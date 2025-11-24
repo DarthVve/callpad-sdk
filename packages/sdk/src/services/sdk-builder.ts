@@ -53,7 +53,7 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
   const livekitManager = new LiveKitRoomManager();
   const callsService = createCallsService(
     { appId: opts.appId },
-    { livekitManager }
+    { livekitManager, authManager: auth }
   );
 
   // Initialize signal client with session token configuration

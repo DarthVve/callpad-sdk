@@ -1,5 +1,6 @@
 import { SignalCallsService } from "../clients/signal";
 import type { CallsData } from "../generated/api/models";
+import type { AuthManager } from "../core/auth.manager";
 import { profileCache } from "../state/profileCache";
 import { recordingStore } from "../state/recording.store";
 import { rtcStore } from "../state/store";
@@ -16,6 +17,7 @@ export interface InitiateCallParams {
 
 export interface CallsServiceDependencies {
   livekitManager?: { disconnect: () => Promise<void> };
+  authManager?: AuthManager;
 }
 
 export function createCallsService(
@@ -513,26 +515,53 @@ export function createCallsService(
         callId,
       });
 
+      // Get current user ID from session info
+      const sessionInfo = deps?.authManager?.getSessionInfo();
+      const userId = sessionInfo?.userId || "";
+
+      const info = response.message.split(" ");
+      const recordingId = info[1];
+      const egressId = info[4];
+
+      // Validate parsed values
+      if (!recordingId || !egressId) {
+        rtcStore.getState().addError({
+          code: "START_RECORDING_PARSE_ERROR",
+          message: `Failed to parse recording info from response message: ${response.message}`,
+          timestamp: Date.now(),
+          context: { message: response.message, parsedInfo: info },
+        });
+
+        return response;
+      }
+
+      // Create a single timestamp to ensure consistency across both stores
+      const startedAt = new Date().toISOString();
+
+      // NOTE: This is an optimistic update from the API response.
+      // The socket event (call:recordingStarted) should also be received to confirm
+      // and ensure all participants (including the host) get the update via socket.
       // Store recording info in session state (for backward compatibility)
       rtcStore.getState().patch((state) => {
         if (state.session && state.session.id === callId) {
-          const info = response.message.split(" ");
           state.session.recording = {
-            recordingId: info[1]!,
-            egressId: info[4]!,
+            recordingId,
+            egressId,
             state: "RECORDING",
-            startedAt: new Date().toISOString(),
+            startedAt,
+            initiatedBy: userId,
           };
         }
       });
 
       // Update shared recording store (available to all participants)
-      const info = response.message.split(" ");
+      // This is an optimistic update - the socket event should also update this
       recordingStore.getState().setRecording({
-        recordingId: info[1]!,
-        egressId: info[4]!,
+        recordingId,
+        egressId,
         state: "RECORDING",
-        startedAt: new Date().toISOString(),
+        startedAt,
+        initiatedBy: userId,
       });
 
       return response;

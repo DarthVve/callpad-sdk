@@ -41,6 +41,7 @@ export interface RecordingInfo {
   egressId: string;
   state: string;
   startedAt: string;
+  initiatedBy: string;
 }
 
 export interface Session {
