@@ -18,7 +18,7 @@ export class RecordingStartedHandler extends BaseSocketHandler<CallRecordingStar
   protected handle(data: CallRecordingStartedEvent): void {
     const currentState = rtcStore.getState();
 
-    this.logger.info("Recording started event received", {
+    this.logger.debug("Recording started event received", {
       callId: data.callId,
       recordingId: data.recordingId,
       egressId: data.egressId,
