@@ -28,7 +28,6 @@ export class RecordingStoppedHandler extends BaseSocketHandler<CallRecordingStop
     try {
       // Clear shared recording store for ALL participants (regardless of session state)
       // This ensures all participants know recording has stopped
-      // Update shared recording store FIRST (for all participants, regardless of session state)
       recordingStore.getState().clear();
 
       this.logger.debug("Recording store cleared for all participants", {
