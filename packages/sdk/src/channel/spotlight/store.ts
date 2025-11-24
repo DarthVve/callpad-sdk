@@ -7,15 +7,17 @@ interface SpotlightActions {
   spotlight: (participantId: string, info?: ParticipantMetadata) => void;
   unspotlight: () => void;
   getSpotlightedUser: () => SpotlightedUser | null;
-  isSpotlighted: (participantId: string) => boolean;
   clear: () => void;
 }
 
 const defaultState: SpotlightState = {
   spotlightedUser: null,
+  isSpotlighted: false,
 };
 
-export const useSpotlightStore = create<SpotlightState & SpotlightActions>()(
+export const useSpotlightStore = create<
+  SpotlightState & SpotlightActions
+>()(
   immer((set, get) => ({
     ...defaultState,
 
@@ -26,23 +28,21 @@ export const useSpotlightStore = create<SpotlightState & SpotlightActions>()(
           ts: Date.now(),
           ...(info && { info }),
         };
+        state.isSpotlighted = true;
       }),
 
     unspotlight: () =>
       set((state) => {
         state.spotlightedUser = null;
+        state.isSpotlighted = false;
       }),
 
     getSpotlightedUser: () => get().spotlightedUser,
 
-    isSpotlighted: (participantId) => {
-      const user = get().spotlightedUser;
-      return user?.participantId === participantId;
-    },
-
     clear: () =>
       set(() => ({
         spotlightedUser: null,
+        isSpotlighted: false,
       })),
   }))
 );

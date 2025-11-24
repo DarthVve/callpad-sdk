@@ -1,6 +1,7 @@
 import { SignalCallsService } from "../clients/signal";
 import type { CallsData } from "../generated/api/models";
 import { profileCache } from "../state/profileCache";
+import { recordingStore } from "../state/recording.store";
 import { rtcStore } from "../state/store";
 
 export interface CallsServiceConfig {
@@ -306,6 +307,7 @@ export function createCallsService(
       } else {
         rtcStore.getState().reset();
         profileCache.getState().clear();
+        recordingStore.getState().clear();
       }
     } catch (error: any) {
       rtcStore.getState().addError({
@@ -408,6 +410,7 @@ export function createCallsService(
 
       rtcStore.getState().reset();
       profileCache.getState().clear();
+      recordingStore.getState().clear();
 
       return response;
     } catch (error: any) {
@@ -502,7 +505,7 @@ export function createCallsService(
         callId,
       });
 
-      // Store recording info in session state
+      // Store recording info in session state (for backward compatibility)
       rtcStore.getState().patch((state) => {
         if (state.session && state.session.id === callId) {
           const info = response.message.split(" ");
@@ -513,6 +516,15 @@ export function createCallsService(
             startedAt: new Date().toISOString(),
           };
         }
+      });
+
+      // Update shared recording store (available to all participants)
+      const info = response.message.split(" ");
+      recordingStore.getState().setRecording({
+        recordingId: info[1]!,
+        egressId: info[4]!,
+        state: "RECORDING",
+        startedAt: new Date().toISOString(),
       });
 
       return response;
@@ -539,12 +551,15 @@ export function createCallsService(
         recordingId,
       });
 
-      // Clear recording info from session state
+      // Clear recording info from session state (for backward compatibility)
       rtcStore.getState().patch((state) => {
         if (state.session && state.session.id === callId) {
           state.session.recording = null;
         }
       });
+
+      // Clear shared recording store (available to all participants)
+      recordingStore.getState().clear();
 
       return response;
     } catch (error: any) {

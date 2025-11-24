@@ -23,5 +23,6 @@ export interface SpotlightedUser {
 
 export interface SpotlightState {
   spotlightedUser: SpotlightedUser | null;
+  isSpotlighted: boolean;
 }
 

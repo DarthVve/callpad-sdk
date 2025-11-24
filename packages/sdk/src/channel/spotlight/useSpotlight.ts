@@ -13,7 +13,7 @@ export interface IUseSpotlight {
   spotlight: (targetId: string) => Promise<void>;
   unspotlight: () => Promise<void>;
   getSpotlightedUser: () => Nullable<SpotlightedUser>;
-  isSpotlighted: (participantId: string) => boolean;
+  isSpotlighted: boolean;
   isReady: boolean;
 }
 

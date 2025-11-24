@@ -1,6 +1,7 @@
 import type { CallRecordingStoppedEvent } from "../../../generated/socket";
 import { callRecordingStoppedSchema } from "../../../generated/socket";
 import { pushStaleEventError } from "../../../state/errors";
+import { recordingStore } from "../../../state/recording.store";
 import { rtcStore } from "../../../state/store";
 import { SdkEventType, eventBus } from "../../events";
 import { BaseSocketHandler } from "./base.handler";
@@ -34,11 +35,15 @@ export class RecordingStoppedHandler extends BaseSocketHandler<CallRecordingStop
       return;
     }
 
+    // Update session state (for backward compatibility)
     this.updateStore((state) => {
       if (state.session && state.session.id === data.callId) {
         state.session.recording = null;
       }
     });
+
+    // Clear shared recording store (available to all participants)
+    recordingStore.getState().clear();
 
     eventBus.emit(SdkEventType.RECORDING_STOPPED, {
       callId: data.callId,

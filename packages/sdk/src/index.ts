@@ -17,6 +17,7 @@ export type {
   RecordingInfo,
 } from "./state/types";
 export { useProfileCache, profileCache } from "./state/profileCache";
+export { useRecordingStore, recordingStore } from "./state/recording.store";
 export type {
   InitiateCallParams,
   CallResponse,

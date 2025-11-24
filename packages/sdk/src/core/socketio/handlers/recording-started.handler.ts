@@ -1,6 +1,7 @@
 import type { CallRecordingStartedEvent } from "../../../generated/socket";
 import { callRecordingStartedSchema } from "../../../generated/socket";
 import { pushStaleEventError } from "../../../state/errors";
+import { recordingStore } from "../../../state/recording.store";
 import { rtcStore } from "../../../state/store";
 import { SdkEventType, eventBus } from "../../events";
 import { BaseSocketHandler } from "./base.handler";
@@ -34,6 +35,7 @@ export class RecordingStartedHandler extends BaseSocketHandler<CallRecordingStar
       return;
     }
 
+    // Update session state (for backward compatibility)
     this.updateStore((state) => {
       if (state.session && state.session.id === data.callId) {
         // Only update if all of the fields are NOT undefined
@@ -52,6 +54,21 @@ export class RecordingStartedHandler extends BaseSocketHandler<CallRecordingStar
         }
       }
     });
+
+    // Update shared recording store (available to all participants)
+    if (
+      data.recordingId !== undefined &&
+      data.egressId !== undefined &&
+      data.state !== undefined &&
+      data.startedAt !== undefined
+    ) {
+      recordingStore.getState().setRecording({
+        recordingId: data.recordingId,
+        egressId: data.egressId,
+        state: data.state,
+        startedAt: data.startedAt,
+      });
+    }
 
     eventBus.emit(SdkEventType.RECORDING_STARTED, {
       callId: data.callId,
