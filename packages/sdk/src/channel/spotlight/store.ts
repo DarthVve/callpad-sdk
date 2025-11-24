@@ -54,7 +54,7 @@ export function applyIncomingSpotlight(envelope: SpotlightEnvelope): void {
     case "spotlight": {
       // Note: We don't have the target's info in the envelope, only the sender's
       // The info can be populated later if needed from the room's participant list
-      spotlight(envelope.payload.targetId);
+      spotlight(envelope.payload.targetId, envelope.payload.info);
       break;
     }
     case "unspotlight": {

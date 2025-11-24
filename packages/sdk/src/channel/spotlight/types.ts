@@ -12,6 +12,7 @@ export interface SpotlightEnvelope {
   payload: {
     action: "spotlight" | "unspotlight";
     targetId: string;
+    info?: ParticipantMetadata;
   };
 }
 

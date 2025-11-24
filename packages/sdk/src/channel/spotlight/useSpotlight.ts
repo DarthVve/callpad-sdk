@@ -4,6 +4,7 @@ import { useFeatureService } from "../DataChannelContext";
 import type { SpotlightService } from "./service";
 import { useSpotlightStore } from "./store";
 import type { SpotlightedUser } from "./types";
+import { ParticipantMetadata } from "../../state/types";
 
 const logger = createLogger("spotlight:hook");
 
@@ -26,7 +27,7 @@ export function useSpotlight(): IUseSpotlight {
   const isSpotlighted = useSpotlightStore((state) => state.isSpotlighted);
 
   const spotlight = useCallback(
-    async (targetId: string) => {
+    async (targetId: string, info?: ParticipantMetadata) => {
       if (!service) {
         logger.error("Cannot spotlight: service not ready");
         return;

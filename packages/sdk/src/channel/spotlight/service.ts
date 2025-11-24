@@ -59,7 +59,7 @@ export class SpotlightService {
     return this.room.localParticipant.identity;
   }
 
-  async spotlight(targetId: string): Promise<void> {
+  async spotlight(targetId: string, info?: ParticipantMetadata): Promise<void> {
     if (!this.isRoomReady()) {
       useRtcStore.getState().addError({
         code: "SPOTLIGHT_ROOM_NOT_READY",
@@ -74,7 +74,7 @@ export class SpotlightService {
     const previousSpotlighted = useSpotlightStore.getState().getSpotlightedUser();
     
     // Optimistically update store
-    useSpotlightStore.getState().spotlight(targetId);
+    useSpotlightStore.getState().spotlight(targetId, info);
 
     try {
       const envelope: SpotlightEnvelope = {
@@ -86,6 +86,7 @@ export class SpotlightService {
         payload: {
           action: "spotlight",
           targetId,
+          info: info!,
         },
       };
 
