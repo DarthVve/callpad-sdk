@@ -1,6 +1,6 @@
 {
   "name": "vg-x07df",
-  "version": "1.9.2",
+  "version": "1.9.3",
   "description": "Headless SDK for callpad audio/video",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -70,6 +70,7 @@
   "dependencies": {
     "@livekit/components-react": "^2.9.15",
     "@livekit/components-styles": "^1.1.6",
+    "@livekit/track-processors": "^0.6.1",
     "@types/node": "^24.8.1",
     "axios": "^1.6.0",
     "immer": "^10.0.0",

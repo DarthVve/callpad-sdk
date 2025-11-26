@@ -73,4 +73,6 @@ export {
   useMediaDeviceSelect
 } from "@livekit/components-react";
 
+export { BackgroundProcessor } from '@livekit/track-processors';
+
 export * from "./custom";
