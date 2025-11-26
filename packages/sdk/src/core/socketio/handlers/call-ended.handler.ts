@@ -1,5 +1,8 @@
 import type { CallEndedEvent } from "../../../generated/socket";
 import { callEndedSchema } from "../../../generated/socket";
+import { useChatStore } from "../../../channel/chat";
+import { useRaiseHandStore } from "../../../channel/raiseHand";
+import { useSpotlightStore } from "../../../channel/spotlight";
 import { pushStaleEventError } from "../../../state/errors";
 import { profileCache } from "../../../state/profileCache";
 import { recordingStore } from "../../../state/recording.store";
@@ -45,6 +48,9 @@ export class SessionEndedHandler extends BaseSocketHandler<CallEndedEvent> {
     rtcStore.getState().reset();
     profileCache.getState().clear();
     recordingStore.getState().clear();
+    useChatStore.getState().clearChat();
+    useSpotlightStore.getState().clear();
+    useRaiseHandStore.getState().clear();
 
     if (this.livekit) {
       this.livekit.disconnect().catch((error: any) => {

@@ -1,3 +1,6 @@
+import { useChatStore } from "../channel/chat";
+import { useRaiseHandStore } from "../channel/raiseHand";
+import { useSpotlightStore } from "../channel/spotlight";
 import { SignalCallsService } from "../clients/signal";
 import type { CallsData } from "../generated/api/models";
 import type { AuthManager } from "../core/auth.manager";
@@ -318,6 +321,9 @@ export function createCallsService(
         rtcStore.getState().reset();
         profileCache.getState().clear();
         recordingStore.getState().clear();
+        useChatStore.getState().clearChat();
+        useSpotlightStore.getState().clear();
+        useRaiseHandStore.getState().clear();
       }
     } catch (error: any) {
       rtcStore.getState().addError({
@@ -421,6 +427,9 @@ export function createCallsService(
       rtcStore.getState().reset();
       profileCache.getState().clear();
       recordingStore.getState().clear();
+      useChatStore.getState().clearChat();
+      useSpotlightStore.getState().clear();
+      useRaiseHandStore.getState().clear();
 
       return response;
     } catch (error: any) {
