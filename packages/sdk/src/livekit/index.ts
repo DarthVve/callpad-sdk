@@ -75,4 +75,6 @@ export {
 
 export { BackgroundProcessor } from '@livekit/track-processors';
 
+export { useVirtualBackground, type UseVirtualBackgroundOptions } from '../hooks/useVirtualBackground';
+
 export * from "./custom";

@@ -20,3 +20,4 @@ export * from "./useParticipantProfile";
 export * from "./useTerminate";
 export * from "./useParticipantList";
 export * from "./useRecording";
+export * from "./useVirtualBackground";
