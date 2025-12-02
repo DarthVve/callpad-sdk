@@ -59,7 +59,7 @@ export class SpotlightService {
     return this.room.localParticipant.identity;
   }
 
-  async spotlight(targetId: string): Promise<void> {
+  async spotlight(targetId: string, info?: ParticipantMetadata): Promise<void> {
     if (!this.isRoomReady()) {
       useRtcStore.getState().addError({
         code: "SPOTLIGHT_ROOM_NOT_READY",
@@ -70,8 +70,11 @@ export class SpotlightService {
     }
 
     const senderInfo = this.getSenderInfo();
-    // Note: We store the target's ID. The target's info can be retrieved from the room's participant list if needed
-    useSpotlightStore.getState().spotlight(targetId);
+    // Store previous state for rollback
+    const previousSpotlighted = useSpotlightStore.getState().getSpotlightedUser();
+    
+    // Optimistically update store
+    useSpotlightStore.getState().spotlight(targetId, info);
 
     try {
       const envelope: SpotlightEnvelope = {
@@ -83,6 +86,7 @@ export class SpotlightService {
         payload: {
           action: "spotlight",
           targetId,
+          info: info!,
         },
       };
 
@@ -90,9 +94,17 @@ export class SpotlightService {
         topic: "spotlight:v1",
       });
 
-      logger.debug("User spotlighted", { targetId });
+      logger.info("User spotlighted", { targetId });
     } catch (error) {
       logger.error("Failed to spotlight user", error);
+      
+      // Rollback to previous state on failure
+      if (previousSpotlighted) {
+        useSpotlightStore.getState().spotlight(previousSpotlighted.participantId, previousSpotlighted.info);
+      } else {
+        useSpotlightStore.getState().unspotlight();
+      }
+      
       useRtcStore.getState().addError({
         code: "SPOTLIGHT_SEND_FAILED",
         message:
@@ -120,6 +132,10 @@ export class SpotlightService {
       return;
     }
 
+    // Store previous state for rollback
+    const previousSpotlighted = { ...currentSpotlighted };
+    
+    // Optimistically update store
     useSpotlightStore.getState().unspotlight();
 
     try {
@@ -131,7 +147,7 @@ export class SpotlightService {
         sender: senderInfo,
         payload: {
           action: "unspotlight",
-          targetId: currentSpotlighted.participantId,
+          targetId: previousSpotlighted.participantId,
         },
       };
 
@@ -139,9 +155,13 @@ export class SpotlightService {
         topic: "spotlight:v1",
       });
 
-      logger.debug("User unspotlighted");
+      logger.info("User unspotlighted");
     } catch (error) {
       logger.error("Failed to unspotlight user", error);
+      
+      // Rollback to previous state on failure
+      useSpotlightStore.getState().spotlight(previousSpotlighted.participantId, previousSpotlighted.info);
+      
       useRtcStore.getState().addError({
         code: "UNSPOTLIGHT_SEND_FAILED",
         message:

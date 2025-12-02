@@ -4,16 +4,17 @@ import { useFeatureService } from "../DataChannelContext";
 import type { SpotlightService } from "./service";
 import { useSpotlightStore } from "./store";
 import type { SpotlightedUser } from "./types";
+import { ParticipantMetadata } from "../../state/types";
 
 const logger = createLogger("spotlight:hook");
 
 type Nullable<T> = T | null;
 
 export interface IUseSpotlight {
-  spotlight: (targetId: string) => Promise<void>;
+  spotlight: (targetId: string, info?: ParticipantMetadata) => Promise<void>;
   unspotlight: () => Promise<void>;
   getSpotlightedUser: () => Nullable<SpotlightedUser>;
-  isSpotlighted: (participantId: string) => boolean;
+  isSpotlighted: boolean;
   isReady: boolean;
 }
 
@@ -26,12 +27,12 @@ export function useSpotlight(): IUseSpotlight {
   const isSpotlighted = useSpotlightStore((state) => state.isSpotlighted);
 
   const spotlight = useCallback(
-    async (targetId: string) => {
+    async (targetId: string, info?: ParticipantMetadata) => {
       if (!service) {
         logger.error("Cannot spotlight: service not ready");
         return;
       }
-      return service.spotlight(targetId);
+      return service.spotlight(targetId, info!);
     },
     [service]
   );

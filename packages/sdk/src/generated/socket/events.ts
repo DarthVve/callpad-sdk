@@ -119,6 +119,7 @@ export const callRecordingStartedSchema = z.object({
   egressId: z.string(),
   state: z.string(),
   startedAt: z.string(),
+  initiatedBy: z.string(),
 }).strict();
 
 export type CallRecordingStartedEvent = z.infer<typeof callRecordingStartedSchema>;
