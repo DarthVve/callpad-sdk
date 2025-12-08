@@ -3,97 +3,105 @@ import { useIsSpeaking, Participant, useIsMuted, Track, RemoteParticipant, Video
 import { hasVideoTrack } from "vg-x07df/utils";
 import { useParticipantMetadata } from "vg-x07df";
 import { TrackReference } from "@livekit/components-core";
-
-// Size-specific classes configuration
-const SIZE_CLASSES = {
-    small: {
-        avatar: "w-[3rem] h-[3rem]",
-        avatarBorder: "border-2",
-        padding: "p-2",
-        iconSize: 16,
-        initialsText: "text-base",
-        nameText: "text-xs"
-    },
-    medium: {
-        avatar: "w-[5rem] h-[5rem]",
-        avatarBorder: "border-4",
-        padding: "p-3",
-        iconSize: 20,
-        initialsText: "text-2xl",
-        nameText: "text-sm"
-    },
-    large: {
-        avatar: "w-[8rem] h-[8rem]",
-        avatarBorder: "border-6",
-        padding: "p-4",
-        iconSize: 24,
-        initialsText: "text-4xl",
-        nameText: "text-base"
-    }
-} as const;
+import './Composite.css';
 
 interface ParticipantTileProps {
     participant: Participant;
-    size?: "small" | "medium" | "large";
-    showMenu?: boolean;
-    showHandRaise?: boolean;
     tracks: TrackReference[];
 }
 
 export const ParticipantTile: React.FC<ParticipantTileProps> = ({
     participant,
-    size = "medium",
     tracks,
 }) => {
     const metadata = useParticipantMetadata(participant as RemoteParticipant);
     const isSpeaking = useIsSpeaking(participant);
     const isMuted = useIsMuted({ participant, source: Track.Source.Microphone });
     const hasVideo = hasVideoTrack(participant);
-    const classes = SIZE_CLASSES[size];
     // console.log('participant', participant, metadata);
     const participantVideoTrack = tracks?.find(
-        track => track.participant.sid === participant.sid
+        track => track?.participant?.sid === participant?.sid
     );
+    
+    // Static test data fallback for names when metadata is not available
+    const getDisplayName = () => {
+        if (metadata?.firstName && metadata?.lastName) {
+            return `${metadata.firstName} ${metadata.lastName}`;
+        }
+        
+        const fallbackName = participant?.name || participant?.identity || 'Unknown User';
+        console.log('getDisplayName - metadata:', metadata, 'fallback:', fallbackName);
+        return fallbackName;
+    };
+    
+    const getInitials = () => {
+        const displayName = getDisplayName();
+        if (metadata?.firstName && metadata?.lastName) {
+            const initials = `${metadata.firstName} ${metadata.lastName}`
+                .split(" ")
+                .map((n) => n?.[0])
+                .filter(Boolean)
+                .join("")
+                .toUpperCase()
+                .slice(0, 2);
+            console.log('getInitials - from metadata:', initials);
+            return initials;
+        }
+        
+        const initials = displayName
+            ?.split(" ")
+            .map((n) => n?.[0])
+            .filter(Boolean)
+            .join("")
+            .toUpperCase()
+            .slice(0, 2) || '??';
+        console.log('getInitials - from fallback:', initials);
+        return initials;
+    };
+    
     if (!participant) {
         return (
-            <div className="relative flex flex-col items-center justify-center rounded-xl bg-gradient-to-b from-indigo-50 to-blue-50 p-3 shadow-sm border">
-                <div className="w-[5rem] h-[5rem] rounded-full bg-gray-200 flex items-center justify-center">
-                    <span className="text-gray-400">?</span>
+            <div className="participant-tile participant-tile-loading">
+                <div className="participant-tile-avatar-loading">
+                    <span className="participant-tile-loading-text">?</span>
                 </div>
-                <p className="text-sm font-medium text-gray-400 mt-2">Loading...</p>
+                <p className="participant-tile-loading-label">Loading...</p>
             </div>
         );
     }
 
     return (
         <div
-            className={`relative flex flex-col items-center justify-center rounded-xl overflow-hidden ${hasVideo ? 'bg-black' : 'bg-gradient-to-b from-indigo-50 to-blue-50'
-                } ${classes.padding} shadow-sm transition-all duration-200 ${isSpeaking
-                        ? "border-2 border-[#0D6EFD]"
-                        : "border"
+            className={`participant-tile ${hasVideo ? 'participant-tile-with-video' : 'participant-tile-no-video'
+                } ${!hasVideo ? 'participant-tile-padding-medium' : ''} ${isSpeaking
+                    ? "participant-tile-speaking"
+                    : "participant-tile-not-speaking"
                 }`}
         >
-            {hasVideo && (
+            {hasVideo && participantVideoTrack && (
                 <>
-                    <div className="absolute inset-0 z-0">
+                    <div className="participant-tile-video-container">
                         <VideoTrack
                             trackRef={participantVideoTrack}
-                            className={`w-full h-full object-cover`}
+                            className="participant-tile-video"
                         />
                     </div>
-                    <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-black/40 to-transparent pointer-events-none z-10" />
+                    <div className="participant-tile-video-overlay" />
+                    <div className="participant-tile-name participant-tile-name-medium participant-tile-name-overlay">
+                        {getDisplayName()}
+                    </div>
                 </>
             )}
-
+            
             {/* Mic icon */}
-            <div className="absolute top-4 right-4 z-20">
+            <div className="participant-tile-mic-container">
                 {isMuted ? (
-                    <div className="bg-[#EFF7FD] flex items-center justify-center rounded-full border p-1">
-                        <MicrophoneSlash size={classes.iconSize} color="#525866" />
+                    <div className="participant-tile-mic-icon">
+                        <MicrophoneSlash size={12} color="#525866" />
                     </div>
                 ) : (
-                    <div className="bg-[#EFF7FD] flex items-center justify-center border rounded-full p-1">
-                        <Microphone size={classes.iconSize} color="#525866" />
+                    <div className="participant-tile-mic-icon">
+                        <Microphone size={12} color="#525866" />
                     </div>
                 )}
             </div>
@@ -103,21 +111,19 @@ export const ParticipantTile: React.FC<ParticipantTileProps> = ({
                     {metadata?.profilePhoto ? (
                         <img
                             src={metadata.profilePhoto}
-                            alt={`${metadata?.firstName} ${metadata?.lastName}`}
-                            className={`${classes.avatar} rounded-full object-cover ${classes.avatarBorder} border-white z-10`}
+                            alt={getDisplayName()}
+                            className="participant-tile-avatar participant-tile-avatar-medium participant-tile-avatar-border-medium participant-tile-avatar-image"
                         />
                     ) : (
                         <div
-                            className={`${classes.avatar} rounded-full flex items-center justify-center font-medium ${classes.initialsText} z-10`}
+                            className="participant-tile-avatar participant-tile-avatar-medium participant-tile-initials-medium participant-tile-initials-container"
                         >
-                            {`${metadata?.firstName} ${metadata?.lastName}`
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")
-                                .toUpperCase()
-                                .slice(0, 2)}
+                            {getInitials()}
                         </div>
                     )}
+                    <div className="participant-tile-name participant-tile-name-medium">
+                        {getDisplayName()}
+                    </div>
                 </>
             )}
         </div>

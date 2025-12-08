@@ -5,7 +5,7 @@ import {
 import { ConnectionState } from 'livekit-client';
 import { ReactElement } from 'react';
 import useRecording from './useRecording';
-import { AudioOnlyLayout } from './CompositeLayout';
+import { AudioOnlyLayout } from './CompositeLayouts';
 
 export function CompositeTemplate() {
   const room = useRoomContext();
