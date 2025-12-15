@@ -87,6 +87,7 @@ function useRecording(room: Room) {
 
     return {
         hasScreenShare,
+        screenshareTrack: screenshareTracks[0],
         remoteVideoTracks,
         isAudioOnly,
     }
