@@ -2,10 +2,15 @@ import { SignalClient } from "../clients/signal";
 import { apiConfig } from "../clients/signal/config";
 import type { ApiConfig } from "../clients/signal/types";
 import { AuthManager, SocketManager } from "../core";
+import type { PresenceConfig } from "../state/presence.types";
 import { rtcStore } from "../state/store";
 import { type LogLevel, setGlobalLoggerOptions } from "../utils/logger";
 import { type CallsServiceInstance, createCallsService } from "./calls.service";
 import { LiveKitRoomManager } from "./livekitRoomManager";
+import {
+  type PresenceServiceInstance,
+  createPresenceService,
+} from "./presence.service";
 
 export interface SdkBuildOptions {
   appId: string;
@@ -18,6 +23,8 @@ export interface SdkBuildOptions {
 
   // Custom log callback
   log?: (level: LogLevel, message: string, meta?: any) => void;
+
+  presence?: Partial<PresenceConfig>;
 }
 
 export interface RtcSdk {
@@ -27,6 +34,7 @@ export interface RtcSdk {
   calls: CallsServiceInstance;
   signal: SignalClient;
   livekit: LiveKitRoomManager;
+  presence: PresenceServiceInstance;
   cleanup: () => void;
 
   configureApi: (config: ApiConfig) => void;
@@ -76,9 +84,19 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
     },
   });
 
-  // Socket now handles events directly - no event bridge needed
+  const presenceService = createPresenceService(
+    { appId: opts.appId },
+    { getSocket: () => socket.getSocket() }
+  );
+
+  if (opts.presence) {
+    presenceService.configure(opts.presence);
+  }
+
+  socket.setPresenceService(presenceService);
 
   const cleanup = () => {
+    presenceService.destroy();
     livekitManager.detach();
     socket.destroy();
     rtcStore.getState().reset();
@@ -91,6 +109,7 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
     calls: callsService,
     signal: signalClient,
     livekit: livekitManager,
+    presence: presenceService,
     cleanup,
 
     // API configuration - can be called again to override if needed

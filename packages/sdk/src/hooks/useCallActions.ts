@@ -7,6 +7,7 @@ export function useCallActions() {
   const sdk = useSdk();
   const sessionId = useSessionId();
   const incomingInvite = useIncomingInvite();
+    const { kick, mute } = useCallActions()
 
   return {
     initiate: (participants: string[], type: "AUDIO" | "VIDEO") => {

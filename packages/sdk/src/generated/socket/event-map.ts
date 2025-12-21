@@ -10,10 +10,11 @@ import type {
   CallParticipantAddedEvent,
   CallParticipantKickedEvent,
   CallReadyEvent,
-  CallStartedEvent,
   CallRecordingStartedEvent,
   CallRecordingStoppedEvent,
+  CallStartedEvent,
   ParticipantProfilesEvent,
+  PresencePingEvent,
 } from "./events";
 
 /**
@@ -29,10 +30,11 @@ export interface SocketEventMap {
   "call:participantAdded": CallParticipantAddedEvent;
   "call:participantKicked": CallParticipantKickedEvent;
   "call:ready": CallReadyEvent;
-  "call:started": CallStartedEvent;
   "call:recordingStarted": CallRecordingStartedEvent;
   "call:recordingStopped": CallRecordingStoppedEvent;
+  "call:started": CallStartedEvent;
   "participant:profiles": ParticipantProfilesEvent;
+  "presence:ping": PresencePingEvent;
 }
 
 export type SocketEventName = keyof SocketEventMap;

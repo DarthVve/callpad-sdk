@@ -1,7 +1,17 @@
-// Placeholder for future presence service implementation
+import { PresenceService } from "../../../generated/api";
+import type { PresenceData } from "../../../generated/api/models";
+
 export class SignalPresenceService {
-  // Placeholder methods for future presence functionality
-  // async setStatus(status: string): Promise<void> { }
-  // async getStatus(userId: string): Promise<PresenceStatus> { }
-  // async subscribe(callback: (presence: PresenceUpdate) => void): Promise<void> { }
+  constructor(private appId: string) {}
+
+  /**
+   * Query presence for multiple user IDs
+   */
+  async queryPresence(
+    userIds: string[]
+  ): Promise<PresenceData["responses"]["PostSignalPresence"]> {
+    return PresenceService.postSignalPresence({
+      requestBody: { userIds },
+    });
+  }
 }

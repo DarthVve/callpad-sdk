@@ -360,6 +360,31 @@ profilePhoto: string | null
         
     }
 
+export type PresenceData = {
+        
+        payloads: {
+            PostSignalPresence: {
+                        requestBody?: {
+        userIds: Array<string>
+    }
+                        
+                    };
+        }
+        
+        
+        responses: {
+            PostSignalPresence: {
+        presence: Array<{
+        userId: string
+status: 'online' | 'offline' | 'busy'
+deviceCount: number
+    }>
+    }
+                
+        }
+        
+    }
+
 export type InitData = {
         
         payloads: {

@@ -1,4 +1,5 @@
 import { type Socket, io } from "socket.io-client";
+import type { PresenceServiceInstance } from "../../services/presence.service";
 import { createLogger } from "../../utils/logger";
 import type { AuthManager } from "../auth.manager";
 import type { Nullable } from "../types";
@@ -15,8 +16,17 @@ export class SocketManager {
   private livekit: any = null;
   private handlerRegistry: Nullable<SocketHandlerRegistry> = null;
   private authManager: Nullable<AuthManager> = null;
+  private presenceService: Nullable<PresenceServiceInstance> = null;
 
   private constructor() {}
+
+  setPresenceService(presenceService: PresenceServiceInstance): void {
+    this.presenceService = presenceService;
+  }
+
+  getSocket(): Nullable<Socket> {
+    return this.socket;
+  }
 
   static getInstance(): SocketManager {
     if (!SocketManager.instance) {
@@ -73,11 +83,19 @@ export class SocketManager {
     this.socket.on("connect", () => {
       this.updateConnectionState("CONNECTED");
       this.logger.info("Connected to server");
+
+      if (this.presenceService) {
+        this.presenceService.startPing();
+      }
     });
 
     this.socket.on("disconnect", (reason: string) => {
       this.updateConnectionState("DISCONNECTED");
       this.logger.info("Disconnected", { reason });
+
+      if (this.presenceService) {
+        this.presenceService.stopPing();
+      }
     });
 
     this.socket.on("connect_error", (error: Error) => {
@@ -96,6 +114,10 @@ export class SocketManager {
 
     this.socket.io.on("reconnect", (attemptNumber: number) => {
       this.logger.info("Reconnected successfully", { attemptNumber });
+
+      if (this.presenceService) {
+        this.presenceService.startPing();
+      }
     });
 
     this.socket.io.on("reconnect_error", (error: Error) => {
@@ -166,6 +188,11 @@ export class SocketManager {
   }
 
   destroy(): void {
+    if (this.presenceService) {
+      this.presenceService.destroy();
+      this.presenceService = null;
+    }
+
     if (this.socket) {
       if (this.handlerRegistry) {
         this.handlerRegistry.removeEventListeners(this.socket);
