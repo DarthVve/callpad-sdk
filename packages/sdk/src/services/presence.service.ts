@@ -1,6 +1,5 @@
 import type { Socket } from "socket.io-client";
 import { SignalPresenceService } from "../clients/signal";
-import { presenceStore } from "../state/presence.store";
 import type { PresenceConfig, UserPresence } from "../state/presence.types";
 import { DEFAULT_PRESENCE_CONFIG } from "../state/presence.types";
 import { createLogger } from "../utils";
@@ -16,10 +15,7 @@ export interface PresenceServiceDependencies {
 export interface PresenceServiceInstance {
   startPing: () => void;
   stopPing: () => void;
-  queryPresence: (
-    userIds: string[],
-    options?: { forceRefresh?: boolean }
-  ) => Promise<UserPresence[]>;
+  queryPresence: (userIds: string[]) => Promise<UserPresence[]>;
   getPresence: (userId: string) => Promise<UserPresence | undefined>;
   configure: (config: Partial<PresenceConfig>) => void;
   destroy: () => void;
@@ -66,55 +62,31 @@ export function createPresenceService(
     }
   }
 
-  async function queryPresence(
-    userIds: string[],
-    options: { forceRefresh?: boolean } = {}
-  ): Promise<UserPresence[]> {
+  async function queryPresence(userIds: string[]): Promise<UserPresence[]> {
     if (userIds.length === 0) {
       return [];
     }
 
-    const store = presenceStore.getState();
-    const { forceRefresh = false } = options;
-
-    const idsToFetch = forceRefresh
-      ? userIds
-      : userIds.filter((id) => store.isStale(id, presenceConfig.cacheTtlMs));
-
-    if (idsToFetch.length === 0) {
-      return userIds
-        .map((id) => store.get(id))
-        .filter((p): p is UserPresence => p !== undefined);
-    }
-
-    const cacheKey = [...idsToFetch].sort().join(",");
+    const cacheKey = [...userIds].sort().join(",");
 
     const existing = inFlight.get(cacheKey);
     if (existing) {
       logger.debug("Reusing in-flight request", { cacheKey });
-      await existing;
-      return userIds
-        .map((id) => presenceStore.getState().get(id))
-        .filter((p): p is UserPresence => p !== undefined);
+      return (await existing) ?? [];
     }
 
     const fetchPromise = (async (): Promise<UserPresence[] | undefined> => {
       try {
-        const response = await signalPresence.queryPresence(idsToFetch);
+        const response = await signalPresence.queryPresence(userIds);
 
-        const presences: UserPresence[] = response.presence.map((p) => ({
+        return response.presence.map((p) => ({
           userId: p.userId,
           status: p.status,
           deviceCount: p.deviceCount,
           lastUpdated: Date.now(),
         }));
-
-        presenceStore.getState().updateMany(presences);
-        logger.debug("Fetched presence", { count: presences.length });
-
-        return presences;
       } catch (error) {
-        logger.error("Failed to fetch presence", { error, userIds: idsToFetch });
+        logger.error("Failed to fetch presence", { error, userIds });
         return undefined;
       } finally {
         inFlight.delete(cacheKey);
@@ -122,11 +94,7 @@ export function createPresenceService(
     })();
 
     inFlight.set(cacheKey, fetchPromise);
-    await fetchPromise;
-
-    return userIds
-      .map((id) => presenceStore.getState().get(id))
-      .filter((p): p is UserPresence => p !== undefined);
+    return (await fetchPromise) ?? [];
   }
 
   async function getPresence(userId: string): Promise<UserPresence | undefined> {
@@ -146,7 +114,6 @@ export function createPresenceService(
   function destroy(): void {
     stopPing();
     inFlight.clear();
-    presenceStore.getState().clear();
     logger.debug("Presence service destroyed");
   }
 

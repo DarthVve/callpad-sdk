@@ -18,7 +18,6 @@ export type {
 } from "./state/types";
 export { useProfileCache, profileCache } from "./state/profileCache";
 export { useRecordingStore, recordingStore } from "./state/recording.store";
-export { usePresenceStore, presenceStore } from "./state/presence.store";
 export type {
   UserPresence,
   PresenceStatus,
