@@ -97,7 +97,9 @@ export function createPresenceService(
     return (await fetchPromise) ?? [];
   }
 
-  async function getPresence(userId: string): Promise<UserPresence | undefined> {
+  async function getPresence(
+    userId: string
+  ): Promise<UserPresence | undefined> {
     const results = await queryPresence([userId]);
     return results[0];
   }

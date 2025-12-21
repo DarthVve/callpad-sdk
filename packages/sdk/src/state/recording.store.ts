@@ -36,4 +36,3 @@ export const useRecordingStore = create<RecordingState & RecordingActions>()(
 );
 
 export const recordingStore = useRecordingStore;
-

@@ -1,10 +1,7 @@
-import { BackgroundProcessor } from '@livekit/track-processors';
-import { useEffect, useRef } from 'react';
-import {
-  useLocalParticipant,
-  useRoomContext,
-} from "@livekit/components-react";
-import { Track, RoomEvent, type LocalVideoTrack } from "livekit-client";
+import { useLocalParticipant, useRoomContext } from "@livekit/components-react";
+import { BackgroundProcessor } from "@livekit/track-processors";
+import { type LocalVideoTrack, RoomEvent, Track } from "livekit-client";
+import { useEffect, useRef } from "react";
 
 export interface UseVirtualBackgroundOptions {
   /**
@@ -43,7 +40,9 @@ export function useVirtualBackground(
   const room = useRoomContext();
   const participant = useLocalParticipant();
   const localParticipant = participant?.localParticipant;
-  const processorRef = useRef<ReturnType<typeof BackgroundProcessor> | null>(null);
+  const processorRef = useRef<ReturnType<typeof BackgroundProcessor> | null>(
+    null
+  );
   const isActiveRef = useRef(true);
   const pendingOperationRef = useRef<Promise<void> | null>(null);
 
@@ -95,11 +94,14 @@ export function useVirtualBackground(
           }
 
           const localVideoTrack = cameraPublication.track as LocalVideoTrack & {
-            addProcessor: (processor: ReturnType<typeof BackgroundProcessor>) => Promise<void>;
-            removeProcessor: (processor: ReturnType<typeof BackgroundProcessor>) => Promise<void>;
+            addProcessor: (
+              processor: ReturnType<typeof BackgroundProcessor>
+            ) => Promise<void>;
+            removeProcessor: (
+              processor: ReturnType<typeof BackgroundProcessor>
+            ) => Promise<void>;
           };
 
-  
           if (processorRef.current) {
             try {
               await localVideoTrack.removeProcessor(processorRef.current);
@@ -132,7 +134,7 @@ export function useVirtualBackground(
           // Create and apply new processor
           const processor = BackgroundProcessor(processorConfig);
           await localVideoTrack.addProcessor(processor);
-          
+
           // Only set processor if effect is still active
           if (isActiveRef.current) {
             processorRef.current = processor;
@@ -169,7 +171,10 @@ export function useVirtualBackground(
     const handleTrackPublished = (publication: any) => {
       if (publication.source === Track.Source.Camera) {
         applyBackground().catch((error) => {
-          console.error("Error in applyBackground from track published:", error);
+          console.error(
+            "Error in applyBackground from track published:",
+            error
+          );
         });
       }
     };
@@ -189,25 +194,23 @@ export function useVirtualBackground(
         );
         if (cameraPublication?.track) {
           const localVideoTrack = cameraPublication.track as LocalVideoTrack & {
-            removeProcessor: (processor: ReturnType<typeof BackgroundProcessor>) => Promise<void>;
+            removeProcessor: (
+              processor: ReturnType<typeof BackgroundProcessor>
+            ) => Promise<void>;
           };
           localVideoTrack
             .removeProcessor(processorRef.current)
             .catch((error: unknown) => {
-              console.warn("Failed to remove background processor on cleanup:", error);
+              console.warn(
+                "Failed to remove background processor on cleanup:",
+                error
+              );
             });
         }
         processorRef.current = null;
       }
     };
-  }, [
-    imagePath,
-    mode,
-    blurRadius,
-    enabled,
-    localParticipant,
-    room,
-  ]);
+  }, [imagePath, mode, blurRadius, enabled, localParticipant, room]);
 }
 
 /**

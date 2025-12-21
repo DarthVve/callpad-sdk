@@ -39,9 +39,8 @@ export interface LiveKitJoinInfo {
 export interface RecordingInfo {
   recordingId: string;
   egressId: string;
-  state: string;
   startedAt: string;
-  initiatedBy: string;
+  initiatedBy?: string;
 }
 
 export interface Session {

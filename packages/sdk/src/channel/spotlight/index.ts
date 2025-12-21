@@ -7,4 +7,3 @@ export type {
   SpotlightedUser,
 } from "./types";
 export type { IUseSpotlight } from "./useSpotlight";
-

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSdk } from "../provider/RtcProvider";
 import type { PresenceStatus, UserPresence } from "../state/presence.types";
 
@@ -41,9 +41,10 @@ export function usePresenceMany(userIds: string[]): {
   refetch: () => Promise<void>;
 } {
   const sdk = useSdk();
-  const [presences, setPresences] = useState<Map<string, UserPresence>>(new Map());
+  const [presences, setPresences] = useState<Map<string, UserPresence>>(
+    new Map()
+  );
   const [isLoading, setIsLoading] = useState(false);
-  const userIdsKey = useMemo(() => [...userIds].sort().join(","), [userIds]);
 
   const refetch = useCallback(async () => {
     if (userIds.length === 0) return;
@@ -58,7 +59,7 @@ export function usePresenceMany(userIds: string[]): {
     } finally {
       setIsLoading(false);
     }
-  }, [sdk, userIdsKey]);
+  }, [sdk, userIds]);
 
   useEffect(() => {
     refetch();

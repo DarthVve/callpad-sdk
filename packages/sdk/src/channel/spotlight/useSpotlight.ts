@@ -1,10 +1,10 @@
 import { useCallback } from "react";
+import type { ParticipantMetadata } from "../../state/types";
 import { createLogger } from "../../utils";
 import { useFeatureService } from "../DataChannelContext";
 import type { SpotlightService } from "./service";
 import { useSpotlightStore } from "./store";
 import type { SpotlightedUser } from "./types";
-import { ParticipantMetadata } from "../../state/types";
 
 const logger = createLogger("spotlight:hook");
 
@@ -53,4 +53,3 @@ export function useSpotlight(): IUseSpotlight {
     isReady: !!service,
   };
 }
-

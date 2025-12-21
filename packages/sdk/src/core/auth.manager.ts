@@ -82,7 +82,6 @@ export class AuthManager {
     }
   }
 
-
   getSessionInfo(): SessionInfo | null {
     return this.sessionStorage.get();
   }
