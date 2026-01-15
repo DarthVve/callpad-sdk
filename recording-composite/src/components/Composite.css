@@ -30,6 +30,22 @@
     place-items: center;
 }
 
+/* Fixed 5x5 grid when audio layout is paged */
+.audio-composite-grid-paged {
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    gap: 0.5rem;
+    place-items: stretch;
+}
+
+/* Audio layout page indicator should not take a grid cell */
+.audio-page-indicator {
+    position: absolute;
+    bottom: 0.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
 /* Video Composite Layout */
 .video-composite {
     position: relative;
@@ -107,6 +123,14 @@
     height: 7.625rem;
     width: 7.625rem;
 
+}
+
+.p-tile-audio-paged {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
 }
 
 .p-tile-two {
