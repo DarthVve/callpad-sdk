@@ -3,6 +3,7 @@ import { apiConfig } from "../clients/signal/config";
 import type { ApiConfig } from "../clients/signal/types";
 import { AuthManager, SocketManager } from "../core";
 import type { PresenceConfig } from "../state/presence.types";
+import type { AuthRetryConfig } from "../core/types";
 import { rtcStore } from "../state/store";
 import { type LogLevel, setGlobalLoggerOptions } from "../utils/logger";
 import { type CallsServiceInstance, createCallsService } from "./calls.service";
@@ -23,6 +24,9 @@ export interface SdkBuildOptions {
 
   // Custom log callback
   log?: (level: LogLevel, message: string, meta?: any) => void;
+
+  // Auth retry configuration (for handling transient token unavailability)
+  authRetry?: Partial<AuthRetryConfig>;
 
   presence?: Partial<PresenceConfig>;
 }
@@ -55,7 +59,7 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
   setGlobalLoggerOptions(loggerOptions);
 
   // Initialize core managers
-  const auth = new AuthManager(opts.authProvider, opts.appId);
+  const auth = new AuthManager(opts.authProvider, opts.appId, opts.authRetry);
 
   const socket = SocketManager.getInstance();
   const livekitManager = new LiveKitRoomManager();

@@ -15,3 +15,10 @@ export interface SessionInfo {
 }
 
 export type Nullable<T> = T | null;
+
+export interface AuthRetryConfig {
+  maxRetries: number;
+  initialDelayMs: number;
+  maxDelayMs: number;
+  backoffMultiplier: number;
+}
