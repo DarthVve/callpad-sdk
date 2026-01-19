@@ -22,21 +22,21 @@ export class RecordingStartedHandler extends BaseSocketHandler<CallRecordingStar
       callId: data.callId,
       recordingId: data.recordingId,
       egressId: data.egressId,
-      state: data.state,
       initiatedBy: data.initiatedBy,
       startedAt: data.startedAt,
       currentSessionId: currentState.session?.id,
     });
 
     try {
-      // This ensures all participants know recording has started
-      recordingStore.getState().setRecording({
+      const recordingInfo = {
         recordingId: data.recordingId,
         egressId: data.egressId,
-        state: data.state,
-        initiatedBy: data.initiatedBy,
         startedAt: data.startedAt,
-      });
+        ...(data.initiatedBy && { initiatedBy: data.initiatedBy }),
+      };
+
+      // This ensures all participants know recording has started
+      recordingStore.getState().setRecording(recordingInfo);
 
       this.logger.debug("Recording store updated for all participants", {
         recordingId: data.recordingId,
@@ -47,13 +47,7 @@ export class RecordingStartedHandler extends BaseSocketHandler<CallRecordingStar
       if (currentState.session?.id === data.callId) {
         this.updateStore((state) => {
           if (state.session && state.session.id === data.callId) {
-            state.session.recording = {
-              recordingId: data.recordingId,
-              egressId: data.egressId,
-              state: data.state,
-              startedAt: data.startedAt,
-              initiatedBy: data.initiatedBy,
-            };
+            state.session.recording = recordingInfo;
           }
         });
         this.logger.debug("Session recording state updated", {
@@ -64,10 +58,13 @@ export class RecordingStartedHandler extends BaseSocketHandler<CallRecordingStar
           eventCallId: data.callId,
           sessionCallId: currentState.session?.id,
         });
-        this.logger.warn("Session callId mismatch, but recording state updated for all participants", {
-          callId: data.callId,
-          sessionCallId: currentState.session?.id,
-        });
+        this.logger.warn(
+          "Session callId mismatch, but recording state updated for all participants",
+          {
+            callId: data.callId,
+            sessionCallId: currentState.session?.id,
+          }
+        );
       }
 
       eventBus.emit(SdkEventType.RECORDING_STARTED, {
@@ -92,4 +89,3 @@ export class RecordingStartedHandler extends BaseSocketHandler<CallRecordingStar
     }
   }
 }
-

@@ -1,7 +1,11 @@
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import type { ParticipantMetadata } from "../../state/types";
-import type { SpotlightEnvelope, SpotlightState, SpotlightedUser } from "./types";
+import type {
+  SpotlightEnvelope,
+  SpotlightState,
+  SpotlightedUser,
+} from "./types";
 
 interface SpotlightActions {
   spotlight: (participantId: string, info?: ParticipantMetadata) => void;
@@ -15,9 +19,7 @@ const defaultState: SpotlightState = {
   isSpotlighted: false,
 };
 
-export const useSpotlightStore = create<
-  SpotlightState & SpotlightActions
->()(
+export const useSpotlightStore = create<SpotlightState & SpotlightActions>()(
   immer((set, get) => ({
     ...defaultState,
 
@@ -63,4 +65,3 @@ export function applyIncomingSpotlight(envelope: SpotlightEnvelope): void {
     }
   }
 }
-

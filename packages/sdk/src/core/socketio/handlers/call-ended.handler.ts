@@ -1,8 +1,8 @@
-import type { CallEndedEvent } from "../../../generated/socket";
-import { callEndedSchema } from "../../../generated/socket";
 import { useChatStore } from "../../../channel/chat";
 import { useRaiseHandStore } from "../../../channel/raiseHand";
 import { useSpotlightStore } from "../../../channel/spotlight";
+import type { CallEndedEvent } from "../../../generated/socket";
+import { callEndedSchema } from "../../../generated/socket";
 import { pushStaleEventError } from "../../../state/errors";
 import { profileCache } from "../../../state/profileCache";
 import { recordingStore } from "../../../state/recording.store";

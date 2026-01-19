@@ -49,10 +49,13 @@ export class RecordingStoppedHandler extends BaseSocketHandler<CallRecordingStop
           eventCallId: data.callId,
           sessionCallId: currentState.session?.id,
         });
-        this.logger.warn("Session callId mismatch, but recording state cleared for all participants", {
-          callId: data.callId,
-          sessionCallId: currentState.session?.id,
-        });
+        this.logger.warn(
+          "Session callId mismatch, but recording state cleared for all participants",
+          {
+            callId: data.callId,
+            sessionCallId: currentState.session?.id,
+          }
+        );
       }
 
       eventBus.emit(SdkEventType.RECORDING_STOPPED, {
@@ -76,4 +79,3 @@ export class RecordingStoppedHandler extends BaseSocketHandler<CallRecordingStop
     }
   }
 }
-

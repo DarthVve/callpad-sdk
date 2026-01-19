@@ -45,7 +45,9 @@ export function useVirtualBackground(
   const room = useRoomContext();
   const participant = useLocalParticipant();
   const localParticipant = participant?.localParticipant;
-  const processorRef = useRef<ReturnType<typeof BackgroundProcessor> | null>(null);
+  const processorRef = useRef<ReturnType<typeof BackgroundProcessor> | null>(
+    null
+  );
   const isActiveRef = useRef(true);
   const pendingOperationRef = useRef<Promise<void> | null>(null);
 
@@ -184,7 +186,10 @@ export function useVirtualBackground(
     const handleTrackPublished = (publication: any) => {
       if (publication.source === Track.Source.Camera) {
         applyBackground().catch((error) => {
-          console.error("Error in applyBackground from track published:", error);
+          console.error(
+            "Error in applyBackground from track published:",
+            error
+          );
         });
       }
     };
@@ -207,20 +212,16 @@ export function useVirtualBackground(
           localVideoTrack
             .stopProcessor()
             .catch((error: unknown) => {
-              console.warn("Failed to remove background processor on cleanup:", error);
+              console.warn(
+                "Failed to remove background processor on cleanup:",
+                error
+              );
             });
         }
         processorRef.current = null;
       }
     };
-  }, [
-    imagePath,
-    mode,
-    blurRadius,
-    enabled,
-    localParticipant,
-    room,
-  ]);
+  }, [imagePath, mode, blurRadius, enabled, localParticipant, room]);
 }
 
 /**

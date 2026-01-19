@@ -2,8 +2,8 @@ import { useChatStore } from "../channel/chat";
 import { useRaiseHandStore } from "../channel/raiseHand";
 import { useSpotlightStore } from "../channel/spotlight";
 import { SignalCallsService } from "../clients/signal";
-import type { CallsData } from "../generated/api/models";
 import type { AuthManager } from "../core/auth.manager";
+import type { CallsData } from "../generated/api/models";
 import { profileCache } from "../state/profileCache";
 import { recordingStore } from "../state/recording.store";
 import { rtcStore } from "../state/store";
@@ -556,7 +556,6 @@ export function createCallsService(
           state.session.recording = {
             recordingId,
             egressId,
-            state: "RECORDING",
             startedAt,
             initiatedBy: userId,
           };
@@ -568,7 +567,6 @@ export function createCallsService(
       recordingStore.getState().setRecording({
         recordingId,
         egressId,
-        state: "RECORDING",
         startedAt,
         initiatedBy: userId,
       });

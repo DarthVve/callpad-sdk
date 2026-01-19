@@ -28,4 +28,9 @@ export const FEATURES: Record<string, RealtimeFeature> = {
   },
 };
 
-export const DEFAULT_FEATURES = ["chat", "reactions", "raise-hand", "spotlight"];
+export const DEFAULT_FEATURES = [
+  "chat",
+  "reactions",
+  "raise-hand",
+  "spotlight",
+];

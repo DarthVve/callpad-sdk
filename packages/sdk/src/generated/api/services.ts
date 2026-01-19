@@ -1,7 +1,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { HealthData, LiveKitData, CallsData, UsersData, InitData } from './models';
+import type { HealthData, LiveKitData, CallsData, UsersData, PresenceData, InitData } from './models';
 
 export class HealthService {
 
@@ -476,6 +476,31 @@ export class UsersService {
 				400: `Invalid request`,
 				401: `Authentication required`,
 				404: `User not found`,
+			},
+		});
+	}
+
+}
+
+export class PresenceService {
+
+	/**
+	 * @returns any Presence retrieved successfully
+	 * @throws ApiError
+	 */
+	public static postSignalPresence(data: PresenceData['payloads']['PostSignalPresence'] = {}): CancelablePromise<PresenceData['responses']['PostSignalPresence']> {
+		const {
+                    
+                    requestBody
+                } = data;
+		return __request(OpenAPI, {
+			method: 'POST',
+			url: '/signal/presence',
+			body: requestBody,
+			mediaType: 'application/json',
+			errors: {
+				400: `Invalid request`,
+				401: `Authentication required`,
 			},
 		});
 	}
