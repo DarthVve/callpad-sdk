@@ -19,6 +19,11 @@ export type {
 export { useProfileCache, profileCache } from "./state/profileCache";
 export { useRecordingStore, recordingStore } from "./state/recording.store";
 export type {
+  UserPresence,
+  PresenceStatus,
+  PresenceConfig,
+} from "./state/presence.types";
+export type {
   InitiateCallParams,
   CallResponse,
   CallActionResponse,

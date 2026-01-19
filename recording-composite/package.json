@@ -1,7 +1,7 @@
 {
-  "name": "livekit-egress-web",
-  "homepage": "https://livekit.io",
-  "description": "Default templates for RoomComposite egress",
+  "name": "gopaddi-recording-composite",
+  "homepage": "https://gopaddi.com",
+  "description": "Composite template for Gopaddi recording",
   "version": "0.2.1",
   "private": true,
   "type": "module",

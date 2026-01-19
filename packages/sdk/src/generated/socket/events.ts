@@ -89,6 +89,29 @@ export const callReadySchema = z.object({
 
 export type CallReadyEvent = z.infer<typeof callReadySchema>;
 
+// Event: call:recordingStarted
+// Event: call:recordingStarted
+export const callRecordingStartedSchema = z.object({
+  callId: z.string(),
+  recordingId: z.string(),
+  egressId: z.string(),
+  initiatedBy: z.string().optional(),
+  startedAt: z.string(),
+}).strict();
+
+export type CallRecordingStartedEvent = z.infer<typeof callRecordingStartedSchema>;
+
+// Event: call:recordingStopped
+// Event: call:recordingStopped
+export const callRecordingStoppedSchema = z.object({
+  callId: z.string(),
+  recordingId: z.string(),
+  egressId: z.string(),
+  stoppedAt: z.string(),
+}).strict();
+
+export type CallRecordingStoppedEvent = z.infer<typeof callRecordingStoppedSchema>;
+
 // Event: call:started
 // Event: call:started
 export const callStartedSchema = z.object({
@@ -112,24 +135,10 @@ export const participantProfilesSchema = z.object({
 
 export type ParticipantProfilesEvent = z.infer<typeof participantProfilesSchema>;
 
-// Event: call:recordingStarted
-export const callRecordingStartedSchema = z.object({
-  callId: z.string(),
-  recordingId: z.string(),
-  egressId: z.string(),
-  state: z.string(),
-  startedAt: z.string(),
-  initiatedBy: z.string(),
+// Event: presence:ping
+// Event: presence:ping
+export const presencePingSchema = z.object({
+
 }).strict();
 
-export type CallRecordingStartedEvent = z.infer<typeof callRecordingStartedSchema>;
-
-// Event: call:recordingStopped
-export const callRecordingStoppedSchema = z.object({
-  callId: z.string(),
-  recordingId: z.string(),
-  egressId: z.string(),
-  state: z.string(),
-}).strict();
-
-export type CallRecordingStoppedEvent = z.infer<typeof callRecordingStoppedSchema>;
+export type PresencePingEvent = z.infer<typeof presencePingSchema>;

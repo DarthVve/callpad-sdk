@@ -3,16 +3,16 @@ import type { RecordingInfo } from "../state/types";
 
 /**
  * Hook to access recording state
- * 
+ *
  * @returns Recording state and helper functions
- * 
+ *
  * @example
  * ```tsx
  * function RecordingIndicator() {
  *   const { isRecording, recording } = useRecording();
- *   
+ *
  *   if (!isRecording) return null;
- *   
+ *
  *   return <div>Recording: {recording?.recordingId}</div>;
  * }
  * ```
@@ -29,4 +29,3 @@ export function useRecording(): {
     recording,
   };
 }
-

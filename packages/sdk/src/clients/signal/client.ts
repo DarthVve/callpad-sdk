@@ -17,7 +17,7 @@ export class SignalClient {
     // Initialize services
     this.calls = new SignalCallsService(config.appId);
     this.health = new SignalHealthService();
-    this.presence = new SignalPresenceService();
+    this.presence = new SignalPresenceService(config.appId);
   }
 
   private configure(config: SignalClientConfig): void {

@@ -21,3 +21,5 @@ export * from "./useTerminate";
 export * from "./useParticipantList";
 export * from "./useRecording";
 export * from "./useVirtualBackground";
+export * from "./useScreenShare";
+export * from "./usePresence";
