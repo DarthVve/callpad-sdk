@@ -1,7 +1,12 @@
-import { useLocalParticipant, useRoomContext } from "@livekit/components-react";
-import { BackgroundProcessor } from "@livekit/track-processors";
-import { type LocalVideoTrack, RoomEvent, Track } from "livekit-client";
-import { useEffect, useRef } from "react";
+import { BackgroundProcessor } from '@livekit/track-processors';
+import { useEffect, useRef } from 'react';
+import selfieSegmenterModelBase64 from '../../assets/models/selfie_segmenter.tflite';
+
+import {
+  useLocalParticipant,
+  useRoomContext,
+} from "@livekit/components-react";
+import { Track, RoomEvent, type LocalVideoTrack } from "livekit-client";
 
 export interface UseVirtualBackgroundOptions {
   /**
@@ -93,18 +98,11 @@ export function useVirtualBackground(
             return;
           }
 
-          const localVideoTrack = cameraPublication.track as LocalVideoTrack & {
-            addProcessor: (
-              processor: ReturnType<typeof BackgroundProcessor>
-            ) => Promise<void>;
-            removeProcessor: (
-              processor: ReturnType<typeof BackgroundProcessor>
-            ) => Promise<void>;
-          };
+          const localVideoTrack = cameraPublication.track as LocalVideoTrack
 
           if (processorRef.current) {
             try {
-              await localVideoTrack.removeProcessor(processorRef.current);
+              await localVideoTrack.stopProcessor();
             } catch (error) {
               console.warn("Failed to remove background processor:", error);
             }
@@ -121,8 +119,25 @@ export function useVirtualBackground(
             mode: "virtual-background" | "blur";
             imagePath?: string;
             blurRadius?: number;
+            segmenterOptions: {
+              delegate: "GPU" | "CPU";
+              modelAssetPath?: string | undefined;
+              runningMode?: "VIDEO" | "IMAGE";
+              outputConfidenceMasks?: boolean | undefined;
+              outputCategoryMask?: boolean | undefined;
+              modelAssetBuffer?: Uint8Array | ReadableStreamDefaultReader | undefined;
+            };
           } = {
             mode,
+            segmenterOptions: {
+              delegate: "GPU",
+              runningMode: "IMAGE",
+              outputConfidenceMasks: true,
+              outputCategoryMask: true,
+              modelAssetPath: undefined,
+              // Decode base64 to Uint8Array
+              modelAssetBuffer: Uint8Array.from(atob(selfieSegmenterModelBase64), c => c.charCodeAt(0)),
+            },
           };
 
           if (mode === "virtual-background" && imagePath) {
@@ -133,7 +148,7 @@ export function useVirtualBackground(
 
           // Create and apply new processor
           const processor = BackgroundProcessor(processorConfig);
-          await localVideoTrack.addProcessor(processor);
+          await localVideoTrack.setProcessor(processor);
 
           // Only set processor if effect is still active
           if (isActiveRef.current) {
@@ -141,7 +156,7 @@ export function useVirtualBackground(
           } else {
             // Effect was cleaned up, remove the processor we just added
             try {
-              await localVideoTrack.removeProcessor(processor);
+              await localVideoTrack.stopProcessor();
             } catch (error) {
               console.error("Failed to remove background processor:", error);
             }
@@ -193,13 +208,9 @@ export function useVirtualBackground(
           Track.Source.Camera
         );
         if (cameraPublication?.track) {
-          const localVideoTrack = cameraPublication.track as LocalVideoTrack & {
-            removeProcessor: (
-              processor: ReturnType<typeof BackgroundProcessor>
-            ) => Promise<void>;
-          };
+          const localVideoTrack = cameraPublication.track as LocalVideoTrack
           localVideoTrack
-            .removeProcessor(processorRef.current)
+            .stopProcessor()
             .catch((error: unknown) => {
               console.warn(
                 "Failed to remove background processor on cleanup:",
@@ -218,29 +229,30 @@ export function useVirtualBackground(
  *
  * @example
  * ```tsx
- * function VideoComponent() {
+  * function VideoComponent() {
  *   const [bgImage, setBgImage] = useState<string | null>(null);
  *
- *   useVirtualBackground({
- *     imagePath: bgImage,
- *     mode: 'virtual-background',
- *     enabled: !!bgImage
+ * useVirtualBackground({
+    *     imagePath: bgImage,
+    *     mode: 'virtual-background',
+    *     enabled: !!bgImage
  *   });
  *
  *   return (
- *     <button onClick={() => setBgImage('https://example.com/bg.jpg')}>
- *       Apply Background
- *     </button>
- *   );
+ * <button onClick= {() => setBgImage('https://example.com/bg.jpg')
+  } >
+ * Apply Background
+  * </button>
+  *   );
  * }
  * ```
  *
  * @example
  * ```tsx
- * // Blur background
+  * // Blur background
  * useVirtualBackground({
- *   mode: 'blur',
- *   blurRadius: 10
+    *   mode: 'blur',
+    *   blurRadius: 10
  * });
  * ```
  */
