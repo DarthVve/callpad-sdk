@@ -1,6 +1,6 @@
 import { useParticipants } from "@livekit/components-react";
 import type { Participant } from "livekit-client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRaiseHandStore } from "../channel/raiseHand/store";
 import { useParticipantListStore } from "../state/participantListStore";
 import type {
@@ -10,10 +10,19 @@ import type {
 
 function createSortFunction(
   sortBy: "speaking" | "name" | "raised-hand",
-  getRaisedHandOrder?: (id: string) => number | null
+  getRaisedHandOrder?: (id: string) => number | null,
+  isPinned?: (id: string) => boolean,
 ) {
   return (a: Participant, b: Participant) => {
-    if (sortBy === "raised-hand" && getRaisedHandOrder) {
+    if (isPinned) {
+      const aPinned = isPinned(a.identity);
+      const bPinned = isPinned(b.identity);
+
+      if (aPinned && !bPinned) return -1;
+      if (!aPinned && bPinned) return 1;
+    }
+
+    if (getRaisedHandOrder) {
       const aOrder = getRaisedHandOrder(a.identity);
       const bOrder = getRaisedHandOrder(b.identity);
 
@@ -31,6 +40,8 @@ function createSortFunction(
     if (sortBy === "speaking") {
       const aIsSpeaking = a.isSpeaking || false;
       const bIsSpeaking = b.isSpeaking || false;
+
+      // sorting by isSpeaking
       if (aIsSpeaking && !bIsSpeaking) {
         return -1;
       }
@@ -46,8 +57,8 @@ function createSortFunction(
 }
 
 export function useParticipantList(
-  options: ParticipantListOptions = {}
-): ParticipantListReturn {
+  options: ParticipantListOptions = {},
+): ParticipantListReturn & { sortedParticipants: Participant[] } {
   const {
     pageSize = 9,
     includeLocalParticipant = true,
@@ -60,8 +71,9 @@ export function useParticipantList(
   const allParticipants = useParticipants();
   const { togglePin, clearPinned, isPinned } = useParticipantListStore();
   const getRaisedHandOrder = useRaiseHandStore(
-    (state) => state.getRaisedHandOrder
+    (state) => state.getRaisedHandOrder,
   );
+  const raisedHands = useRaiseHandStore((state) => state.raisedHands);
 
   const filteredParticipants = useMemo(() => {
     return includeLocalParticipant
@@ -70,24 +82,9 @@ export function useParticipantList(
   }, [allParticipants, includeLocalParticipant]);
 
   const sortedParticipants = useMemo(() => {
-    const pinned: Participant[] = [];
-    const unpinned: Participant[] = [];
-
-    for (const participant of filteredParticipants) {
-      if (isPinned(participant.identity)) {
-        pinned.push(participant);
-      } else {
-        unpinned.push(participant);
-      }
-    }
-
-    const sortFunction = createSortFunction(sortBy, getRaisedHandOrder);
-
-    pinned.sort(sortFunction);
-    unpinned.sort(sortFunction);
-
-    return [...pinned, ...unpinned];
-  }, [filteredParticipants, isPinned, sortBy, getRaisedHandOrder]);
+    const sortFn = createSortFunction(sortBy, getRaisedHandOrder, isPinned);
+    return [...filteredParticipants].sort(sortFn);
+  }, [filteredParticipants, isPinned, sortBy, getRaisedHandOrder, raisedHands]);
 
   const pinnedParticipants = useMemo(() => {
     return sortedParticipants.filter((p) => isPinned(p.identity));
@@ -102,6 +99,12 @@ export function useParticipantList(
 
   const hasNextPage = currentPage < totalPages;
   const hasPrevPage = currentPage > 1;
+
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   const nextPage = () => {
     if (hasNextPage) {
@@ -122,6 +125,7 @@ export function useParticipantList(
 
   return {
     participants,
+    sortedParticipants, // Exposed for grid views
     pinnedParticipants,
     currentPage,
     totalPages,
