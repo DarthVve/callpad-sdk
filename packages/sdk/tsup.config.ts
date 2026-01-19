@@ -12,6 +12,9 @@ export default defineConfig({
   clean: true,
   splitting: false,
   treeshake: true,
+  loader: {
+    ".tflite": "base64",
+  },
   minify: false, // Keep readable for debugging
   external: [
     "react",
