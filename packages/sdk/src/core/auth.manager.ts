@@ -1,7 +1,12 @@
 import { InitService, OpenAPI } from "../generated/api";
 import { createLogger } from "../utils/logger";
 import { SessionStorage } from "./session-storage";
-import type { AuthProvider, AuthRetryConfig, Nullable, SessionInfo } from "./types";
+import type {
+  AuthProvider,
+  AuthRetryConfig,
+  Nullable,
+  SessionInfo,
+} from "./types";
 
 const logger = createLogger("auth-manager");
 
@@ -60,8 +65,7 @@ export class AuthManager {
     }
 
     throw new Error(
-      `No authentication token available after ${maxRetries} retries. ` +
-        "This may indicate the auth provider is temporarily unavailable (e.g., token refresh in progress)."
+      `No authentication token available after ${maxRetries} retries. This may indicate the auth provider is temporarily unavailable (e.g., token refresh in progress).`
     );
   }
 

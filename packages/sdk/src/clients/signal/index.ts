@@ -2,6 +2,7 @@ export { SignalClient } from "./client";
 export {
   SignalCallsService,
   SignalHealthService,
+  SignalMeetingsService,
   SignalPresenceService,
 } from "./services";
 export { useSignalClient } from "./hooks";
@@ -26,8 +27,10 @@ export type {
 export type {
   CallsData,
   HealthData,
+  MeetingsData,
 } from "../../generated/api/models";
 export {
   CallsService,
   HealthService,
+  MeetingsService,
 } from "../../generated/api";

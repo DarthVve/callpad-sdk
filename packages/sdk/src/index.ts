@@ -9,6 +9,8 @@ export type {
   ParticipantMetadata,
   LiveKitJoinInfo,
   Session,
+  SessionType,
+  MeetingInfo,
   IncomingInvite,
   OutgoingInvite,
   RtcError,
@@ -16,6 +18,15 @@ export type {
   Profile,
   RecordingInfo,
 } from "./state/types";
+export type {
+  Meeting,
+  MeetingStatus,
+  MeetingJoinInfo,
+  CreateAdHocMeetingParams,
+  JoinMeetingParams,
+  MeetingResponse,
+  EndMeetingResponse,
+} from "./state/meetings.types";
 export { useProfileCache, profileCache } from "./state/profileCache";
 export { useRecordingStore, recordingStore } from "./state/recording.store";
 export type {

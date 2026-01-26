@@ -337,6 +337,83 @@ message: string
         
     }
 
+export type MeetingsData = {
+        
+        payloads: {
+            PostSignalMeetingsCreate: {
+                        requestBody?: {
+        mode?: 'AUDIO' | 'VIDEO'
+title?: string
+    }
+                        
+                    };
+PostSignalMeetingsByMeetingIdStart: {
+                        meetingId: string
+                        
+                    };
+PostSignalMeetingsJoin: {
+                        requestBody?: {
+        meetingCode?: string
+meetingId?: string
+    }
+                        
+                    };
+PostSignalMeetingsByMeetingIdEnd: {
+                        meetingId: string
+                        
+                    };
+        }
+        
+        
+        responses: {
+            PostSignalMeetingsCreate: {
+        meeting: {
+        id: string
+code: string
+status: 'ACTIVE'
+callId: string
+    }
+joinInfo: {
+        token: string
+lkUrl: string
+    }
+sessionType: 'MEETING'
+    }
+                ,PostSignalMeetingsByMeetingIdStart: {
+        meeting: {
+        id: string
+code: string
+status: 'ACTIVE'
+callId: string
+    }
+joinInfo: {
+        token: string
+lkUrl: string
+    }
+sessionType: 'MEETING'
+    }
+                ,PostSignalMeetingsJoin: {
+        meeting: {
+        id: string
+code: string
+status: 'ACTIVE'
+callId: string
+    }
+joinInfo: {
+        token: string
+lkUrl: string
+    }
+sessionType: 'MEETING'
+    }
+                ,PostSignalMeetingsByMeetingIdEnd: {
+        success: boolean
+meetingId: string
+    }
+                
+        }
+        
+    }
+
 export type UsersData = {
         
         payloads: {

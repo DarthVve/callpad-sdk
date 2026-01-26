@@ -2,6 +2,7 @@ import { OpenAPI } from "../../generated/api";
 import {
   SignalCallsService,
   SignalHealthService,
+  SignalMeetingsService,
   SignalPresenceService,
 } from "./services";
 import type { SignalClientConfig } from "./types";
@@ -9,6 +10,7 @@ import type { SignalClientConfig } from "./types";
 export class SignalClient {
   public readonly calls: SignalCallsService;
   public readonly health: SignalHealthService;
+  public readonly meetings: SignalMeetingsService;
   public readonly presence: SignalPresenceService;
 
   constructor(config: SignalClientConfig) {
@@ -17,6 +19,7 @@ export class SignalClient {
     // Initialize services
     this.calls = new SignalCallsService(config.appId);
     this.health = new SignalHealthService();
+    this.meetings = new SignalMeetingsService(config.appId);
     this.presence = new SignalPresenceService(config.appId);
   }
 
@@ -54,9 +57,14 @@ export class SignalClient {
 
     this.configure(newConfig);
 
-    // Update appId in calls service if it changed
-    if (config.appId && this.calls) {
-      (this.calls as any).appId = config.appId;
+    // Update appId in services if it changed
+    if (config.appId) {
+      if (this.calls) {
+        (this.calls as any).appId = config.appId;
+      }
+      if (this.meetings) {
+        (this.meetings as any).appId = config.appId;
+      }
     }
   }
 }

@@ -23,3 +23,6 @@ export * from "./useRecording";
 export * from "./useVirtualBackground";
 export * from "./useScreenShare";
 export * from "./usePresence";
+export * from "./useMeetingActions";
+export * from "./useMeetingState";
+export * from "./useMeeting";

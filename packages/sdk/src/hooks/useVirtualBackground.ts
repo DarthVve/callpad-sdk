@@ -1,12 +1,9 @@
-import { BackgroundProcessor } from '@livekit/track-processors';
-import { useEffect, useRef } from 'react';
-import selfieSegmenterModelBase64 from '../../assets/models/selfie_segmenter.tflite';
+import { BackgroundProcessor } from "@livekit/track-processors";
+import { useEffect, useRef } from "react";
+import selfieSegmenterModelBase64 from "../../assets/models/selfie_segmenter.tflite";
 
-import {
-  useLocalParticipant,
-  useRoomContext,
-} from "@livekit/components-react";
-import { Track, RoomEvent, type LocalVideoTrack } from "livekit-client";
+import { useLocalParticipant, useRoomContext } from "@livekit/components-react";
+import { type LocalVideoTrack, RoomEvent, Track } from "livekit-client";
 
 export interface UseVirtualBackgroundOptions {
   /**
@@ -98,7 +95,7 @@ export function useVirtualBackground(
             return;
           }
 
-          const localVideoTrack = cameraPublication.track as LocalVideoTrack
+          const localVideoTrack = cameraPublication.track as LocalVideoTrack;
 
           if (processorRef.current) {
             try {
@@ -125,7 +122,10 @@ export function useVirtualBackground(
               runningMode?: "VIDEO" | "IMAGE";
               outputConfidenceMasks?: boolean | undefined;
               outputCategoryMask?: boolean | undefined;
-              modelAssetBuffer?: Uint8Array | ReadableStreamDefaultReader | undefined;
+              modelAssetBuffer?:
+                | Uint8Array
+                | ReadableStreamDefaultReader
+                | undefined;
             };
           } = {
             mode,
@@ -136,7 +136,10 @@ export function useVirtualBackground(
               outputCategoryMask: true,
               modelAssetPath: undefined,
               // Decode base64 to Uint8Array
-              modelAssetBuffer: Uint8Array.from(atob(selfieSegmenterModelBase64), c => c.charCodeAt(0)),
+              modelAssetBuffer: Uint8Array.from(
+                atob(selfieSegmenterModelBase64),
+                (c) => c.charCodeAt(0)
+              ),
             },
           };
 
@@ -208,15 +211,13 @@ export function useVirtualBackground(
           Track.Source.Camera
         );
         if (cameraPublication?.track) {
-          const localVideoTrack = cameraPublication.track as LocalVideoTrack
-          localVideoTrack
-            .stopProcessor()
-            .catch((error: unknown) => {
-              console.warn(
-                "Failed to remove background processor on cleanup:",
-                error
-              );
-            });
+          const localVideoTrack = cameraPublication.track as LocalVideoTrack;
+          localVideoTrack.stopProcessor().catch((error: unknown) => {
+            console.warn(
+              "Failed to remove background processor on cleanup:",
+              error
+            );
+          });
         }
         processorRef.current = null;
       }

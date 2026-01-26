@@ -2,12 +2,16 @@ import { SignalClient } from "../clients/signal";
 import { apiConfig } from "../clients/signal/config";
 import type { ApiConfig } from "../clients/signal/types";
 import { AuthManager, SocketManager } from "../core";
-import type { PresenceConfig } from "../state/presence.types";
 import type { AuthRetryConfig } from "../core/types";
+import type { PresenceConfig } from "../state/presence.types";
 import { rtcStore } from "../state/store";
 import { type LogLevel, setGlobalLoggerOptions } from "../utils/logger";
 import { type CallsServiceInstance, createCallsService } from "./calls.service";
 import { LiveKitRoomManager } from "./livekitRoomManager";
+import {
+  type MeetingsServiceInstance,
+  createMeetingsService,
+} from "./meetings.service";
 import {
   type PresenceServiceInstance,
   createPresenceService,
@@ -36,6 +40,7 @@ export interface RtcSdk {
   auth: AuthManager;
   socket: SocketManager;
   calls: CallsServiceInstance;
+  meetings: MeetingsServiceInstance;
   signal: SignalClient;
   livekit: LiveKitRoomManager;
   presence: PresenceServiceInstance;
@@ -66,6 +71,10 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
   const callsService = createCallsService(
     { appId: opts.appId },
     { livekitManager, authManager: auth }
+  );
+  const meetingsService = createMeetingsService(
+    { appId: opts.appId },
+    { livekitManager }
   );
 
   // Initialize signal client with session token configuration
@@ -111,6 +120,7 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
     auth,
     socket,
     calls: callsService,
+    meetings: meetingsService,
     signal: signalClient,
     livekit: livekitManager,
     presence: presenceService,

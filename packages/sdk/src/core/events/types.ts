@@ -27,6 +27,12 @@ export enum SdkEventType {
   JOIN_INFO_RECEIVED = "join-info:received",
   CALL_STARTED = "call:started",
 
+  // Meeting lifecycle events
+  MEETING_CREATED = "meeting:created",
+  MEETING_STARTED = "meeting:started",
+  MEETING_JOINED = "meeting:joined",
+  MEETING_ENDED = "meeting:ended",
+
   // Participant events
   PARTICIPANT_UPDATED = "participant:updated",
   PARTICIPANT_INVITED = "participant:invited",

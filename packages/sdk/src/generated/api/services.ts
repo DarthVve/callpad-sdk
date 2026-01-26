@@ -1,7 +1,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { HealthData, LiveKitData, CallsData, UsersData, PresenceData, InitData } from './models';
+import type { HealthData, LiveKitData, CallsData, MeetingsData, UsersData, PresenceData, InitData } from './models';
 
 export class HealthService {
 
@@ -449,6 +449,105 @@ appId
 				401: `Authentication required`,
 				403: `Only host can stop recording`,
 				404: `Call or recording not found`,
+			},
+		});
+	}
+
+}
+
+export class MeetingsService {
+
+	/**
+	 * @returns any Ad-hoc meeting created successfully
+	 * @throws ApiError
+	 */
+	public static postSignalMeetingsCreate(data: MeetingsData['payloads']['PostSignalMeetingsCreate'] = {}): CancelablePromise<MeetingsData['responses']['PostSignalMeetingsCreate']> {
+		const {
+                    
+                    requestBody
+                } = data;
+		return __request(OpenAPI, {
+			method: 'POST',
+			url: '/signal/meetings/create',
+			body: requestBody,
+			mediaType: 'application/json',
+			errors: {
+				400: `Invalid request`,
+				401: `Authentication required`,
+				500: `Internal server error`,
+			},
+		});
+	}
+
+	/**
+	 * @returns any Scheduled meeting started successfully
+	 * @throws ApiError
+	 */
+	public static postSignalMeetingsByMeetingIdStart(data: MeetingsData['payloads']['PostSignalMeetingsByMeetingIdStart']): CancelablePromise<MeetingsData['responses']['PostSignalMeetingsByMeetingIdStart']> {
+		const {
+                    
+                    meetingId
+                } = data;
+		return __request(OpenAPI, {
+			method: 'POST',
+			url: '/signal/meetings/{meetingId}/start',
+			path: {
+				meetingId
+			},
+			errors: {
+				400: `Invalid request`,
+				401: `Authentication required`,
+				403: `Only the organizer can start the meeting`,
+				404: `Meeting not found`,
+				500: `Internal server error`,
+			},
+		});
+	}
+
+	/**
+	 * @returns any Joined meeting successfully
+	 * @throws ApiError
+	 */
+	public static postSignalMeetingsJoin(data: MeetingsData['payloads']['PostSignalMeetingsJoin'] = {}): CancelablePromise<MeetingsData['responses']['PostSignalMeetingsJoin']> {
+		const {
+                    
+                    requestBody
+                } = data;
+		return __request(OpenAPI, {
+			method: 'POST',
+			url: '/signal/meetings/join',
+			body: requestBody,
+			mediaType: 'application/json',
+			errors: {
+				400: `Invalid request`,
+				401: `Authentication required`,
+				404: `Meeting not found`,
+				500: `Internal server error`,
+			},
+		});
+	}
+
+	/**
+	 * @returns any Meeting ended successfully
+	 * @throws ApiError
+	 */
+	public static postSignalMeetingsByMeetingIdEnd(data: MeetingsData['payloads']['PostSignalMeetingsByMeetingIdEnd']): CancelablePromise<MeetingsData['responses']['PostSignalMeetingsByMeetingIdEnd']> {
+		const {
+                    
+                    meetingId
+                } = data;
+		return __request(OpenAPI, {
+			method: 'POST',
+			url: '/signal/meetings/{meetingId}/end',
+			path: {
+				meetingId
+			},
+			errors: {
+				400: `Invalid request`,
+				401: `Authentication required`,
+				403: `Only the organizer can end the meeting`,
+				404: `Meeting not found`,
+				500: `Internal server error`,
 			},
 		});
 	}

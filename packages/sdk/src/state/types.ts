@@ -43,6 +43,13 @@ export interface RecordingInfo {
   initiatedBy?: string;
 }
 
+export type SessionType = "CALL" | "MEETING";
+
+export interface MeetingInfo {
+  meetingId: string;
+  meetingCode: string;
+}
+
 export interface Session {
   id: string;
   status: "initializing" | "pending" | "ready" | "active" | "ended";
@@ -52,6 +59,8 @@ export interface Session {
   startedAt?: string;
   ringTimeoutMs?: number;
   recording?: RecordingInfo | null;
+  sessionType?: SessionType;
+  meetingInfo?: MeetingInfo;
 }
 
 export interface IncomingInvite {
