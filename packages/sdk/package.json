@@ -51,7 +51,8 @@
   "author": "Voyatek Group",
   "repository": {
     "type": "git",
-    "directory": "/packages/sdk"
+    "url": "https://dev.azure.com/VoyatekGroup/Team%20Dubai/_git/callpad-web-sdk",
+    "directory": "packages/sdk"
   },
   "peerDependencies": {
     "livekit-client": "^2.8.0",

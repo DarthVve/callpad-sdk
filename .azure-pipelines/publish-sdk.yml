@@ -87,7 +87,7 @@ stages:
 
           - script: |
               cd $(Pipeline.Workspace)/sdk-package
-              npm publish --access public
+              npm publish --access public --ignore-scripts
             displayName: 'Publish to npm registry'
             env:
               NPM_TOKEN: $(NPM_TOKEN)
