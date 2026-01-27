@@ -10,13 +10,6 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 
-variables:
-  - name: NODE_VERSION
-    value: '20.x'
-  - name: PNPM_VERSION
-    value: '9.0.0'
-  # NPM_TOKEN should be set as a secret variable in Azure DevOps Pipeline settings
-
 stages:
   - stage: Build
     displayName: 'Build and Test'
@@ -30,7 +23,7 @@ stages:
 
           - task: NodeTool@0
             inputs:
-              versionSpec: '20.x'
+              versionSpec: '20.0'
             displayName: 'Install Node.js'
 
           - script: |
