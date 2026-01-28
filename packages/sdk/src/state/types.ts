@@ -86,6 +86,11 @@ export interface RtcError {
   context?: any;
 }
 
+export interface GuestIdentity {
+  guestId: string;
+  displayName: string;
+}
+
 export interface RtcState {
   // Did we initiate the current call?
   initiated: boolean;
@@ -100,6 +105,10 @@ export interface RtcState {
 
   // Error tracking
   errors: RtcError[];
+
+  // Guest mode state
+  guestIdentity: GuestIdentity | null;
+  isGuestMode: boolean;
 }
 
 export const defaultState: RtcState = {
@@ -108,6 +117,8 @@ export const defaultState: RtcState = {
   incomingInvite: null,
   outgoingInvites: {},
   errors: [],
+  guestIdentity: null,
+  isGuestMode: false,
 };
 
 import type { Participant } from "livekit-client";

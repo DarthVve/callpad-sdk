@@ -1,7 +1,12 @@
 import { useChatStore } from "../channel/chat";
 import { useRaiseHandStore } from "../channel/raiseHand";
 import { useSpotlightStore } from "../channel/spotlight";
-import { SignalMeetingsService } from "../clients/signal";
+import {
+  type GuestJoinResponse,
+  SignalMeetingsService,
+} from "../clients/signal";
+import { eventBus } from "../core/events";
+import { SdkEventType } from "../core/events/types";
 import type { MeetingsData } from "../generated/api/models";
 import type {
   CreateAdHocMeetingParams,
@@ -19,6 +24,18 @@ export interface MeetingsServiceConfig {
 
 export interface MeetingsServiceDependencies {
   livekitManager?: { disconnect: () => Promise<void> };
+}
+
+export interface GuestJoinMeetingParams {
+  meetingCode: string;
+  displayName: string;
+  passcode?: string;
+}
+
+export interface GuestJoinContext {
+  deviceId: string;
+  signalHost: string;
+  onSessionToken: (token: string) => Promise<void>;
 }
 
 export function createMeetingsService(
@@ -238,18 +255,121 @@ export function createMeetingsService(
     }
   }
 
+  async function guestJoin(
+    params: GuestJoinMeetingParams,
+    context: GuestJoinContext
+  ): Promise<GuestJoinResponse> {
+    const { meetingCode, displayName, passcode } = params;
+
+    rtcStore.getState().patch((state) => {
+      state.isGuestMode = true;
+      state.session = {
+        id: "temp",
+        status: "initializing",
+        mode: "VIDEO",
+        role: "GUEST",
+        sessionType: "MEETING",
+      };
+    });
+
+    try {
+      const guestJoinParams: {
+        meetingCode: string;
+        displayName: string;
+        passcode?: string;
+        appId: string;
+        deviceId: string;
+      } = {
+        meetingCode,
+        displayName,
+        appId,
+        deviceId: context.deviceId,
+      };
+      if (passcode) {
+        guestJoinParams.passcode = passcode;
+      }
+
+      const response = await signalMeetings.guestJoin(
+        guestJoinParams,
+        context.signalHost
+      );
+
+      rtcStore.getState().patch((state) => {
+        state.guestIdentity = {
+          guestId: response.guestId,
+          displayName,
+        };
+        state.session = {
+          id: response.meeting.callId,
+          status: "active",
+          mode: "VIDEO",
+          role: "GUEST",
+          sessionType: "MEETING",
+          meetingInfo: {
+            meetingId: response.meeting.id,
+            meetingCode: response.meeting.code,
+          },
+          livekitInfo: {
+            token: response.joinInfo.token,
+            roomName: response.meeting.callId,
+            url: response.joinInfo.lkUrl,
+          },
+        };
+      });
+
+      await context.onSessionToken(response.sessionToken);
+
+      eventBus.emit(SdkEventType.GUEST_JOINED, {
+        guestId: response.guestId,
+        displayName,
+        meetingCode: response.meeting.code,
+      });
+
+      return response;
+    } catch (error: any) {
+      rtcStore.getState().patch((state) => {
+        state.session = null;
+        state.guestIdentity = null;
+        state.isGuestMode = false;
+      });
+      rtcStore.getState().addError({
+        code: "GUEST_JOIN_FAILED",
+        message: error.message || "Failed to join meeting as guest",
+        timestamp: Date.now(),
+        context: error,
+      });
+      throw error;
+    }
+  }
+
   async function leave(): Promise<void> {
+    const state = rtcStore.getState();
+    const isGuest = state.isGuestMode;
+
     try {
       if (deps?.livekitManager) {
         await deps.livekitManager.disconnect();
-      } else {
-        rtcStore.getState().reset();
-        profileCache.getState().clear();
-        recordingStore.getState().clear();
-        useChatStore.getState().clearChat();
-        useSpotlightStore.getState().clear();
-        useRaiseHandStore.getState().clear();
       }
+
+      rtcStore.getState().patch((state) => {
+        state.session = null;
+        state.initiated = false;
+        if (isGuest) {
+          state.guestIdentity = null;
+          state.isGuestMode = false;
+        }
+      });
+
+      profileCache.getState().clear();
+      recordingStore.getState().clear();
+      useChatStore.getState().clearChat();
+      useSpotlightStore.getState().clear();
+      useRaiseHandStore.getState().clear();
+
+      eventBus.emit(
+        isGuest ? SdkEventType.GUEST_LEFT : SdkEventType.MEETING_ENDED,
+        {}
+      );
     } catch (error: any) {
       rtcStore.getState().addError({
         code: "LEAVE_MEETING_FAILED",
@@ -267,6 +387,7 @@ export function createMeetingsService(
     join,
     end,
     leave,
+    guestJoin,
   };
 }
 

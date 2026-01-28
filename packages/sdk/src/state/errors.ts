@@ -14,7 +14,13 @@ export type ErrorCode =
   | "MEDIA_PERMISSION"
   | "DEVICE_SWITCH"
   | "API_ERROR"
-  | "UNEXPECTED";
+  | "UNEXPECTED"
+  | "GUEST_JOIN_FAILED"
+  | "GUEST_ACCESS_DISABLED"
+  | "INVALID_PASSCODE"
+  | "MEETING_NOT_ACTIVE"
+  | "GUEST_SESSION_EXPIRED"
+  | "GUEST_KICKED";
 
 export function pushError(
   code: ErrorCode,

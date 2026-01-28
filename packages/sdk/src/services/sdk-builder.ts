@@ -1,7 +1,7 @@
-import { SignalClient } from "../clients/signal";
+import { type GuestJoinResponse, SignalClient } from "../clients/signal";
 import { apiConfig } from "../clients/signal/config";
 import type { ApiConfig } from "../clients/signal/types";
-import { AuthManager, SocketManager } from "../core";
+import { AuthManager, GuestAuthManager, SocketManager } from "../core";
 import type { AuthRetryConfig } from "../core/types";
 import type { PresenceConfig } from "../state/presence.types";
 import { rtcStore } from "../state/store";
@@ -9,6 +9,7 @@ import { type LogLevel, setGlobalLoggerOptions } from "../utils/logger";
 import { type CallsServiceInstance, createCallsService } from "./calls.service";
 import { LiveKitRoomManager } from "./livekitRoomManager";
 import {
+  type GuestJoinMeetingParams,
   type MeetingsServiceInstance,
   createMeetingsService,
 } from "./meetings.service";
@@ -17,23 +18,27 @@ import {
   createPresenceService,
 } from "./presence.service";
 
-export interface SdkBuildOptions {
+export interface SdkBuildOptionsBase {
   appId: string;
   signalHost: string;
-  authProvider: () => string | null;
-
-  // Logging configuration
   logLevel?: LogLevel;
   enableDebug?: boolean;
-
-  // Custom log callback
   log?: (level: LogLevel, message: string, meta?: any) => void;
-
-  // Auth retry configuration (for handling transient token unavailability)
-  authRetry?: Partial<AuthRetryConfig>;
-
   presence?: Partial<PresenceConfig>;
 }
+
+export interface AuthenticatedSdkOptions extends SdkBuildOptionsBase {
+  mode?: "authenticated";
+  authProvider: () => string | null;
+  authRetry?: Partial<AuthRetryConfig>;
+}
+
+export interface GuestSdkOptions extends SdkBuildOptionsBase {
+  mode: "guest";
+  deviceId: string;
+}
+
+export type SdkBuildOptions = AuthenticatedSdkOptions | GuestSdkOptions;
 
 export interface RtcSdk {
   store: typeof rtcStore;
@@ -45,12 +50,22 @@ export interface RtcSdk {
   livekit: LiveKitRoomManager;
   presence: PresenceServiceInstance;
   cleanup: () => void;
-
   configureApi: (config: ApiConfig) => void;
 }
 
-export function buildSdk(opts: SdkBuildOptions): RtcSdk {
-  // Configure global logging system
+export interface GuestRtcSdk {
+  store: typeof rtcStore;
+  auth: GuestAuthManager;
+  socket: SocketManager;
+  meetings: MeetingsServiceInstance;
+  livekit: LiveKitRoomManager;
+  presence: PresenceServiceInstance;
+  cleanup: () => void;
+  configureApi: (config: ApiConfig) => void;
+  guestJoin: (params: GuestJoinMeetingParams) => Promise<GuestJoinResponse>;
+}
+
+export function buildSdk(opts: AuthenticatedSdkOptions): RtcSdk {
   const loggerOptions: any = {};
   if (opts.logLevel !== undefined) {
     loggerOptions.level = opts.logLevel;
@@ -63,7 +78,6 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
   }
   setGlobalLoggerOptions(loggerOptions);
 
-  // Initialize core managers
   const auth = new AuthManager(opts.authProvider, opts.appId, opts.authRetry);
 
   const socket = SocketManager.getInstance();
@@ -77,7 +91,6 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
     { livekitManager }
   );
 
-  // Initialize signal client with session token configuration
   const signalClient = new SignalClient({
     baseUrl: opts.signalHost,
     appId: opts.appId,
@@ -87,8 +100,6 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
     },
   });
 
-  // Configure API with base URL and session token provider
-  // This ensures all API calls use session tokens consistently
   apiConfig.configure({
     baseUrl: opts.signalHost,
     token: async () => {
@@ -125,11 +136,8 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
     livekit: livekitManager,
     presence: presenceService,
     cleanup,
-
-    // API configuration - can be called again to override if needed
     configureApi: (config: ApiConfig) => {
       apiConfig.configure(config);
-      // Also reconfigure signal client with only defined values
       const signalConfig: Partial<ApiConfig> = {
         baseUrl: config.baseUrl,
       };
@@ -147,5 +155,86 @@ export function buildSdk(opts: SdkBuildOptions): RtcSdk {
       }
       signalClient.reconfigure(signalConfig);
     },
+  };
+}
+
+export function buildGuestSdk(opts: GuestSdkOptions): GuestRtcSdk {
+  const loggerOptions: any = {};
+  if (opts.logLevel !== undefined) {
+    loggerOptions.level = opts.logLevel;
+  }
+  if (opts.enableDebug !== undefined) {
+    loggerOptions.enableDebug = opts.enableDebug;
+  }
+  if (opts.log !== undefined) {
+    loggerOptions.customLogger = opts.log;
+  }
+  setGlobalLoggerOptions(loggerOptions);
+
+  const auth = new GuestAuthManager(opts.appId, opts.deviceId);
+  const socket = SocketManager.getInstance();
+  const livekitManager = new LiveKitRoomManager();
+  const meetingsService = createMeetingsService(
+    { appId: opts.appId },
+    { livekitManager }
+  );
+
+  apiConfig.configure({
+    baseUrl: opts.signalHost,
+    token: async () => (await auth.getSessionToken()) || "",
+  });
+
+  const presenceService = createPresenceService(
+    { appId: opts.appId },
+    { getSocket: () => socket.getSocket() }
+  );
+
+  if (opts.presence) {
+    presenceService.configure(opts.presence);
+  }
+
+  socket.setPresenceService(presenceService);
+
+  const guestJoin = async (
+    params: GuestJoinMeetingParams
+  ): Promise<GuestJoinResponse> => {
+    const response = await meetingsService.guestJoin(params, {
+      deviceId: opts.deviceId,
+      signalHost: opts.signalHost,
+      onSessionToken: async (sessionToken: string) => {
+        auth.setSession({
+          sessionToken,
+          guestId: response.guestId,
+          displayName: params.displayName,
+          callId: response.meeting.callId,
+          meetingId: response.meeting.id,
+          meetingCode: response.meeting.code,
+        });
+        await socket.initializeWithToken(opts.signalHost, sessionToken);
+      },
+    });
+    return response;
+  };
+
+  const cleanup = () => {
+    presenceService.destroy();
+    livekitManager.detach();
+    socket.destroy();
+    auth.clearSession();
+    rtcStore.getState().reset();
+  };
+
+  return {
+    store: rtcStore,
+    auth,
+    socket,
+    meetings: meetingsService,
+    livekit: livekitManager,
+    presence: presenceService,
+    cleanup,
+    configureApi: (config: ApiConfig) => {
+      apiConfig.configure(config);
+    },
+    guestJoin,
   };
 }

@@ -77,6 +77,41 @@ export class SocketManager {
     }
   }
 
+  async initializeWithToken(
+    baseUrl: string,
+    sessionToken: string,
+    config: ConnectionConfig = {}
+  ): Promise<void> {
+    if (this.socket?.connected) {
+      return;
+    }
+
+    this.updateConnectionState("CONNECTING");
+
+    try {
+      this.socket = io(baseUrl, {
+        auth: { token: sessionToken },
+        autoConnect: false,
+        reconnection: true,
+        reconnectionAttempts: config.reconnectAttempts ?? 5,
+        reconnectionDelay: config.reconnectDelay ?? 1000,
+        reconnectionDelayMax: config.reconnectDelayMax ?? 30000,
+        timeout: config.timeout ?? 10000,
+        forceNew: true,
+        path: "/signal/socket.io",
+        transports: ["websocket"],
+        withCredentials: false,
+      });
+
+      this.setupGuestConnectionHandlers(sessionToken);
+      this.setupEventHandlers();
+      this.socket.connect();
+    } catch (error) {
+      this.updateConnectionState("ERROR");
+      throw error;
+    }
+  }
+
   private setupConnectionHandlers(authManager: AuthManager): void {
     if (!this.socket) return;
 
@@ -130,6 +165,65 @@ export class SocketManager {
     this.socket.io.on("reconnect_failed", () => {
       this.updateConnectionState("FAILED");
       this.logger.error("All reconnection attempts failed");
+    });
+  }
+
+  private setupGuestConnectionHandlers(sessionToken: string): void {
+    if (!this.socket) {
+      return;
+    }
+
+    this.socket.on("connect", () => {
+      this.updateConnectionState("CONNECTED");
+      this.logger.info("Guest connected to server");
+
+      if (this.presenceService) {
+        this.presenceService.startPing();
+      }
+    });
+
+    this.socket.on("disconnect", (reason: string) => {
+      this.updateConnectionState("DISCONNECTED");
+      this.logger.info("Guest disconnected", { reason });
+
+      if (this.presenceService) {
+        this.presenceService.stopPing();
+      }
+    });
+
+    this.socket.on("connect_error", (error: Error) => {
+      this.updateConnectionState("ERROR");
+      this.logger.error("Guest connection error", { error: error.message });
+    });
+
+    this.socket.io.on("reconnect_attempt", () => {
+      this.updateConnectionState("RECONNECTING");
+      if (this.socket) {
+        this.logger.debug(
+          "Reusing stored session token for guest reconnection"
+        );
+        this.socket.auth = { token: sessionToken };
+      }
+    });
+
+    this.socket.io.on("reconnect", (attemptNumber: number) => {
+      this.logger.info("Guest reconnected successfully", { attemptNumber });
+
+      if (this.presenceService) {
+        this.presenceService.startPing();
+      }
+    });
+
+    this.socket.io.on("reconnect_error", (error: Error) => {
+      this.logger.error("Guest reconnection error", { error: error.message });
+      if (this.isAuthError(error)) {
+        this.updateConnectionState("FAILED");
+      }
+    });
+
+    this.socket.io.on("reconnect_failed", () => {
+      this.updateConnectionState("FAILED");
+      this.logger.error("All guest reconnection attempts failed");
     });
   }
 

@@ -4,6 +4,10 @@ export {
   SignalHealthService,
   SignalMeetingsService,
   SignalPresenceService,
+  GuestJoinError,
+  type GuestJoinParams,
+  type GuestJoinResponse,
+  type GuestErrorCode,
 } from "./services";
 export { useSignalClient } from "./hooks";
 export { apiConfig, OpenApiConfigService } from "./config";

@@ -1,8 +1,10 @@
 export {
   RtcProvider,
   useSdk,
+  useGuestSdk,
   type RtcOptions,
   type RtcSdk,
+  type GuestRtcSdk,
 } from "./provider/RtcProvider";
 export * from "./hooks";
 export type {
@@ -17,6 +19,8 @@ export type {
   RtcState,
   Profile,
   RecordingInfo,
+  GuestIdentity,
+  ParticipantPermissions,
 } from "./state/types";
 export type {
   Meeting,
@@ -50,3 +54,13 @@ export type {
   EventSubscription,
 } from "./core/events/types";
 export * from "./clients/signal";
+export {
+  buildSdk,
+  buildGuestSdk,
+  type SdkBuildOptions,
+  type SdkBuildOptionsBase,
+  type AuthenticatedSdkOptions,
+  type GuestSdkOptions,
+} from "./services/sdk-builder";
+export type { GuestJoinMeetingParams } from "./services/meetings.service";
+export type { GuestSessionInfo } from "./core/guest-auth.manager";

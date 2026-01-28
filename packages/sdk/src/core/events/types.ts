@@ -40,6 +40,12 @@ export enum SdkEventType {
   // Recording events
   RECORDING_STARTED = "recording:started",
   RECORDING_STOPPED = "recording:stopped",
+
+  // Guest-specific events
+  GUEST_JOINED = "guest:joined",
+  GUEST_LEFT = "guest:left",
+  GUEST_KICKED = "guest:kicked",
+  GUEST_SESSION_ERROR = "guest:session_error",
 }
 
 /**

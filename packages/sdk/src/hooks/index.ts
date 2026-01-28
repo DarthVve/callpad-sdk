@@ -26,3 +26,7 @@ export * from "./usePresence";
 export * from "./useMeetingActions";
 export * from "./useMeetingState";
 export * from "./useMeeting";
+export * from "./useGuestJoin";
+export * from "./useGuestIdentity";
+export * from "./useIsGuestMode";
+export * from "./useGuestPermissions";
