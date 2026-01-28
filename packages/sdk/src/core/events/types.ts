@@ -24,6 +24,7 @@ export enum SdkEventType {
   CALL_ENDED = "call:ended",
   CALL_CANCELED = "call:canceled",
   CALL_TIMEOUT = "call:timeout",
+  CALL_MISSED = "call:missed",
   JOIN_INFO_RECEIVED = "join-info:received",
   CALL_STARTED = "call:started",
 

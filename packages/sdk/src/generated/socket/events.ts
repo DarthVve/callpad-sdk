@@ -58,6 +58,16 @@ export const callInviteDeclinedSchema = z.object({
 
 export type CallInviteDeclinedEvent = z.infer<typeof callInviteDeclinedSchema>;
 
+// Event: call:inviteMissed
+// Event: call:inviteMissed
+export const callInviteMissedSchema = z.object({
+  callId: z.string(),
+  userId: z.string(),
+  missedAt: z.string(),
+}).strict();
+
+export type CallInviteMissedEvent = z.infer<typeof callInviteMissedSchema>;
+
 // Event: call:participantAdded
 // Event: call:participantAdded
 export const callParticipantAddedSchema = z.object({

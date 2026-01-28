@@ -7,6 +7,7 @@ import type {
   CallInviteAcceptedEvent,
   CallInviteCancelledEvent,
   CallInviteDeclinedEvent,
+  CallInviteMissedEvent,
   CallParticipantAddedEvent,
   CallParticipantKickedEvent,
   CallReadyEvent,
@@ -27,6 +28,7 @@ export interface SocketEventMap {
   "call:inviteAccepted": CallInviteAcceptedEvent;
   "call:inviteCancelled": CallInviteCancelledEvent;
   "call:inviteDeclined": CallInviteDeclinedEvent;
+  "call:inviteMissed": CallInviteMissedEvent;
   "call:participantAdded": CallParticipantAddedEvent;
   "call:participantKicked": CallParticipantKickedEvent;
   "call:ready": CallReadyEvent;

@@ -8,6 +8,7 @@ import { CallStartedHandler } from "./call-started.handler";
 import { InviteAcceptedHandler } from "./invite-accepted.handler";
 import { InviteCancelledHandler } from "./invite-cancelled.handler";
 import { InviteDeclinedHandler } from "./invite-declined.handler";
+import { InviteMissedHandler } from "./invite-missed.handler";
 import { InviteHandler } from "./invite.handler";
 import { ParticipantAddedHandler } from "./participant-added.handler";
 import { ParticipantProfilesHandler } from "./participant-profiles.handler";
@@ -38,6 +39,7 @@ export class SocketHandlerRegistry {
       // Invite lifecycle
       new InviteAcceptedHandler(this.options),
       new InviteDeclinedHandler(this.options),
+      new InviteMissedHandler(this.options),
       new InviteCancelledHandler(this.options),
 
       // Participant management
