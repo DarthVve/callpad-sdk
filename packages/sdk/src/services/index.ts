@@ -1,3 +1,3 @@
 export * from "./sdk-builder";
-export * from "./socket-event-bridge";
-export * from "./call-actions";
+export * from "./calls.service";
+export * from "./meetings.service";

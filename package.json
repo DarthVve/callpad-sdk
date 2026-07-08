@@ -1,6 +1,6 @@
 {
-  "name": "web-sdk",
-  "private": true,
+  "name": "vg-x07df",
+  "version": "0.1.0",
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
@@ -8,10 +8,17 @@
     "format": "biome format --write .",
     "lint:fix": "biome check --apply .",
     "check": "biome check --fix --unsafe",
-    "check-types": "turbo run check-types"
+    "typecheck": "turbo run typecheck",
+    "check-types": "turbo run check-types",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "publish:dev": "turbo run build check-types --filter=vg-x07df && dotenv -- changeset publish",
+    "publish:dry": "turbo run build check-types --filter=vg-x07df && dotenv -- changeset publish --dry-run"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.8.0",
+    "@changesets/cli": "^2.29.7",
+    "dotenv-cli": "^10.0.0",
     "turbo": "^2.5.8",
     "typescript": "5.9.2"
   },

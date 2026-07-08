@@ -1,23 +1,28 @@
 import { useRtcStore } from "../state/store";
-import type { IncomingCallInfo, SessionStatus } from "../state/types";
 
 export interface CallState {
-  id?: string;
-  status: SessionStatus;
-  mode?: "audio" | "video";
-  roomName?: string;
-  incomingCall?: IncomingCallInfo;
+  id: string | null;
+  status: "initializing" | "pending" | "active" | "ended" | "ready" | null;
+  mode: "AUDIO" | "VIDEO" | null;
+  roomName: string | null;
 }
 
 export function useCallState(): CallState {
   const session = useRtcStore((state) => state.session);
-  const incomingCall = useRtcStore((state) => state.incomingCall);
+
+  if (!session) {
+    return {
+      id: null,
+      status: null,
+      mode: null,
+      roomName: null,
+    };
+  }
 
   return {
     id: session.id,
     status: session.status,
     mode: session.mode,
-    roomName: session.roomName,
-    incomingCall,
+    roomName: session.livekitInfo?.roomName || null,
   };
 }

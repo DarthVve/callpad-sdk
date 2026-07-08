@@ -24,6 +24,15 @@
     },
     "clean": {
       "cache": false
+    },
+    "publish-packages": {
+      "dependsOn": ["build", "check-types"],
+      "cache": false,
+      "outputs": []
+    },
+    "typecheck": {
+      "cache": true,
+      "dependsOn": ["^typecheck"]
     }
   }
 }

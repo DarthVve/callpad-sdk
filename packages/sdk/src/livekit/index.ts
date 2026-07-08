@@ -1,12 +1,83 @@
-export * from "./types";
-export * from "./constants";
-export { LiveKitService } from "./livekit.service";
-export type { MediaErrorInfo } from "./error-classifier";
+// Re-export essential LiveKit client types that consumers might need
 export {
-  classifyMediaError,
-  MediaDeviceError,
-  MediaPermissionError,
-  MediaNotFoundError,
-  MediaInUseError,
-  MediaUnknownError,
-} from "./error-classifier";
+  Room,
+  Participant,
+  LocalParticipant,
+  RemoteParticipant,
+  Track,
+  LocalTrack,
+  RemoteTrack,
+  TrackPublication,
+  LocalTrackPublication,
+  RemoteTrackPublication,
+  ConnectionQuality,
+  ConnectionState,
+  ParticipantEvent,
+  RoomEvent,
+  TrackEvent,
+  DataPacket_Kind,
+  VideoPresets,
+} from "livekit-client";
+export type { RoomOptions } from "livekit-client";
+
+// Livekit hooks
+export {
+  usePagination,
+  useParticipants,
+  useRemoteParticipant,
+  useRemoteParticipants,
+  useConnectionQualityIndicator,
+  useEnsureParticipant,
+  useEnsureRoom,
+  useLocalParticipant,
+  useAudioPlayback,
+  useConnectionState,
+  useDataChannel,
+  useDisconnectButton,
+  useEnsureTrackRef,
+  useIsMuted,
+  useIsSpeaking,
+  useIsRecording,
+  useLiveKitRoom,
+  useLocalParticipantPermissions,
+  useMediaDevices,
+  useParticipantInfo,
+  useParticipantTracks,
+  usePersistentUserChoices,
+  usePinnedTracks,
+  usePreviewTracks,
+  useRoomContext,
+  useRoomInfo,
+  useSortedParticipants,
+  useSpeakingParticipants,
+  useStartAudio,
+  useStartVideo,
+  useSwipe,
+  useTextStream,
+  useTracks,
+  useTrackByName,
+  useTrackMutedIndicator,
+  useTrackToggle,
+  useTrackVolume,
+} from "@livekit/components-react";
+
+export {
+  AudioTrack,
+  LiveKitRoom,
+  ParticipantContext,
+  RoomAudioRenderer,
+  RoomContext,
+  StartAudio,
+  StartMediaButton,
+  VideoTrack,
+  useMediaDeviceSelect,
+} from "@livekit/components-react";
+
+export { BackgroundProcessor } from "@livekit/track-processors";
+
+export {
+  useVirtualBackground,
+  type UseVirtualBackgroundOptions,
+} from "../hooks/useVirtualBackground";
+
+export * from "./custom";

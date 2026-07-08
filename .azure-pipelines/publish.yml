@@ -1,0 +1,39 @@
+trigger:
+  branches:
+    include:
+      - nil
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  - name: NPM_TOKEN
+    value: $(npm-token) # Set this variable in Azure DevOps pipeline variables
+
+steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '18.x'
+    displayName: 'Install Node.js'
+
+  - script: npm install -g pnpm
+    displayName: 'Install pnpm'
+
+  - script: pnpm install
+    displayName: 'Install dependencies'
+
+  - script: pnpm run build
+    displayName: 'Build all packages'
+
+  - script: pnpm run check-types
+    displayName: 'Type check all packages'
+
+  - script: cp .npmrc.ci .npmrc
+    displayName: 'Setup npm authentication'
+    env:
+      NPM_TOKEN: $(NPM_TOKEN)
+
+  - script: pnpm publish-packages
+    displayName: 'Publish SDK to npm'
+    env:
+      NPM_TOKEN: $(NPM_TOKEN)

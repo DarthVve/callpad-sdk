@@ -1,60 +1,82 @@
-export type SessionStatus =
-  | "idle"
-  | "ringing"
-  | "accepted"
-  | "awaiting_join_info"
-  | "active"
-  | "ended";
+type Nullable<T> = T | null;
 
-export interface ParticipantState {
-  id: string;
-  name?: string;
-  isLocal: boolean;
-  isSpeaking: boolean;
-  audioMuted: boolean;
-  videoMuted: boolean;
-  metadata?: any;
+export type CallParticipantRole = "HOST" | "PARTICIPANT" | "GUEST";
+
+export interface Profile {
+  userId: string;
+  username: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  profilePhoto: string | null;
 }
 
-export interface TrackState {
-  sid: string;
-  participantId: string;
-  kind: "audio" | "video" | "screen";
+export interface ParticipantPermissions {
+  canMute: boolean;
+  canKick: boolean;
+  canTransfer: boolean;
+  canEnd: boolean;
+  canRecord: boolean;
+  canShareScreen: boolean;
 }
 
-export type PermissionStatus = "granted" | "denied" | "prompt" | "unknown";
-
-export interface DeviceState {
-  mics: MediaDeviceInfo[];
-  cams: MediaDeviceInfo[];
-  speakers: MediaDeviceInfo[];
-  selected: {
-    micId?: string;
-    camId?: string;
-    speakerId?: string;
-  };
-  permissions: {
-    camera: PermissionStatus;
-    microphone: PermissionStatus;
-  };
-  isLoading: boolean;
-}
-
-export interface IncomingCallInfo {
-  callId: string;
-  caller: {
-    id: string;
-    name: string;
-    avatarUrl?: string;
-  };
-  type: "audio" | "video";
-  timestamp: number;
+export interface ParticipantMetadata {
+  userId: string | number;
+  firstName: Nullable<string>;
+  lastName: Nullable<string>;
+  username: Nullable<string>;
+  email: Nullable<string>;
+  profilePhoto: Nullable<string>;
+  role: CallParticipantRole;
+  permissions: ParticipantPermissions;
 }
 
 export interface LiveKitJoinInfo {
   token: string;
   roomName: string;
+  url: string;
+}
+
+export interface RecordingInfo {
+  recordingId: string;
+  egressId: string;
+  startedAt: string;
+  initiatedBy?: string;
+}
+
+export type SessionType = "CALL" | "MEETING";
+
+export interface MeetingInfo {
+  meetingId: string;
+  meetingCode: string;
+}
+
+export interface Session {
+  id: string;
+  status: "initializing" | "pending" | "ready" | "active" | "ended";
+  mode: "AUDIO" | "VIDEO";
+  role: "HOST" | "PARTICIPANT" | "GUEST";
+  livekitInfo?: LiveKitJoinInfo;
+  startedAt?: string;
+  ringTimeoutMs?: number;
+  recording?: RecordingInfo | null;
+  sessionType?: SessionType;
+  meetingInfo?: MeetingInfo;
+}
+
+export interface IncomingInvite {
   callId: string;
+  inviteId: string;
+  caller: ParticipantMetadata;
+  mode: "AUDIO" | "VIDEO";
+  expiresAt: string;
+  expiresInMs: number;
+  ringTimeoutMs: number;
+}
+
+export interface OutgoingInvite {
+  userId: string;
+  status: "sent" | "accepted" | "declined" | "missed";
+  participant?: Omit<ParticipantMetadata, "permissions"> | undefined;
 }
 
 export interface RtcError {
@@ -64,50 +86,62 @@ export interface RtcError {
   context?: any;
 }
 
+export interface GuestIdentity {
+  guestId: string;
+  displayName: string;
+}
+
 export interface RtcState {
-  session: {
-    id?: string;
-    status: SessionStatus;
-    roomName?: string;
-    mode?: "audio" | "video";
-    livekitInfo?: LiveKitJoinInfo;
-  };
+  // Did we initiate the current call?
+  initiated: boolean;
 
-  connection: {
-    connected: boolean;
-    reconnecting: boolean;
-    quality?: "excellent" | "good" | "poor" | "lost";
-  };
+  // Active session (null when no active call)
+  session: Session | null;
 
-  local: {
-    audioEnabled: boolean;
-    videoEnabled: boolean;
-    screenEnabled: boolean;
-  };
+  // Incoming invitation (null when no pending invite)
+  incomingInvite: IncomingInvite | null;
 
-  participants: Record<string, ParticipantState>;
-  tracks: Record<string, TrackState>;
-  devices: DeviceState;
+  outgoingInvites: Record<string, OutgoingInvite>;
+
+  // Error tracking
   errors: RtcError[];
-  incomingCall?: IncomingCallInfo;
+
+  // Guest mode state
+  guestIdentity: GuestIdentity | null;
+  isGuestMode: boolean;
 }
 
 export const defaultState: RtcState = {
-  session: { status: "idle" },
-  connection: { connected: false, reconnecting: false },
-  local: { audioEnabled: false, videoEnabled: false, screenEnabled: false },
-  participants: {},
-  tracks: {},
-  devices: {
-    mics: [],
-    cams: [],
-    speakers: [],
-    selected: {},
-    permissions: {
-      camera: "unknown",
-      microphone: "unknown",
-    },
-    isLoading: false,
-  },
+  initiated: false,
+  session: null,
+  incomingInvite: null,
+  outgoingInvites: {},
   errors: [],
+  guestIdentity: null,
+  isGuestMode: false,
 };
+
+import type { Participant } from "livekit-client";
+
+export interface ParticipantListOptions {
+  pageSize?: number;
+  includeLocalParticipant?: boolean;
+  sortBy?: "speaking" | "name" | "raised-hand";
+}
+
+export interface ParticipantListReturn {
+  participants: Participant[];
+  pinnedParticipants: Participant[];
+  currentPage: number;
+  totalPages: number;
+  pageSize: number;
+  totalParticipants: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+  nextPage: () => void;
+  prevPage: () => void;
+  setPageSize: (size: number) => void;
+  togglePin: (participantId: string) => void;
+  clearPinned: () => void;
+  isPinned: (participantId: string) => boolean;
+}

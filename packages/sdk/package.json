@@ -1,51 +1,98 @@
 {
-  "name": "callpad-sdk",
-  "version": "0.1.0",
-  "description": "Headless SDK for Gopaddi audio/video",
-  "main": "./dist/index.js",
+  "name": "vg-x07df",
+  "version": "1.9.5",
+  "description": "Headless SDK for callpad audio/video",
+  "type": "module",
+  "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
+      "require": "./dist/index.cjs"
+    },
+    "./livekit": {
+      "types": "./dist/livekit/index.d.ts",
+      "import": "./dist/livekit/index.mjs",
+      "require": "./dist/livekit/index.cjs"
+    },
+    "./utils": {
+      "types": "./dist/utils/index.d.ts",
+      "import": "./dist/utils/index.mjs",
+      "require": "./dist/utils/index.cjs"
+    },
+    "./channel": {
+      "types": "./dist/channel/index.d.ts",
+      "import": "./dist/channel/index.mjs",
+      "require": "./dist/channel/index.cjs"
     }
   },
+  "sideEffects": false,
   "files": [
-    "dist",
+    "dist/**/*",
     "README.md",
+    "LICENSE",
     "CHANGELOG.md"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "generate:api": "openapi-ts",
+    "generate:socket": "tsx scripts/generate-socket-types.ts",
+    "generate": "pnpm generate:api && pnpm generate:socket",
     "build": "tsup",
     "dev": "tsup --watch",
-    "check-types": "tsc --noEmit",
-    "clean": "rm -rf dist"
+    "typecheck": "tsc --noEmit",
+    "clean": "rimraf dist",
+    "prepublishOnly": "npm run clean && npm run build && npm run typecheck"
   },
   "author": "Voyatek Group",
   "repository": {
-    "type": "git"
+    "type": "git",
+    "url": "https://dev.azure.com/VoyatekGroup/Team%20Dubai/_git/callpad-web-sdk",
+    "directory": "packages/sdk"
   },
   "peerDependencies": {
-    "react": ">=16.8.0",
-    "react-dom": ">=16.8.0"
+    "livekit-client": "^2.8.0",
+    "react": ">=18",
+    "react-dom": ">=18",
+    "socket.io-client": "^4.7.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": false
+    },
+    "react-dom": {
+      "optional": false
+    }
   },
   "dependencies": {
-    "livekit-client": "^2.8.0",
-    "socket.io-client": "^4.7.0",
+    "@livekit/components-react": "^2.9.15",
+    "@livekit/components-styles": "^1.1.6",
+    "@livekit/track-processors": "^0.6.1",
+    "@types/node": "^24.8.1",
     "axios": "^1.6.0",
+    "immer": "^10.0.0",
     "jwt-decode": "^4.0.0",
-    "zustand": "^4.5.0",
-    "immer": "^10.0.0"
+    "livekit-client": "^2.15.8",
+    "mitt": "^3.0.1",
+    "nanoid": "^5.1.6",
+    "zod": "^3.22.0",
+    "zustand": "^4.5.0"
   },
   "devDependencies": {
     "@hey-api/openapi-ts": "^0.37.0",
-    "tsup": "^8.0.0",
-    "typescript": "^5.2.0",
     "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0"
+    "@types/react-dom": "^18.2.0",
+    "json-schema-to-zod": "^2.6.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "rimraf": "^6.0.0",
+    "tsup": "^8.0.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.2.0"
   },
   "engines": {
     "node": ">=18"

@@ -1,92 +1,172 @@
-# Turborepo starter
+# CallPad Web SDK
 
-This Turborepo starter is maintained by the Turborepo core team.
+A Turborepo monorepo containing the CallPad Web SDK and related packages.
 
-## Using this example
+## Project Structure
 
-Run the following command:
+This monorepo includes the following packages:
 
-```sh
-npx create-turbo@latest
+### Packages
+
+- `packages/sdk` - CallPad SDK (`vg-x07df`) - Production-ready headless SDK for CallPad audio/video calls
+- `examples/demo` - Demo application showcasing CallPad SDK features
+
+### Tools & Configuration
+
+- **Turborepo** for build orchestration and monorepo management
+- **pnpm** as the package manager
+- **TypeScript** for type checking
+- **Biome** for code linting and formatting
+- **Changesets** for version management and publishing
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js ≥18
+- pnpm ≥9.0.0
+
+### Installation
+
+```bash
+# Install dependencies
+pnpm install
+
+# Build all packages
+pnpm build
+
+# Run type checking
+pnpm check-types
+
+# Run linting
+pnpm lint
 ```
 
-## What's inside?
+### Development
 
-This Turborepo includes the following packages/apps:
+```bash
+# Start development mode
+pnpm dev
 
-### Apps and Packages
+# Start development for SDK only
+pnpm dev --filter=vg-x07df
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+# Start demo application
+pnpm dev --filter=callpad-demo
 ```
 
-You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+### Building
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
+```bash
+# Build all packages
+pnpm build
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
+# Build SDK only
+pnpm build --filter=vg-x07df
 
-### Develop
-
-To develop all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
+# Build with type checking
+pnpm build && pnpm check-types
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+## Publishing Packages
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
+This project uses [Changesets](https://github.com/changesets/changesets) for version management and publishing. The main publishable package is the CallPad SDK (`vg-x07df`).
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+### Prerequisites for Publishing
+
+1. **NPM Authentication**: Ensure you have npm access and authentication configured
+   ```bash
+   npm login
+   # or set NPM_TOKEN in your .env file
+   ```
+
+2. **Environment Setup**: Create a `.env` file in the root with your npm token:
+   ```bash
+   NPM_TOKEN=your_npm_token_here
+   ```
+
+### Publishing Workflow
+
+#### 1. Create a Changeset
+
+When you make changes that should be included in the next release, create a changeset:
+
+```bash
+# Create a new changeset (interactive)
+pnpm changeset
 ```
+
+This will:
+- Prompt you to select which packages to include
+- Ask for the type of change (major, minor, patch)
+- Request a summary of the changes
+
+#### 2. Version Packages
+
+When you're ready to release, update package versions based on changesets:
+
+```bash
+# Process changesets and bump versions
+pnpm version
+```
+
+This will:
+- Update package.json versions according to changesets
+- Update CHANGELOG.md files
+- Remove processed changeset files
+
+#### 3. Publish to npm
+
+Publish the updated packages:
+
+```bash
+# Build, type-check, and publish to npm
+pnpm publish
+
+# Or test the publishing process first
+pnpm publish:dry
+```
+
+This command:
+- Builds only the SDK package (`--filter=vg-x07df`)
+- Runs type checking to ensure code quality
+- Publishes to npm registry with proper authentication
+
+### Changeset Types
+
+- **Patch** (`1.0.0 → 1.0.1`): Bug fixes, small updates
+- **Minor** (`1.0.0 → 1.1.0`): New features, backward-compatible changes
+- **Major** (`1.0.0 → 2.0.0`): Breaking changes
+
+### Example Publishing Flow
+
+```bash
+# 1. Make your changes to the SDK
+# 2. Create a changeset
+pnpm changeset
+# Select packages: vg-x07df
+# Change type: patch/minor/major
+# Summary: "Add new useCallQuality hook"
+
+# 3. Commit your changes
+git add .
+git commit -m "feat: add useCallQuality hook"
+
+# 4. When ready to release, process changesets
+pnpm version
+
+# 5. Publish to npm
+pnpm publish
+
+# 6. Push the version changes
+git push && git push --tags
+```
+
+### CI/CD Publishing
+
+The Azure pipeline (`.azure-pipelines/publish.yml`) automatically publishes when:
+- Changes are pushed to the `main` branch
+- The `NPM_TOKEN` environment variable is configured in Azure DevOps
 
 ### Remote Caching
 
